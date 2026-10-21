@@ -1,0 +1,3537 @@
+/* ============================================================
+   INNER PAGES — matched to Website Design.pdf pages 8–32.
+   Each page root is a size container, so 1 design pixel is
+   100cqw / 1920 of the page's real width (scrollbar excluded):
+   a 1920px-wide window reproduces the PDF exactly and other
+   widths keep its proportions. Only applies from 1100px wide;
+   smaller screens keep the existing responsive layout.
+   Selectors start with `html body` so they win over the many
+   page-specific !important rules in globals.css.
+   ============================================================ */
+
+@media (min-width: 1100px) {
+
+    .collection-page-root,
+    .atelier-page-root,
+    .product-page-root,
+    .bag-page-root,
+    .checkout-page-root,
+    .confirmed-page-root,
+    .design-log-page-root,
+    .dl-subpage-root,
+    .about-page,
+    .about-hero-page-root,
+    .about-normal-page-root,
+    .legacy-page-root {
+        container-type: inline-size;
+        --p: calc(100cqw / 1920);
+    }
+
+    /* ---- Shared inner-page header (PDF p.8 and onwards) --------
+       99px tall, rule at y = 99 from x 66 to 1854, logo at x 70,
+       nav as on the home page, icons ending at x 1845.          */
+    html body .main-header:not(.slider-root-wrapper .main-header) {
+        height: calc(99 * var(--p)) !important;
+        padding: 0 calc(66 * var(--p)) !important;
+        border-bottom: none !important;
+        box-shadow: none !important;
+    }
+
+    html body .main-header:not(.slider-root-wrapper .main-header) .header-container {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+        border-bottom: 1px solid currentColor;
+        /* items sit 57px from the top in a 99px band */
+        padding: calc(16 * var(--p)) calc(9 * var(--p)) 0 calc(4 * var(--p));
+        align-items: center !important;
+    }
+
+    html body .main-header:not(.slider-root-wrapper .main-header) .header-logo-text {
+        font-size: calc(40 * var(--p));
+    }
+
+    html body .main-header:not(.slider-root-wrapper .main-header) .nav-menu {
+        justify-self: center;
+        gap: calc(69 * var(--p));
+    }
+
+    html body .main-header:not(.slider-root-wrapper .main-header) .nav-link {
+        font-size: calc(20 * var(--p)) !important;
+        letter-spacing: 0.1em !important;
+        position: relative;
+    }
+
+    html body .main-header:not(.slider-root-wrapper .main-header) .header-icons {
+        justify-self: end;
+        gap: calc(37 * var(--p)) !important;
+    }
+
+    html body .main-header:not(.slider-root-wrapper .main-header) .header-icons svg {
+        width: calc(40 * var(--p));
+        height: calc(40 * var(--p));
+    }
+
+    /* Active page — brush-stroke underline (PDF: x 617–791, y 73–76) */
+    html body .main-header:not(.slider-root-wrapper .main-header) .nav-link.active-underlined,
+    html body .main-header:not(.slider-root-wrapper .main-header) .nav-link:hover {
+        border-bottom: none !important;
+    }
+
+    html body .main-header:not(.slider-root-wrapper .main-header) .nav-link.active-underlined::after {
+        content: "";
+        position: absolute;
+        left: calc(-29 * var(--p));
+        right: calc(6 * var(--p));
+        top: calc(100% + 3 * var(--p));
+        height: calc(3 * var(--p));
+        border-radius: 50% / 100% 0 0 100%;
+        background: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, currentColor 18%, currentColor 100%);
+        opacity: 0.9;
+    }
+
+    /* ---- Shared type helpers ------------------------------------ */
+    html body .collection-page-root .collection-subtitle,
+    html body .collection-page-root .how-intro-left .collection-subtitle {
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        padding-left: calc(4 * var(--p)) !important;
+        display: block !important;
+    }
+
+    html body .collection-page-root .subtitle-underline-wrapper {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+    }
+
+    html body .collection-page-root .subtitle-line,
+    html body .collection-page-root .how-intro-left .subtitle-line {
+        width: calc(75 * var(--p)) !important;
+        height: calc(2 * var(--p)) !important;
+        min-height: 1px;
+        background: #000 !important;
+        margin: calc(13 * var(--p)) 0 0 !important;
+        opacity: 1 !important;
+    }
+
+    /* ---- PDF p.8–10: /collection -------------------------------- */
+    html body .collection-page-root .collection-main-container {
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: calc(163 * var(--p)) calc(150 * var(--p)) 0 !important;
+    }
+
+    html body .collection-page-root .collection-intro {
+        display: grid !important;
+        grid-template-columns: calc(814 * var(--p)) 1fr !important;
+        align-items: start !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    html body .collection-page-root .collection-intro-left .collection-title,
+    html body .collection-page-root .how-title {
+        font-family: var(--font-display) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.14 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        margin: calc(25 * var(--p)) 0 0 !important;
+        padding-left: calc(4 * var(--p)) !important;
+        max-width: none !important;
+        white-space: nowrap;
+    }
+
+    html body .collection-page-root .collection-intro-right,
+    html body .collection-page-root .how-intro-right {
+        display: block !important;
+        padding: calc(96 * var(--p)) 0 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+        text-align: left !important;
+        justify-self: stretch !important;
+        align-self: start !important;
+    }
+
+    html body .collection-page-root .how-intro-right {
+        padding-top: calc(83 * var(--p)) !important;
+    }
+
+    html body .collection-page-root .collection-intro-right p,
+    html body .collection-page-root .how-intro-right p {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+        max-width: none !important;
+        text-align: left !important;
+    }
+
+    html body .collection-page-root .collection-grid-4col {
+        display: grid !important;
+        grid-template-columns: repeat(4, calc(375 * var(--p))) !important;
+        column-gap: calc(40 * var(--p)) !important;
+        row-gap: calc(52 * var(--p)) !important;
+        margin: calc(35 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+    }
+
+    html body .collection-page-root .collection-card-item {
+        gap: 0 !important;
+        width: calc(375 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .collection-page-root .card-media-frame {
+        width: calc(375 * var(--p)) !important;
+        height: calc(500 * var(--p)) !important;
+        aspect-ratio: auto !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    html body .collection-page-root .card-media-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+    }
+
+    html body .collection-page-root .card-item-title {
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        color: #000 !important;
+        margin: calc(15 * var(--p)) 0 0 !important;
+        padding: 0 0 0 calc(5 * var(--p)) !important;
+        text-align: left !important;
+    }
+
+    /* How it works — grey rule at y 1550, 50px under the grid */
+    html body .collection-page-root .how-it-works-section {
+        margin: calc(50 * var(--p)) 0 0 !important;
+        padding: calc(46 * var(--p)) 0 0 !important;
+        border-top: 1px solid #A9A9A9 !important;
+        max-width: none !important;
+    }
+
+    html body .collection-page-root .how-it-works-header {
+        display: grid !important;
+        grid-template-columns: calc(813 * var(--p)) 1fr !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        align-items: start !important;
+    }
+
+    html body .collection-page-root .how-intro-left .subtitle-underline-wrapper {
+        margin: 0 !important;
+    }
+
+    html body .collection-page-root .steps-row {
+        display: grid !important;
+        grid-template-columns: repeat(5, calc(324 * var(--p))) !important;
+        gap: 0 !important;
+        margin: calc(35 * var(--p)) 0 0 !important;
+        padding: 0 0 0 calc(3 * var(--p)) !important;
+        max-width: none !important;
+    }
+
+    html body .collection-page-root .step-col {
+        margin: 0 !important;
+        padding: 0 !important;
+        text-align: left !important;
+        border: none !important;
+    }
+
+    html body .collection-page-root .step-top-header {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .collection-page-root .step-number {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 700 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+    }
+
+    html body .collection-page-root .step-name {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        margin: 0 !important;
+    }
+
+    html body .collection-page-root .step-line {
+        width: calc(75 * var(--p)) !important;
+        height: 1px !important;
+        background: #212121 !important;
+        margin: calc(22 * var(--p)) 0 0 calc(-4 * var(--p)) !important;
+        opacity: 1 !important;
+    }
+
+    html body .collection-page-root .step-text {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        opacity: 1 !important;
+        width: calc(200 * var(--p)) !important;
+        max-width: none !important;
+        margin: calc(19 * var(--p)) 0 0 !important;
+    }
+
+    /* Sub-footer — grey rule, "PINTAARA COLLECTION", promise line */
+    html body .collection-page-root .collection-subfooter-block {
+        margin: calc(48 * var(--p)) 0 0 !important;
+        padding: calc(46 * var(--p)) 0 calc(43 * var(--p)) !important;
+        border-top: 1px solid #A9A9A9 !important;
+        border-bottom: none !important;
+        text-align: center !important;
+        max-width: none !important;
+        display: block !important;
+    }
+
+    html body .collection-page-root .subfooter-tag {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+    }
+
+    html body .collection-page-root .subfooter-text {
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        margin: calc(10 * var(--p)) 0 0 !important;
+    }
+
+    /* ---- Shared page footer bar (PDF p.10, 12, 13 …) -----------
+       black rule from x 66 to 1854, then PINTAARA® left and
+       © ALL RIGHTS RESERVED. right, 18px, 34px below the rule.   */
+    html body .collection-bottom-bar {
+        margin: 0 calc(66 * var(--p)) !important;
+        padding: calc(34 * var(--p)) calc(4 * var(--p)) 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        height: calc(99 * var(--p)) !important;
+        border-top: 1px solid currentColor !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        background: transparent !important;
+    }
+
+    html body .collection-bottom-bar span,
+    html body .collection-bottom-bar .bottom-brand,
+    html body .collection-bottom-bar .bottom-copyright,
+    html body .collection-bottom-bar.subpage-footer .bottom-brand.footer-brand,
+    html body .collection-bottom-bar.subpage-footer .bottom-copyright.footer-right {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.389 !important;
+        letter-spacing: 0 !important;
+        opacity: 1 !important;
+    }
+
+    html body .collection-page-root .collection-bottom-bar,
+    html body .collection-page-root .collection-bottom-bar span {
+        color: #000 !important;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- PDF p.11–12: category listing (/collection/pendants) ---
+       label at y 163, 375×500 frames from y 268 (rows 681px apart),
+       design name 16px 12px under the frame, code 20px, price 20px. */
+    html body .collection-page-root .category-subpage-header {
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    html body .collection-page-root:has(.category-subpage-header) .collection-main-container {
+        padding: calc(163 * var(--p)) calc(150 * var(--p)) 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+
+    html body .collection-page-root:has(.category-subpage-header) .collection-grid-4col {
+        margin-top: calc(64 * var(--p)) !important;
+        row-gap: calc(74 * var(--p)) !important;
+    }
+
+    html body .collection-page-root .category-product-card {
+        display: block !important;
+        width: calc(375 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        text-decoration: none !important;
+    }
+
+    html body .collection-page-root .category-product-info {
+        display: block !important;
+        margin: calc(12 * var(--p)) 0 0 !important;
+        padding: 0 0 0 calc(4 * var(--p)) !important;
+        text-align: left !important;
+    }
+
+    html body .collection-page-root .cat-prod-collection {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(16 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.375 !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        color: #3C3732 !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+        min-height: calc(22 * var(--p));
+    }
+
+    html body .collection-page-root .cat-prod-code {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        margin: calc(11 * var(--p)) 0 0 !important;
+    }
+
+    html body .collection-page-root .cat-prod-price {
+        display: block !important;
+        font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        margin: calc(8 * var(--p)) 0 0 !important;
+    }
+
+    /* grey rule 65px below the last row of prices */
+    html body .collection-page-root:has(.category-subpage-header) .collection-subfooter-block {
+        margin-top: calc(65 * var(--p)) !important;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- PDF p.13: product page (/collection/PD-SG-OR-001) -----
+       650x650 photo at x 150, y 159; 100px thumbnails below;
+       656px spec column from x 1114 to 1770.                     */
+    html body .atelier-page-root .atelier-main-container {
+        display: grid !important;
+        grid-template-columns: calc(650 * var(--p)) calc(656 * var(--p)) !important;
+        column-gap: calc(314 * var(--p)) !important;
+        align-items: start !important;
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: calc(157 * var(--p)) calc(150 * var(--p)) 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-media-column {
+        width: calc(650 * var(--p)) !important;
+        max-width: none !important;
+        margin: calc(2 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+        position: static !important;
+    }
+
+    html body .atelier-page-root .atelier-main-preview-box {
+        width: calc(650 * var(--p)) !important;
+        height: calc(650 * var(--p)) !important;
+        aspect-ratio: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    html body .atelier-page-root .atelier-main-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    html body .atelier-page-root .atelier-thumbnails-row {
+        display: flex !important;
+        gap: calc(23.5 * var(--p)) !important;
+        margin: calc(6 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+        justify-content: flex-start !important;
+    }
+
+    html body .atelier-page-root .atelier-thumb-card {
+        width: calc(100 * var(--p)) !important;
+        height: calc(100 * var(--p)) !important;
+        flex: 0 0 auto !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-product-title,
+    html body .atelier-page-root .atelier-product-subtitle,
+    html body .atelier-page-root .atelier-spec-label {
+        padding-left: calc(4 * var(--p)) !important;
+    }
+
+    html body .atelier-page-root .atelier-specs-column {
+        width: calc(656 * var(--p)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Code 50px, design name 16px, 76x2 rule */
+    html body .atelier-page-root .atelier-product-title {
+        font-family: var(--font-body) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.38 !important;
+        letter-spacing: 0.1em !important;
+        text-transform: uppercase !important;
+        color: #000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-product-subtitle {
+        font-family: var(--font-body) !important;
+        font-size: calc(16 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.375 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        opacity: 1 !important;
+        margin: calc(4 * var(--p)) 0 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-specs-divider {
+        width: calc(76 * var(--p)) !important;
+        height: calc(2 * var(--p)) !important;
+        min-height: 1px;
+        background: #000 !important;
+        margin: calc(16 * var(--p)) 0 0 calc(-4 * var(--p)) !important;
+        opacity: 1 !important;
+    }
+
+    html body .atelier-page-root .atelier-control-group {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-spec-label {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        font-weight: 700 !important;
+        line-height: 1.39 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        opacity: 1 !important;
+        margin: calc(17 * var(--p)) 0 calc(16 * var(--p)) !important;
+    }
+
+    /* Purity buttons and finish swatches: 125x36, 177px apart */
+    html body .atelier-page-root .atelier-purity-row,
+    html body .atelier-page-root .atelier-finish-row {
+        display: grid !important;
+        grid-template-columns: repeat(4, calc(125 * var(--p))) !important;
+        gap: 0 calc(52 * var(--p)) !important;
+        margin: 0 !important;
+        width: auto !important;
+    }
+
+    html body .atelier-page-root .atelier-purity-btn,
+    html body .atelier-page-root .atelier-finish-bar {
+        width: calc(125 * var(--p)) !important;
+        height: calc(36 * var(--p)) !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        transform: none !important;
+    }
+
+    html body .atelier-page-root .atelier-purity-btn {
+        background: transparent !important;
+    }
+
+    html body .atelier-page-root .atelier-purity-btn.active,
+    html body .atelier-page-root .atelier-finish-bar.active {
+        border: 2px solid #000 !important;
+        outline: none !important;
+    }
+
+    html body .atelier-page-root .atelier-finish-bar-label {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        text-shadow: none !important;
+        background: none !important;
+        padding: 0 !important;
+        opacity: 1 !important;
+    }
+
+    html body .atelier-page-root .atelier-finish-bar-label.is-light {
+        color: #FFFFFF !important;
+    }
+
+    /* Size select (302x36) with gem icons alongside at x 1468 */
+    html body .atelier-page-root .atelier-size-gem-row {
+        display: grid !important;
+        grid-template-columns: calc(302 * var(--p)) 1fr !important;
+        gap: 0 calc(51 * var(--p)) !important;
+        margin: calc(2 * var(--p)) 0 0 !important;
+        align-items: start !important;
+    }
+
+    html body .atelier-page-root .atelier-size-gem-row .atelier-control-group:last-child .atelier-spec-label {
+        padding-left: calc(4 * var(--p)) !important;
+    }
+
+    html body .atelier-page-root .atelier-box-select-wrapper {
+        width: calc(302 * var(--p)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-box-select {
+        width: calc(302 * var(--p)) !important;
+        height: calc(36 * var(--p)) !important;
+        padding: 0 !important;
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        background-color: transparent !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        color: #3C3732 !important;
+        text-align: center !important;
+        text-align-last: center !important;
+    }
+
+    html body .atelier-page-root .atelier-gems-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: calc(6 * var(--p)) !important;
+        height: calc(36 * var(--p)) !important;
+        margin: 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-size-gem-row + .atelier-control-group {
+        margin-top: calc(2 * var(--p)) !important;
+    }
+
+    /* Price block: rule at y 802, price 30px, buttons 350x50 */
+    html body .atelier-page-root .atelier-bottom-action-row {
+        margin: calc(152 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    html body .atelier-page-root .atelier-btn-accent-line {
+        width: 100% !important;
+        height: 1px !important;
+        background: #000 !important;
+        opacity: 0.6 !important;
+        margin: 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-bottom-inner {
+        display: grid !important;
+        grid-template-columns: 1fr calc(350 * var(--p)) !important;
+        column-gap: calc(20 * var(--p)) !important;
+        align-items: start !important;
+        margin: calc(13 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+    }
+
+    /* PDF shows the price first; the MRP note moves under it */
+    html body .atelier-page-root .atelier-price-block {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        margin: 0 !important;
+        padding: 0 0 0 calc(4 * var(--p)) !important;
+    }
+
+    html body .atelier-page-root .atelier-price-label {
+        order: 3;
+        margin: calc(4 * var(--p)) 0 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-price-value {
+        font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        margin: 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-taxes-link {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        line-height: 1.39 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        margin: calc(4 * var(--p)) 0 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-buttons-block {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: calc(8 * var(--p)) !important;
+        width: calc(350 * var(--p)) !important;
+        margin: calc(-1 * var(--p)) 0 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-btn-add-to-bag,
+    html body .atelier-page-root .atelier-btn-view-spec {
+        width: calc(350 * var(--p)) !important;
+        height: calc(50 * var(--p)) !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        box-shadow: none !important;
+    }
+
+    html body .atelier-page-root .atelier-btn-add-to-bag {
+        background: #212121 !important;
+        color: #FFFFFF !important;
+        border: 1px solid #000 !important;
+    }
+
+    html body .atelier-page-root .atelier-btn-view-spec {
+        background: transparent !important;
+        color: #3C3732 !important;
+        border: 1px solid #000 !important;
+    }
+
+    html body .atelier-page-root .collection-bottom-bar {
+        margin-top: calc(58 * var(--p)) !important;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- PDF p.14: bag (/bag) ------------------------------------
+       BAG 30px at y 163, "/ ORDER SUMMARY" 20px, table across
+       x 150–1770: Item | Details | Price | Qty | Total | remove.
+       Price, Qty and Total are centred over their values.        */
+    html body .bag-page-root .bag-main-container {
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: calc(163 * var(--p)) calc(150 * var(--p)) 0 !important;
+    }
+
+    html body .bag-page-root .bag-header-block {
+        margin: 0 !important;
+        padding: 0 0 0 calc(4 * var(--p)) !important;
+        border: none !important;
+        text-align: left !important;
+    }
+
+    html body .bag-page-root .bag-title {
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        margin: 0 !important;
+    }
+
+    html body .bag-page-root .bag-subtitle {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        margin: calc(8 * var(--p)) 0 0 !important;
+    }
+
+    html body .bag-page-root .bag-content-wrapper,
+    html body .bag-page-root .cart-table-container {
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .bag-page-root .cart-table-header,
+    html body .bag-page-root .cart-table-row {
+        display: grid !important;
+        grid-template-columns:
+            calc(325 * var(--p)) calc(444 * var(--p)) calc(87 * var(--p)) calc(197 * var(--p))
+            calc(169 * var(--p)) calc(195 * var(--p)) calc(86 * var(--p)) calc(92 * var(--p)) calc(25 * var(--p))  !important;
+        gap: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    html body .bag-page-root .cart-table-header {
+        margin: calc(35 * var(--p)) 0 0 !important;
+        padding: 0 0 calc(13 * var(--p)) !important;
+        border: none !important;
+        border-bottom: 1px solid #A9A9A9 !important;
+        align-items: end !important;
+    }
+
+    html body .bag-page-root .col-item { grid-column: 1 !important; }
+    html body .bag-page-root .col-details { grid-column: 2 !important; }
+    html body .bag-page-root .col-price { grid-column: 3 !important; }
+    html body .bag-page-root .col-qty { grid-column: 5 !important; }
+    html body .bag-page-root .col-total { grid-column: 7 !important; }
+    html body .bag-page-root .col-action { grid-column: 9 !important; }
+
+    html body .bag-page-root .th-col,
+    html body .bag-page-root .td-col {
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    html body .bag-page-root .th-col {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        color: #000 !important;
+        opacity: 1 !important;
+    }
+
+    html body .bag-page-root .col-item,
+    html body .bag-page-root .col-details {
+        text-align: left !important;
+        justify-content: flex-start !important;
+    }
+
+    html body .bag-page-root .th-col.col-item,
+    html body .bag-page-root .th-col.col-details,
+    html body .bag-page-root .td-col.col-details {
+        padding-left: calc(4 * var(--p)) !important;
+    }
+
+    html body .bag-page-root .col-price,
+    html body .bag-page-root .col-qty,
+    html body .bag-page-root .col-total {
+        text-align: center !important;
+        justify-content: center !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    html body .bag-page-root .th-col.col-price,
+    html body .bag-page-root .th-col.col-qty,
+    html body .bag-page-root .th-col.col-total {
+        align-items: flex-end !important;
+    }
+
+    /* Rows: 150px thumbnail, 26px above each row and below the last */
+    html body .bag-page-root .cart-table-body {
+        padding: 0 0 calc(26 * var(--p)) !important;
+        margin: 0 !important;
+        border: none !important;
+        border-bottom: 1px solid #A9A9A9 !important;
+    }
+
+    html body .bag-page-root .cart-table-row {
+        align-items: center !important;
+        margin: calc(27 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        min-height: 0 !important;
+    }
+
+    html body .bag-page-root .cart-item-img-wrapper {
+        width: calc(150 * var(--p)) !important;
+        height: calc(150 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    html body .bag-page-root .cart-item-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    html body .bag-page-root .cart-item-code {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 700 !important;
+        line-height: 1.4 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        margin: 0 !important;
+    }
+
+    html body .bag-page-root .cart-item-specs {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        margin: 0 !important;
+    }
+
+    html body .bag-page-root .spec-line {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.389 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+    }
+
+    html body .bag-page-root .price-val {
+        white-space: nowrap !important;
+        font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+    }
+
+    /* Quantity: — 1 + spread over 161px, 25px glyphs */
+    html body .bag-page-root .qty-control-box {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: calc(161 * var(--p)) !important;
+        height: auto !important;
+        padding: 0 !important;
+        border: none !important;
+        background: none !important;
+        gap: 0 !important;
+    }
+
+    html body .bag-page-root .qty-btn {
+        font-family: var(--font-body) !important;
+        font-size: calc(25 * var(--p)) !important;
+        line-height: 1.36 !important;
+        color: #000 !important;
+        width: auto !important;
+        height: auto !important;
+        padding: 0 !important;
+        border: none !important;
+        background: none !important;
+    }
+
+    html body .bag-page-root .qty-val {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        color: #000 !important;
+        min-width: 0 !important;
+    }
+
+    html body .bag-page-root .td-col.col-action {
+        align-self: start !important;
+        justify-content: flex-end !important;
+        display: flex !important;
+    }
+
+    html body .bag-page-root .remove-item-btn {
+        font-family: var(--font-body) !important;
+        font-size: calc(25 * var(--p)) !important;
+        line-height: 1.36 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        margin: calc(4 * var(--p)) 0 0 !important;
+        background: none !important;
+        border: none !important;
+    }
+
+    /* Totals left (x 154 / 694), grand total + buttons right */
+    html body .bag-page-root .bag-summary-totals-wrapper {
+        display: grid !important;
+        grid-template-columns: 1fr calc(350 * var(--p)) !important;
+        align-items: start !important;
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: calc(29 * var(--p)) 0 0 !important;
+        border: none !important;
+    }
+
+    html body .bag-page-root .summary-breakdown-box {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 0 0 calc(4 * var(--p)) !important;
+        border: none !important;
+        background: none !important;
+    }
+
+    html body .bag-page-root .summary-breakdown-row {
+        display: grid !important;
+        grid-template-columns: calc(540 * var(--p)) auto !important;
+        gap: 0 !important;
+        justify-content: start !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    html body .bag-page-root .breakdown-label,
+    html body .bag-page-root .breakdown-value {
+        font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        text-align: left !important;
+        color: #000 !important;
+        opacity: 1 !important;
+    }
+
+    html body .bag-page-root .breakdown-value.status-free {
+        color: #878564 !important;
+    }
+
+    html body .bag-page-root .summary-grand-total-box {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: calc(350 * var(--p)) !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: none !important;
+    }
+
+    html body .bag-page-root .grand-total-display {
+        text-align: right !important;
+        margin: 0 !important;
+        padding: 0 calc(4 * var(--p)) 0 0 !important;
+    }
+
+    html body .bag-page-root .grand-total-amount {
+        display: block !important;
+        font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+    }
+
+    html body .bag-page-root .grand-total-subtext {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        line-height: 1.389 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        margin: calc(4 * var(--p)) 0 0 !important;
+    }
+
+    html body .bag-page-root .bag-action-buttons-group {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: calc(8 * var(--p)) !important;
+        margin: calc(9 * var(--p)) 0 0 !important;
+        width: calc(350 * var(--p)) !important;
+    }
+
+    html body .bag-page-root .proceed-checkout-btn,
+    html body .bag-page-root .continue-shopping-btn {
+        width: calc(350 * var(--p)) !important;
+        height: calc(50 * var(--p)) !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        box-shadow: none !important;
+    }
+
+    html body .bag-page-root .proceed-checkout-btn {
+        background: #212121 !important;
+        color: #FFFFFF !important;
+        border: 1px solid #000 !important;
+    }
+
+    html body .bag-page-root .continue-shopping-btn {
+        background: transparent !important;
+        color: #3C3732 !important;
+        border: 1px solid #000 !important;
+    }
+
+    html body .bag-page-root .collection-bottom-bar {
+        margin-top: calc(70 * var(--p)) !important;
+    }
+
+    html body .bag-page-root .collection-bottom-bar,
+    html body .bag-page-root .collection-bottom-bar span,
+    html body .checkout-page-root .collection-bottom-bar,
+    html body .checkout-page-root .collection-bottom-bar span,
+    html body .confirmed-page-root .collection-bottom-bar,
+    html body .confirmed-page-root .collection-bottom-bar span,
+    html body .atelier-page-root .collection-bottom-bar,
+    html body .atelier-page-root .collection-bottom-bar .bottom-brand,
+    html body .atelier-page-root .collection-bottom-bar span {
+        color: #000 !important;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- Shared section heading: label 30px, 75x2 rule, title 50px,
+       paragraph 20px in a right column from x 964 (PDF p.19–20) ---- */
+    html body .design-log-page-root .design-process-content {
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: calc(163 * var(--p)) calc(150 * var(--p)) 0 !important;
+    }
+
+    html body .design-log-page-root .design-process-intro {
+        display: grid !important;
+        grid-template-columns: calc(814 * var(--p)) 1fr !important;
+        gap: 0 !important;
+        align-items: start !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    html body .design-log-page-root .design-process-intro-left,
+    html body .design-log-page-root .design-process-intro-right {
+        display: block !important;
+        text-align: left !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        width: auto !important;
+    }
+
+    html body .design-log-page-root .design-process-label {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        padding-left: calc(4 * var(--p)) !important;
+        margin: 0 !important;
+    }
+
+    html body .design-log-page-root .design-process-divider {
+        width: calc(75 * var(--p)) !important;
+        height: calc(2 * var(--p)) !important;
+        min-height: 1px;
+        background: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: calc(13 * var(--p)) 0 0 !important;
+    }
+
+    html body .design-log-page-root .design-process-title {
+        font-family: var(--font-display) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.14 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        color: #F8F3ED !important;
+        white-space: nowrap;
+        margin: calc(25 * var(--p)) 0 0 !important;
+        padding-left: calc(4 * var(--p)) !important;
+        max-width: none !important;
+    }
+
+    html body .design-log-page-root .design-process-intro-text {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        text-align: left !important;
+        max-width: none !important;
+        margin: calc(69 * var(--p)) 0 0 !important;
+    }
+
+    /* ---- PDF p.19: process grid — 248x440 photos 430px apart ---- */
+    html body .design-log-page-root .design-process-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, calc(248 * var(--p))) !important;
+        column-gap: calc(182 * var(--p)) !important;
+        row-gap: 0 !important;
+        margin: calc(65 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+    }
+
+    html body .design-log-page-root .process-card-col {
+        width: calc(248 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .design-log-page-root .process-media-box {
+        width: calc(248 * var(--p)) !important;
+        height: calc(440 * var(--p)) !important;
+        aspect-ratio: auto !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        overflow: hidden !important;
+    }
+
+    html body .design-log-page-root .process-media-box.stacked-media {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: calc(8 * var(--p)) !important;
+    }
+
+    html body .design-log-page-root .stacked-img-row {
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: hidden !important;
+    }
+
+    html body .design-log-page-root .process-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    html body .design-log-page-root .process-card-number {
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 700 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: calc(39 * var(--p)) 0 0 !important;
+        padding-left: calc(4 * var(--p)) !important;
+    }
+
+    html body .design-log-page-root .process-card-title {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        margin: 0 !important;
+        padding-left: calc(4 * var(--p)) !important;
+        white-space: nowrap;
+    }
+
+    html body .design-log-page-root .process-card-divider {
+        width: calc(75 * var(--p)) !important;
+        height: 1px !important;
+        background: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: calc(23 * var(--p)) 0 0 !important;
+    }
+
+    html body .design-log-page-root .process-card-description {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        text-align: left !important;
+        max-width: none !important;
+        margin: calc(19 * var(--p)) 0 0 !important;
+        padding-left: calc(4 * var(--p)) !important;
+    }
+
+    /* ---- PDF p.20–21: design log — grey rule, then 375px squares --- */
+    html body .design-log-page-root .blueprint-section {
+        margin: calc(64 * var(--p)) 0 0 !important;
+        padding: calc(64 * var(--p)) 0 0 !important;
+        border-top: 1px solid #5E5E5E !important;
+    }
+
+    html body .design-log-page-root .blueprint-section .design-process-intro-text {
+        margin-top: calc(95 * var(--p)) !important;
+    }
+
+    html body .design-log-page-root .blueprint-grid-4col {
+        display: grid !important;
+        grid-template-columns: repeat(4, calc(375 * var(--p))) !important;
+        column-gap: calc(40 * var(--p)) !important;
+        row-gap: calc(68 * var(--p)) !important;
+        gap: calc(68 * var(--p)) calc(40 * var(--p)) !important;
+        margin: calc(38 * var(--p)) 0 0 !important;
+    }
+
+    html body .design-log-page-root .blueprint-card-item {
+        width: calc(375 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .design-log-page-root .blueprint-img-frame {
+        width: calc(375 * var(--p)) !important;
+        height: calc(375 * var(--p)) !important;
+        aspect-ratio: auto !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        background: #FFFFFF;
+        overflow: hidden !important;
+    }
+
+    html body .design-log-page-root .blueprint-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    html body .design-log-page-root .blueprint-code-tag {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.4 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: calc(11 * var(--p)) 0 0 !important;
+        padding-left: calc(3 * var(--p)) !important;
+    }
+
+    html body .design-log-page-root .collection-bottom-bar {
+        margin-top: calc(56 * var(--p)) !important;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- PDF p.22: design specification (/design-log/PD-SG-OR-001)
+       identity at x 155 (y 394), 487x650 sheet at x 630, spec panel
+       x 1198–1769 with rules every 94px, meta row at y 852.       */
+    html body .dl-subpage-root {
+        position: relative !important;
+        inset: auto !important;
+        display: block !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
+    }
+
+    html body .dl-subpage-root .dl-hero {
+        display: grid !important;
+        grid-template-columns: calc(480 * var(--p)) calc(487 * var(--p)) calc(81 * var(--p)) calc(571 * var(--p)) !important;
+        gap: 0 !important;
+        align-items: start !important;
+        max-width: none !important;
+        width: auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: calc(160 * var(--p)) calc(151 * var(--p)) 0 calc(150 * var(--p)) !important;
+    }
+
+    html body .dl-subpage-root .dl-identity {
+        grid-column: 1 !important;
+        position: relative !important;
+        align-self: start !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        margin: calc(234 * var(--p)) 0 0 !important;
+        padding: 0 0 0 calc(5 * var(--p)) !important;
+        gap: 0 !important;
+        height: auto !important;
+    }
+
+    html body .dl-subpage-root .dl-back-link {
+        position: absolute !important;
+        left: calc(5 * var(--p)) !important;
+        bottom: calc(100% + 24 * var(--p)) !important;
+        margin: 0 !important;
+        font-size: calc(14 * var(--p)) !important;
+        letter-spacing: 0.08em !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    html body .dl-subpage-root .dl-label-sm {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(16 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.375 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+    }
+
+    html body .dl-subpage-root .dl-design-code {
+        font-family: var(--font-body) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.38 !important;
+        letter-spacing: 0.1em !important;
+        color: #FFFFFF !important;
+        margin: calc(3 * var(--p)) 0 0 !important;
+        white-space: nowrap;
+    }
+
+    html body .dl-subpage-root .dl-rule-short {
+        width: calc(76 * var(--p)) !important;
+        height: calc(2 * var(--p)) !important;
+        min-height: 1px;
+        background: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: calc(7 * var(--p)) 0 0 calc(-5 * var(--p)) !important;
+    }
+
+    html body .dl-subpage-root .dl-rule-short + .dl-label-sm {
+        font-size: calc(20 * var(--p)) !important;
+        line-height: 1.35 !important;
+        margin-top: calc(12 * var(--p)) !important;
+    }
+
+    html body .dl-subpage-root .dl-sheet-frame {
+        grid-column: 2 !important;
+        width: calc(487 * var(--p)) !important;
+        height: calc(650 * var(--p)) !important;
+        max-height: none !important;
+        aspect-ratio: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #FFFFFF !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+    }
+
+    html body .dl-subpage-root .dl-sheet-img {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: none !important;
+        object-fit: cover !important;
+    }
+
+    html body .dl-subpage-root .dl-spec-panel {
+        grid-column: 4 !important;
+        width: calc(571 * var(--p)) !important;
+        max-width: none !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-top: 0.5px solid #A9A9A9 !important;
+        display: block !important;
+    }
+
+    html body .dl-subpage-root .dl-spec-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: calc(17 * var(--p)) calc(4 * var(--p)) calc(17 * var(--p)) !important;
+        border: none !important;
+        border-bottom: 0.5px solid #A9A9A9 !important;
+    }
+
+    html body .dl-subpage-root .dl-spec-label-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: calc(8 * var(--p)) !important;
+        margin: 0 !important;
+    }
+
+    html body .dl-subpage-root .dl-spec-label {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        font-weight: 700 !important;
+        line-height: 1.39 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+    }
+
+    html body .dl-subpage-root .dl-spec-value {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: calc(7 * var(--p)) 0 0 !important;
+    }
+
+    html body .dl-subpage-root .dl-swatch {
+        width: calc(10 * var(--p)) !important;
+        height: calc(15 * var(--p)) !important;
+    }
+
+    html body .dl-subpage-root .dl-credits {
+        display: flex !important;
+        justify-content: space-between !important;
+        margin: calc(60 * var(--p)) 0 0 !important;
+        padding: 0 calc(4 * var(--p)) !important;
+        border: none !important;
+    }
+
+    html body .dl-subpage-root .dl-credit-item {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        line-height: 1.39 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+
+    /* Meta row: grey rule at y 852, three centred columns, button */
+    html body .dl-subpage-root .dl-meta-rule {
+        margin: calc(42 * var(--p)) calc(150 * var(--p)) 0 !important;
+        width: auto !important;
+        height: 1px !important;
+        background: #A9A9A9 !important;
+        opacity: 1 !important;
+    }
+
+    html body .dl-subpage-root .dl-meta {
+        display: grid !important;
+        grid-template-columns: calc(375 * var(--p)) calc(375 * var(--p)) calc(376 * var(--p)) calc(493 * var(--p)) !important;
+        gap: 0 !important;
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: calc(31 * var(--p)) calc(150 * var(--p)) 0 !important;
+        border: none !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-col {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        text-align: center !important;
+        height: calc(67 * var(--p)) !important;
+        margin: 0 !important;
+        padding: calc(4 * var(--p)) 0 0 !important;
+        border: none !important;
+        gap: 0 !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-col:nth-child(1),
+    html body .dl-subpage-root .dl-meta-col:nth-child(2) {
+        border-right: 0.5px solid #A8A8A8 !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-label {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        font-weight: 700 !important;
+        line-height: 1.39 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-value {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: calc(7 * var(--p)) 0 0 !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-col--btn {
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    html body .dl-subpage-root .dl-collection-btn {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0.75px solid #A9A9A9 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Footer: white rule from x 66 to 1854 at y 981 */
+    html body .dl-subpage-root .dl-footer-rule {
+        margin: calc(52 * var(--p)) calc(66 * var(--p)) 0 !important;
+        width: auto !important;
+        height: 1px !important;
+        background: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+
+    html body .dl-subpage-root .dl-footer {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        height: calc(99 * var(--p)) !important;
+        margin: 0 !important;
+        padding: calc(34 * var(--p)) calc(70 * var(--p)) 0 !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    html body .dl-subpage-root .dl-footer-brand,
+    html body .dl-subpage-root .dl-footer-copy {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        line-height: 1.389 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- PDF p.23: About (/about) — same grid as the home slides:
+       label y 163, title lines at y 405/479, 141x3 rule at y 580,
+       30px body at y 624, links at y 863 with 4px colour bars.    */
+    /* single-screen page: scale by width AND height so the whole
+       PDF frame (footer included) always fits the window */
+    html body .about-page {
+        --p: min(calc(100cqw / 1920), calc(100vh / 1080));
+        position: relative !important;
+        height: 100vh !important;
+        min-height: 0 !important;
+    }
+
+    html body .about-page .about-content {
+        position: absolute !important;
+        inset: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        height: calc(1080 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        transform: none !important;
+    }
+
+    html body .about-page .about-top-label {
+        position: absolute !important;
+        left: calc(154 * var(--p)) !important;
+        top: calc(163 * var(--p)) !important;
+        margin: 0 !important;
+    }
+
+    html body .about-page .about-label {
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+
+    html body .about-page .about-main-block {
+        position: static !important;
+        margin: 0 !important;
+        transform: none !important;
+    }
+
+    html body .about-page .about-title {
+        position: absolute !important;
+        left: calc(154 * var(--p)) !important;
+        top: calc(396.5 * var(--p)) !important;
+        margin: 0 !important;
+        font-family: var(--font-display) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.48 !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        color: #F8F3ED !important;
+        max-width: none !important;
+        white-space: nowrap;
+    }
+
+    html body .about-page .about-divider {
+        position: absolute !important;
+        left: calc(150 * var(--p)) !important;
+        top: calc(578.5 * var(--p)) !important;
+        width: calc(141.4 * var(--p)) !important;
+        height: max(1px, calc(3 * var(--p))) !important;
+        background: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+    }
+
+    html body .about-page .about-description {
+        position: absolute !important;
+        left: calc(154 * var(--p)) !important;
+        top: calc(624 * var(--p)) !important;
+        width: calc(812 * var(--p)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+
+    html body .about-page .about-actions {
+        position: absolute !important;
+        left: calc(150 * var(--p)) !important;
+        top: calc(863 * var(--p)) !important;
+        display: flex !important;
+        gap: 0 !important;
+        margin: 0 !important;
+    }
+
+    html body .about-page .about-action {
+        display: flex !important;
+        align-items: center !important;
+        height: calc(43 * var(--p)) !important;
+        gap: calc(10 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        letter-spacing: 0.04em !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        border: none !important;
+    }
+
+    html body .about-page .action-philosophy {
+        width: calc(515 * var(--p)) !important;
+    }
+
+    html body .about-page .about-action-line {
+        display: block !important;
+        width: calc(4 * var(--p)) !important;
+        min-width: 2px;
+        height: calc(43 * var(--p)) !important;
+        margin: 0 !important;
+        opacity: 1 !important;
+    }
+
+    html body .about-page .about-action-line.line-gold {
+        background: #878564 !important;
+    }
+
+    html body .about-page .about-action-line.line-blue {
+        background: #476C8F !important;
+    }
+
+    html body .about-page .collection-bottom-bar {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: auto !important;
+        top: calc(981 * var(--p)) !important;
+        bottom: auto !important;
+        z-index: 5;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- PDF p.24–26: Philosophy (/about/philosophy) -----------------
+       Three text blocks and three images placed on the PDF canvas
+       (all values are PDF pixels from the top of the page).        */
+    html body .about-normal-page-root .philosophy-page-container {
+        position: relative !important;
+        display: block !important;
+        max-width: none !important;
+        width: auto !important;
+        height: calc(1805 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    html body .about-normal-page-root .philosophy-grid-row {
+        position: static !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    html body .about-normal-page-root .phil-text-col,
+    html body .about-normal-page-root .phil-media-col {
+        position: absolute !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        transform: none !important;
+    }
+
+    html body .about-normal-page-root .phil-text-col {
+        width: calc(807 * var(--p)) !important;
+        z-index: 2 !important;
+    }
+
+    html body .about-normal-page-root .phil-media-col {
+        z-index: 1 !important;
+        display: block !important;
+    }
+
+    /* Section 1 */
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(1) .phil-text-col {
+        left: calc(154 * var(--p)) !important;
+        top: calc(163 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(1) .phil-media-col {
+        left: calc(613 * var(--p)) !important;
+        top: calc(-1 * var(--p)) !important;
+        width: calc(1177 * var(--p)) !important;
+        height: calc(784 * var(--p)) !important;
+    }
+
+    /* Section 2 */
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(2) .phil-media-col {
+        left: calc(150 * var(--p)) !important;
+        top: calc(704 * var(--p)) !important;
+        width: calc(877 * var(--p)) !important;
+        height: calc(585 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(2) .phil-text-col {
+        left: calc(964 * var(--p)) !important;
+        top: calc(780 * var(--p)) !important;
+    }
+
+    /* the PDF places this artwork mirrored (rock on the left) */
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(2) .phil-media-img {
+        transform: scaleX(-1) !important;
+    }
+
+    /* Section 3 */
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(3) .phil-text-col {
+        left: calc(154 * var(--p)) !important;
+        top: calc(1262 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(3) .phil-media-col {
+        left: calc(1018 * var(--p)) !important;
+        top: calc(1213 * var(--p)) !important;
+        width: calc(752 * var(--p)) !important;
+        height: calc(501 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .phil-media-frame {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        aspect-ratio: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: none !important;
+    }
+
+    html body .about-normal-page-root .phil-media-img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        object-fit: cover !important;
+        transform: none !important;
+    }
+
+    /* Label 30px + 75x2 rule */
+    html body .about-normal-page-root .phil-header-subtitle {
+        display: block !important;
+        position: relative !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+        padding: 0 0 calc(15 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .phil-header-subtitle .subtitle-dark-underline {
+        display: block !important;
+        position: absolute !important;
+        left: calc(-4 * var(--p)) !important;
+        right: auto !important;
+        bottom: 0 !important;
+        width: calc(75 * var(--p)) !important;
+        height: calc(2 * var(--p)) !important;
+        min-height: 1px;
+        background: #000 !important;
+        margin: 0 !important;
+    }
+
+    html body .about-normal-page-root .phil-header-subtitle.align-right {
+        text-align: right !important;
+        padding-right: calc(5 * var(--p)) !important;
+        padding-bottom: calc(14 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .phil-header-subtitle.align-right .subtitle-dark-underline {
+        left: auto !important;
+        right: calc(1 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .phil-section-headline {
+        font-family: var(--font-display) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.48 !important;
+        letter-spacing: 0 !important;
+        color: #3C3732 !important;
+        margin: calc(18 * var(--p)) 0 0 !important;
+        max-width: none !important;
+    }
+
+    html body .about-normal-page-root .phil-headline-line {
+        display: block !important;
+        white-space: nowrap !important;
+    }
+
+    html body .about-normal-page-root .phil-section-headline.text-right {
+        text-align: right !important;
+        margin-right: calc(-7 * var(--p)) !important;
+    }
+
+    /* Body 20px / 27px, justified in an 807px column */
+    html body .about-normal-page-root .phil-quote-text,
+    html body .about-normal-page-root .phil-body-paragraphs p {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        text-align: justify !important;
+        text-align-last: left !important;
+        max-width: none !important;
+        margin: 0 0 calc(27 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .phil-quote-text {
+        margin: calc(4 * var(--p)) 0 calc(54 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .phil-quote-text em {
+        font-style: italic !important;
+    }
+
+    html body .about-normal-page-root .phil-body-paragraphs {
+        display: block !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        text-align: left !important;
+    }
+
+    html body .about-normal-page-root .phil-section-headline + .phil-body-paragraphs {
+        margin-top: calc(4 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(2) .phil-section-headline + .phil-body-paragraphs {
+        margin-top: calc(5 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root.theme-olive-bg .collection-bottom-bar {
+        margin-top: 0 !important;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- PDF p.27–28: Our Story (/about/story) ------------------------
+       Text blocks and images placed on the PDF canvas; footer at y 1498. */
+    html body .about-normal-page-root .story-page-container {
+        position: relative !important;
+        display: block !important;
+        max-width: none !important;
+        width: auto !important;
+        height: calc(1498 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    html body .about-normal-page-root .story-row-layout {
+        position: static !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    html body .about-normal-page-root .story-text-col,
+    html body .about-normal-page-root .story-media-col,
+    html body .about-normal-page-root .butterfly-text-col,
+    html body .about-normal-page-root .butterfly-media-col {
+        position: absolute !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        transform: none !important;
+    }
+
+    html body .about-normal-page-root .story-text-col,
+    html body .about-normal-page-root .butterfly-text-col {
+        width: calc(807 * var(--p)) !important;
+        z-index: 2 !important;
+    }
+
+    /* Row 1 — Beyond the Name; mountain at (947, 121), 927x617 */
+    html body .about-normal-page-root .story-row-layout:nth-of-type(1) .story-text-col {
+        left: calc(154 * var(--p)) !important;
+        top: calc(163 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .story-row-layout:nth-of-type(1) .story-media-col {
+        left: calc(947 * var(--p)) !important;
+        top: calc(121 * var(--p)) !important;
+        width: calc(927 * var(--p)) !important;
+        height: calc(617 * var(--p)) !important;
+        z-index: 1 !important;
+    }
+
+    html body .about-normal-page-root .story-mountain-annotated {
+        position: relative !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+    }
+
+    html body .about-normal-page-root .story-mountain-img {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        object-fit: cover !important;
+        z-index: 0 !important;
+    }
+
+    /* Annotations: 16px #D5D5D5, right-aligned, line + 6px dot to x 1499 */
+    html body .about-normal-page-root .story-annotation {
+        position: absolute !important;
+        left: calc(53 * var(--p)) !important;
+        width: calc(499 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 2 !important;
+        display: block !important;
+        transform: none !important;
+    }
+
+    html body .about-normal-page-root .annotation-taara {
+        top: calc(83 * var(--p)) !important;
+        right: auto !important;
+        bottom: auto !important;
+    }
+
+    html body .about-normal-page-root .annotation-pinnacle {
+        top: calc(169 * var(--p)) !important;
+        right: auto !important;
+        bottom: auto !important;
+    }
+
+    html body .about-normal-page-root .annotation-label,
+    html body .about-normal-page-root .annotation-desc {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(16 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.375 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        color: #D5D5D5 !important;
+        opacity: 1 !important;
+        text-align: right !important;
+        margin: 0 !important;
+    }
+
+    html body .about-normal-page-root .annotation-taara .annotation-label {
+        width: calc(295 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .annotation-taara .annotation-desc {
+        width: calc(293 * var(--p)) !important;
+        margin-top: calc(5 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .annotation-pinnacle .annotation-label {
+        width: calc(185 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .annotation-pinnacle .annotation-desc {
+        width: calc(184 * var(--p)) !important;
+        margin-top: calc(5 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .annotation-line {
+        position: absolute !important;
+        display: block !important;
+        height: 1px !important;
+        background: #D5D5D5 !important;
+        margin: 0 !important;
+        opacity: 1 !important;
+    }
+
+    html body .about-normal-page-root .annotation-line::before {
+        content: "" !important;
+        position: absolute !important;
+        left: calc(-3 * var(--p)) !important;
+        top: calc(-3 * var(--p)) !important;
+        width: calc(6 * var(--p)) !important;
+        height: calc(6 * var(--p)) !important;
+        border-radius: 50% !important;
+        background: #D5D5D5 !important;
+        display: block !important;
+    }
+
+    html body .about-normal-page-root .annotation-taara .annotation-line {
+        left: calc(306 * var(--p)) !important;
+        top: calc(9 * var(--p)) !important;
+        width: calc(193 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .annotation-pinnacle .annotation-line,
+    html body .about-normal-page-root .annotation-line.short {
+        left: calc(199 * var(--p)) !important;
+        top: calc(4 * var(--p)) !important;
+        width: calc(300 * var(--p)) !important;
+    }
+
+    /* Row 2 — gems at (131, 623) 570x380; "More Than A Name" right column */
+    html body .about-normal-page-root .story-row-layout:nth-of-type(2) .story-media-col {
+        left: calc(131 * var(--p)) !important;
+        top: calc(623 * var(--p)) !important;
+        width: calc(570 * var(--p)) !important;
+        height: calc(380 * var(--p)) !important;
+        z-index: 1 !important;
+    }
+
+    html body .about-normal-page-root .story-gems-frame {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        aspect-ratio: auto !important;
+        background: none !important;
+        box-shadow: none !important;
+    }
+
+    html body .about-normal-page-root .story-gems-img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        object-fit: cover !important;
+    }
+
+    html body .about-normal-page-root .story-row-layout:nth-of-type(2) .story-text-col {
+        left: calc(964 * var(--p)) !important;
+        top: calc(680 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .story-more-name-block,
+    html body .about-normal-page-root .story-more-paragraphs {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .about-normal-page-root .story-more-title {
+        font-family: var(--font-display) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.14 !important;
+        letter-spacing: 0 !important;
+        color: #F8F3ED !important;
+        text-align: right !important;
+        padding-right: calc(5 * var(--p)) !important;
+        margin: 0 0 calc(13 * var(--p)) !important;
+    }
+
+    /* Row 3 — The Butterfly; cocoon artwork at (1044, 958) 810x540 */
+    html body .about-normal-page-root .butterfly-text-col {
+        left: calc(154 * var(--p)) !important;
+        top: calc(1061 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .butterfly-media-col {
+        left: calc(1044 * var(--p)) !important;
+        top: calc(958 * var(--p)) !important;
+        width: calc(810 * var(--p)) !important;
+        height: calc(540 * var(--p)) !important;
+        z-index: 1 !important;
+    }
+
+    html body .about-normal-page-root .butterfly-cocoon-img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        object-fit: cover !important;
+        transform: none !important;
+    }
+
+    html body .about-normal-page-root .butterfly-title {
+        font-family: var(--font-display) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.14 !important;
+        letter-spacing: 0 !important;
+        color: #F8F3ED !important;
+        margin: 0 0 calc(13 * var(--p)) !important;
+    }
+
+    /* Shared type: label + rule, title, 20px body (justified, 27px) */
+    html body .about-normal-page-root .story-label {
+        display: block !important;
+        position: relative !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+        padding: 0 0 calc(15 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .story-label-underline {
+        display: block !important;
+        position: absolute !important;
+        left: calc(-4 * var(--p)) !important;
+        bottom: 0 !important;
+        width: calc(75 * var(--p)) !important;
+        height: calc(2 * var(--p)) !important;
+        min-height: 1px;
+        background: #FFFFFF !important;
+        margin: 0 !important;
+    }
+
+    html body .about-normal-page-root .story-main-title {
+        font-family: var(--font-display) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.14 !important;
+        letter-spacing: 0 !important;
+        color: #F8F3ED !important;
+        margin: calc(25 * var(--p)) 0 0 !important;
+    }
+
+    html body .about-normal-page-root .story-intro-text,
+    html body .about-normal-page-root .story-etymology p,
+    html body .about-normal-page-root .story-body-paragraphs p,
+    html body .about-normal-page-root .story-more-paragraphs p,
+    html body .about-normal-page-root .butterfly-intro,
+    html body .about-normal-page-root .butterfly-body-paragraphs p {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        text-align: justify !important;
+        text-align-last: left !important;
+        max-width: none !important;
+        margin: 0 0 calc(27 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .story-etymology,
+    html body .about-normal-page-root .story-body-paragraphs,
+    html body .about-normal-page-root .story-more-paragraphs,
+    html body .about-normal-page-root .butterfly-body-paragraphs {
+        display: block !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        border: none !important;
+    }
+
+    html body .about-normal-page-root .story-intro-text {
+        margin-top: calc(15 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .story-etymology p {
+        margin: 0 !important;
+    }
+
+    html body .about-normal-page-root .story-etymology {
+        margin-bottom: calc(54 * var(--p)) !important;
+    }
+
+    html body .about-normal-page-root .story-etymology strong {
+        font-weight: 700 !important;
+    }
+
+    html body .about-normal-page-root.story-dark-section .collection-bottom-bar {
+        margin-top: 0 !important;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- PDF p.29: 1976 hero ------------------------------------------
+       One screen tall, so it scales by width AND height (--h) like the
+       home slides. "1976" ~1602px wide with figures ~600px tall (the PDF
+       uses Publico Bold; Baskerville Bold stretched 1.2x vertically
+       matches it), gradient #C5A265 → #7C6347, centred on y 580 with the
+       Maves subtitle (50px, 0.5em tracking). No extra filter/vignette. */
+    html body .legacy-page-root .legacy-hero {
+        --h: min(calc(100cqw / 1920), calc(100vh / 1080));
+        filter: none !important;
+    }
+
+    html body .legacy-page-root .legacy-bg-overlay {
+        display: none !important;
+    }
+
+    html body .legacy-page-root .legacy-year-display {
+        font-family: 'Baskerville-Bold', 'Baskerville', serif !important;
+        font-size: calc(760 * var(--h)) !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        letter-spacing: 0 !important;
+        background: linear-gradient(180deg, #C5A265 0%, #7C6347 100%) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        opacity: 1 !important;
+        filter: none !important;
+        transform: translateY(calc(49 * var(--h))) scaleY(1.2) !important;
+        /* the subtitle sits in a 73px gap cut through the numerals
+           (PDF y 540–613) */
+        -webkit-mask-image: linear-gradient(180deg, #000 44.6%, transparent 44.6%, transparent 52.6%, #000 52.6%) !important;
+        mask-image: linear-gradient(180deg, #000 44.6%, transparent 44.6%, transparent 52.6%, #000 52.6%) !important;
+    }
+
+    html body .legacy-page-root .legacy-subtitle-wrap {
+        top: calc(50% + 40 * var(--h)) !important;
+        max-width: none !important;
+    }
+
+    html body .legacy-page-root .legacy-subtitle-text {
+        font-family: 'Maves', var(--font-display) !important;
+        font-size: calc(50 * var(--h)) !important;
+        font-weight: 400 !important;
+        line-height: 1 !important;
+        letter-spacing: 0.5em !important;
+        margin-right: -0.5em !important;
+        color: #F8F3ED !important;
+        white-space: nowrap !important;
+    }
+
+    /* ---- PDF p.30–31: timeline (section spans y 1080–2900) ------------ */
+    html body .legacy-page-root .legacy-timeline-section {
+        position: relative !important;
+        display: block !important;
+        height: calc(1820 * var(--p)) !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* 224px strip of the workshop photo across the top of the timeline
+       (PDF p.30: bottom of a 1920x1280 image ending at y 224) */
+    html body .legacy-page-root .legacy-timeline-section::before {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: 0 !important;
+        height: calc(224 * var(--p)) !important;
+        background: url('/images/1976/1976_s1.png') center bottom / 100% auto no-repeat !important;
+        z-index: 0 !important;
+        pointer-events: none !important;
+        display: block !important;
+    }
+
+    html body .legacy-page-root .timeline-center-line {
+        position: absolute !important;
+        left: calc(960 * var(--p)) !important;
+        top: calc(303 * var(--p)) !important;
+        bottom: 0 !important;
+        width: calc(4 * var(--p)) !important;
+        height: auto !important;
+        background: #97672C !important;
+        transform: none !important;
+        z-index: 3 !important;
+        margin: 0 !important;
+    }
+
+    html body .legacy-page-root .timeline-clock-badge {
+        position: absolute !important;
+        left: calc(-24 * var(--p)) !important;
+        top: calc(-49 * var(--p)) !important;
+        width: calc(52 * var(--p)) !important;
+        height: calc(52 * var(--p)) !important;
+        border-radius: 50% !important;
+        background: #97672C !important;
+        border: none !important;
+        transform: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    html body .legacy-page-root .legacy-container {
+        position: static !important;
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    html body .legacy-page-root .timeline-item {
+        position: static !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 0 !important;
+    }
+
+    html body .legacy-page-root .timeline-text-col,
+    html body .legacy-page-root .timeline-media-col {
+        position: absolute !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+
+    html body .legacy-page-root .timeline-text-col {
+        width: calc(550 * var(--p)) !important;
+        z-index: 4 !important;
+    }
+
+    html body .legacy-page-root .timeline-media-col {
+        z-index: 1 !important;
+    }
+
+    html body .legacy-page-root .timeline-image-wrapper {
+        position: relative !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        aspect-ratio: auto !important;
+        margin: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+    }
+
+    html body .legacy-page-root .timeline-img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        object-fit: cover !important;
+        transform: none !important;
+    }
+
+    /* Item 1 — THE BEGINNING / 1976 (text right-aligned to x 932) */
+    html body .legacy-page-root .timeline-item:nth-of-type(1) .timeline-text-col {
+        left: calc(392 * var(--p)) !important;
+        width: calc(540 * var(--p)) !important;
+        top: calc(348 * var(--p)) !important;
+    }
+
+    html body .legacy-page-root .timeline-item:nth-of-type(1) .timeline-media-col {
+        left: calc(997 * var(--p)) !important;
+        top: calc(343 * var(--p)) !important;
+        width: calc(777 * var(--p)) !important;
+        height: calc(438 * var(--p)) !important;
+    }
+
+    html body .legacy-page-root .timeline-item:nth-of-type(1) .timeline-img {
+        position: absolute !important;
+        left: 0 !important;
+        top: calc(-79 * var(--p)) !important;
+        width: calc(777 * var(--p)) !important;
+        height: calc(518 * var(--p)) !important;
+        object-fit: fill !important;
+    }
+
+    /* Item 2 — 50+ YEARS / OF CRAFT & TRUST (text from x 1001) */
+    html body .legacy-page-root .timeline-item:nth-of-type(2) .timeline-media-col {
+        left: calc(157 * var(--p)) !important;
+        top: calc(826 * var(--p)) !important;
+        width: calc(777 * var(--p)) !important;
+        height: calc(438 * var(--p)) !important;
+    }
+
+    html body .legacy-page-root .timeline-item:nth-of-type(2) .timeline-img {
+        position: absolute !important;
+        left: calc(-109 * var(--p)) !important;
+        top: calc(-102 * var(--p)) !important;
+        width: calc(1143 * var(--p)) !important;
+        height: calc(643 * var(--p)) !important;
+        object-fit: fill !important;
+    }
+
+    html body .legacy-page-root .timeline-item:nth-of-type(2) .timeline-desc p {
+        text-align: justify !important;
+        text-align-last: left !important;
+    }
+
+    html body .legacy-page-root .timeline-item:nth-of-type(2) .timeline-text-col {
+        left: calc(1001 * var(--p)) !important;
+        width: calc(560 * var(--p)) !important;
+        top: calc(831 * var(--p)) !important;
+    }
+
+    /* Item 3 — TODAY / 2025 */
+    html body .legacy-page-root .timeline-item:nth-of-type(3) .timeline-text-col {
+        left: calc(387 * var(--p)) !important;
+        top: calc(1305 * var(--p)) !important;
+    }
+
+    /* 777x438 frame showing part of the wide 2.5:1 artwork */
+    html body .legacy-page-root .timeline-item:nth-of-type(3) .timeline-media-col {
+        left: calc(997 * var(--p)) !important;
+        top: calc(1300 * var(--p)) !important;
+        width: calc(777 * var(--p)) !important;
+        height: calc(438 * var(--p)) !important;
+    }
+
+    html body .legacy-page-root .timeline-item:nth-of-type(3) .timeline-img {
+        position: absolute !important;
+        left: calc(-251 * var(--p)) !important;
+        top: calc(1 * var(--p)) !important;
+        width: calc(1093 * var(--p)) !important;
+        height: calc(437 * var(--p)) !important;
+        object-fit: fill !important;
+    }
+
+    html body .legacy-page-root .text-right-align,
+    html body .legacy-page-root .text-right-align * {
+        text-align: right !important;
+    }
+
+    html body .legacy-page-root .text-left-align,
+    html body .legacy-page-root .text-left-align * {
+        text-align: left !important;
+    }
+
+    html body .legacy-page-root .timeline-title {
+        font-family: var(--font-display) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.14 !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        color: #F8F3ED !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .legacy-page-root .text-right-align .timeline-title,
+    html body .legacy-page-root .text-right-align .timeline-year {
+        padding-right: calc(5 * var(--p)) !important;
+    }
+
+    html body .legacy-page-root .timeline-title-num {
+        font: inherit !important;
+        color: inherit !important;
+        letter-spacing: 0 !important;
+    }
+
+    html body .legacy-page-root .timeline-year {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: calc(8 * var(--p)) 0 0 !important;
+    }
+
+    html body .legacy-page-root .timeline-desc {
+        margin: calc(44 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        display: block !important;
+        gap: 0 !important;
+    }
+
+    html body .legacy-page-root .timeline-desc p {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        max-width: none !important;
+        margin: 0 0 calc(27 * var(--p)) !important;
+    }
+
+    /* ---- PDF p.32: closing banner (y 2900–3980) ----------------------- */
+    html body .legacy-page-root .legacy-future-banner {
+        position: relative !important;
+        height: calc(1080 * var(--p)) !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* PDF shows 1976_main.png full-bleed with no extra darkening/zoom */
+    html body .legacy-page-root .future-bg-wrapper {
+        position: absolute !important;
+        inset: 0 !important;
+        transform: none !important;
+    }
+
+    html body .legacy-page-root .future-bg-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+        transform: none !important;
+        filter: none !important;
+        animation: none !important;
+    }
+
+    html body .legacy-page-root .future-overlay {
+        display: none !important;
+    }
+
+    html body .legacy-page-root .future-content-container {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: auto !important;
+        top: calc(476 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        transform: none !important;
+        text-align: center !important;
+        z-index: 3 !important;
+    }
+
+    html body .legacy-page-root .future-headline {
+        font-family: 'Maves', var(--font-display) !important;
+        font-size: calc(50 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1 !important;
+        letter-spacing: 0 !important;
+        color: #F8F3ED !important;
+        white-space: nowrap !important;
+        margin: 0 !important;
+    }
+
+    html body .legacy-page-root .future-subtext {
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        margin: calc(-11 * var(--p)) 0 0 !important;
+    }
+
+    html body .legacy-page-root .future-action-wrap {
+        position: absolute !important;
+        left: calc(152 * var(--p)) !important;
+        top: calc(863 * var(--p)) !important;
+        bottom: auto !important;
+        right: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        z-index: 3 !important;
+    }
+
+    html body .legacy-page-root .future-begin-link {
+        display: flex !important;
+        align-items: center !important;
+        gap: calc(8 * var(--p)) !important;
+        height: calc(43 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        letter-spacing: 0.04em !important;
+        color: #FFFFFF !important;
+    }
+
+    html body .legacy-page-root .link-vertical-line {
+        display: block !important;
+        width: calc(4 * var(--p)) !important;
+        min-width: 2px;
+        height: calc(43 * var(--p)) !important;
+        background: #F8F3EE !important;
+        margin: 0 !important;
+        opacity: 1 !important;
+    }
+
+    /* footer sits over the bottom of the banner image (rule at y 981) */
+    html body .legacy-page-root .legacy-future-banner > .collection-bottom-bar {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: calc(981 * var(--p)) !important;
+        bottom: auto !important;
+        width: auto !important;
+        margin: 0 calc(66 * var(--p)) !important;
+        padding: calc(34 * var(--p)) calc(4 * var(--p)) 0 !important;
+        background: transparent !important;
+        z-index: 4 !important;
+    }
+
+    html body .legacy-page-root .collection-bottom-bar,
+    html body .legacy-page-root .collection-bottom-bar span,
+    html body .legacy-page-root .collection-bottom-bar a {
+        color: #FFFFFF !important;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    /* ---- PDF p.15–17: checkout (/checkout) ----------------------------
+       Left: steps from x 154 (792px wide). Right: order summary from
+       x 1115 (656px), its heading level with the subtitle at y 212.   */
+    html body .checkout-page-root .checkout-main-container {
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: calc(163 * var(--p)) calc(149 * var(--p)) 0 calc(154 * var(--p)) !important;
+    }
+
+    html body .checkout-page-root .checkout-header-block {
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        text-align: left !important;
+    }
+
+    html body .checkout-page-root .checkout-title {
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.3667 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        margin: 0 !important;
+    }
+
+    html body .checkout-page-root .checkout-subtitle {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        margin: calc(8 * var(--p)) 0 0 !important;
+    }
+
+    html body .checkout-page-root .checkout-content-wrapper {
+        display: grid !important;
+        grid-template-columns: calc(792 * var(--p)) calc(656 * var(--p)) !important;
+        column-gap: calc(169 * var(--p)) !important;
+        gap: 0 calc(169 * var(--p)) !important;
+        align-items: start !important;
+        max-width: none !important;
+        width: auto !important;
+        margin: calc(32 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Steps */
+    html body .checkout-page-root .checkout-steps-column {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    html body .checkout-page-root .checkout-step-card {
+        display: block !important;
+        gap: 0 !important;
+        margin: 0 0 calc(19 * var(--p)) !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    html body .checkout-page-root .step-header {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: none !important;
+        cursor: pointer;
+    }
+
+    html body .checkout-page-root .step-number {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+    }
+
+    html body .checkout-page-root .step-collapsed-summary {
+        display: block !important;
+        gap: 0 !important;
+        margin: calc(8 * var(--p)) 0 0 !important;
+        padding: 0 0 0 calc(35 * var(--p)) !important;
+        border: none !important;
+        background: none !important;
+    }
+
+    html body .checkout-page-root .summary-text-line {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(30 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        color: #5E5E5E !important;
+        margin: 0 !important;
+    }
+
+    html body .checkout-page-root .step-body-content {
+        margin: calc(18 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: none !important;
+    }
+
+    /* Shipping fields: 18px label, 20px value on a 1px underline, 75px apart */
+    html body .checkout-page-root .shipping-form-grid {
+        display: block !important;
+        gap: 0 !important;
+        margin: 0 !important;
+    }
+
+    html body .checkout-page-root .form-field-row,
+    html body .checkout-page-root .form-field-split-row {
+        margin: 0 0 calc(23 * var(--p)) !important;
+        padding: 0 !important;
+    }
+
+    html body .checkout-page-root .form-field-split-row {
+        display: grid !important;
+        grid-template-columns: calc(360 * var(--p)) calc(360 * var(--p)) !important;
+        column-gap: calc(72 * var(--p)) !important;
+        gap: 0 calc(72 * var(--p)) !important;
+    }
+
+    html body .checkout-page-root .form-field-label {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(25 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        margin: 0 !important;
+    }
+
+    html body .checkout-page-root .form-input {
+        display: block !important;
+        width: 100% !important;
+        height: calc(27 * var(--p)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-bottom: 1px solid #000 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(27 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        color: #000 !important;
+        outline: none !important;
+    }
+
+    html body .checkout-page-root .form-input::placeholder {
+        color: transparent !important;
+    }
+
+    html body .checkout-page-root .form-input.has-error {
+        border-bottom-color: #A33A2B !important;
+    }
+
+    html body .checkout-page-root .field-error-text {
+        display: block !important;
+        font-size: calc(14 * var(--p)) !important;
+        line-height: 1.4 !important;
+        margin: calc(4 * var(--p)) 0 0 !important;
+    }
+
+    html body .checkout-page-root .save-address-checkbox-wrapper {
+        margin: calc(4 * var(--p)) 0 0 !important;
+    }
+
+    html body .checkout-page-root .save-address-checkbox-label span {
+        font-family: var(--font-body) !important;
+        font-size: calc(16 * var(--p)) !important;
+        color: #5E5E5E !important;
+    }
+
+    /* Delivery / payment options: 22px radio at x 154, title x 177–190 */
+    html body .checkout-page-root .delivery-radio-group,
+    html body .checkout-page-root .payment-radio-group {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: calc(37 * var(--p)) !important;
+        margin: calc(17 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .checkout-page-root .radio-label-wrapper {
+        display: grid !important;
+        grid-template-columns: calc(22 * var(--p)) 1fr !important;
+        column-gap: calc(1 * var(--p)) !important;
+        align-items: start !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: none !important;
+        box-shadow: none !important;
+    }
+
+    html body .checkout-page-root .radio-input {
+        width: calc(22 * var(--p)) !important;
+        height: calc(22 * var(--p)) !important;
+        margin: calc(2 * var(--p)) 0 0 !important;
+        accent-color: #000;
+    }
+
+    html body .checkout-page-root .radio-text-block {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .checkout-page-root .radio-title-tag {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(27 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        color: #000 !important;
+    }
+
+    html body .checkout-page-root .radio-description-tag {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(30 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        margin: calc(4 * var(--p)) 0 0 !important;
+        padding-left: calc(13 * var(--p)) !important;
+    }
+
+    /* payment options: title at x 190, list 32px under the heading */
+    html body .checkout-page-root .payment-radio-group {
+        margin-top: calc(14 * var(--p)) !important;
+    }
+
+    html body .checkout-page-root .payment-radio-group .radio-label-wrapper {
+        column-gap: calc(14 * var(--p)) !important;
+    }
+
+    /* Order summary */
+    html body .checkout-page-root .checkout-summary-column {
+        position: static !important;
+        width: calc(656 * var(--p)) !important;
+        max-width: none !important;
+        margin: calc(-59 * var(--p)) 0 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .checkout-page-root .order-summary-card {
+        position: static !important;
+        display: block !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    html body .checkout-page-root .summary-title-heading {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        margin: 0 !important;
+        padding: 0 0 0 calc(4 * var(--p)) !important;
+        border: none !important;
+    }
+
+    html body .checkout-page-root .summary-items-list {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: calc(29 * var(--p)) !important;
+        margin: calc(20 * var(--p)) 0 0 !important;
+        padding: 0 0 calc(30 * var(--p)) !important;
+        border: none !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    html body .checkout-page-root .summary-item-card-row {
+        display: grid !important;
+        grid-template-columns: calc(100 * var(--p)) 1fr auto !important;
+        column-gap: calc(40 * var(--p)) !important;
+        align-items: start !important;
+        margin: 0 !important;
+        padding: 0 calc(36 * var(--p)) 0 0 !important;
+        border: none !important;
+    }
+
+    html body .checkout-page-root .summary-item-img-wrapper {
+        width: calc(100 * var(--p)) !important;
+        height: calc(100 * var(--p)) !important;
+        margin: calc(9 * var(--p)) 0 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        overflow: hidden !important;
+    }
+
+    html body .checkout-page-root .summary-item-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    html body .checkout-page-root .summary-item-details {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        margin: 0 !important;
+    }
+
+    html body .checkout-page-root .item-name-code {
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(28 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+    }
+
+    html body .checkout-page-root .item-attrs,
+    html body .checkout-page-root .item-qty-tag {
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(25 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+    }
+
+    html body .checkout-page-root .item-price-tag {
+        font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(28 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+        white-space: nowrap !important;
+    }
+
+    html body .checkout-page-root .summary-math-calculation-box {
+        margin: 0 !important;
+        padding: calc(30 * var(--p)) 0 calc(31 * var(--p)) !important;
+        border: none !important;
+        border-top: 0.5px solid #A9A9A9 !important;
+        border-bottom: 0.5px solid #A9A9A9 !important;
+        background: none !important;
+    }
+
+    html body .checkout-page-root .math-row {
+        display: grid !important;
+        grid-template-columns: calc(540 * var(--p)) auto !important;
+        gap: 0 !important;
+        justify-content: start !important;
+        margin: 0 !important;
+        padding: 0 0 0 calc(4 * var(--p)) !important;
+        border: none !important;
+    }
+
+    html body .checkout-page-root .math-label,
+    html body .checkout-page-root .math-val {
+        font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(27 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        text-align: left !important;
+        color: #000 !important;
+        opacity: 1 !important;
+    }
+
+    html body .checkout-page-root .math-val.status-free {
+        color: #878564 !important;
+    }
+
+    html body .checkout-page-root .summary-checkout-grand-total {
+        display: grid !important;
+        grid-template-columns: 1fr calc(351 * var(--p)) !important;
+        align-items: start !important;
+        margin: 0 !important;
+        padding: calc(12 * var(--p)) 0 0 !important;
+        border: none !important;
+        background: none !important;
+    }
+
+    html body .checkout-page-root .summary-checkout-grand-total .grand-total-display,
+    html body .checkout-page-root .summary-checkout-grand-total .total-tag,
+    html body .checkout-page-root .summary-checkout-grand-total .total-subtext {
+        display: block !important;
+        text-align: left !important;
+        align-items: flex-start !important;
+    }
+
+    html body .checkout-page-root .summary-checkout-grand-total .grand-total-display {
+        text-align: left !important;
+        margin: calc(4 * var(--p)) 0 0 !important;
+        padding: 0 0 0 calc(4 * var(--p)) !important;
+    }
+
+    html body .checkout-page-root .total-tag {
+        display: block !important;
+        font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif !important;
+        font-size: calc(30 * var(--p)) !important;
+        font-weight: 400 !important;
+        line-height: calc(41 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        color: #000 !important;
+    }
+
+    html body .checkout-page-root .total-subtext {
+        display: block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(18 * var(--p)) !important;
+        line-height: calc(25 * var(--p)) !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        margin: calc(3 * var(--p)) 0 0 !important;
+    }
+
+    html body .checkout-page-root .place-order-action-btn {
+        width: calc(350 * var(--p)) !important;
+        height: calc(50 * var(--p)) !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        background: #212121 !important;
+        color: #FFFFFF !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(20 * var(--p)) !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        box-shadow: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    html body .checkout-page-root .collection-bottom-bar {
+        margin-top: calc(60 * var(--p)) !important;
+    }
+}
+
+/* ---- PDF p.18: order confirmed (/order-confirmed) -------------------- */
+.confirmed-page-root {
+    container-type: inline-size;
+    --p: calc(100cqw / 1920);
+    background: #F5F1EC;
+    color: #000;
+    min-height: 100vh;
+}
+
+.confirmed-main {
+    position: relative;
+    padding: 140px 24px 48px;
+    overflow: hidden;
+}
+
+.confirmed-watermark {
+    position: absolute;
+    right: 5%;
+    top: 90px;
+    width: min(60vw, 715px);
+    opacity: 0.12;
+    pointer-events: none;
+}
+
+.confirmed-title {
+    font-family: var(--font-body);
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 0;
+    margin: 0;
+}
+
+.confirmed-tagline,
+.confirmed-note {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.35;
+    margin: 6px 0 0;
+}
+
+.confirmed-rule {
+    width: 120px;
+    height: 2px;
+    background: #000;
+    margin: 28px 0 24px;
+}
+
+.confirmed-meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 40px 0;
+    position: relative;
+}
+
+.confirmed-meta-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 4px 8px;
+}
+
+.confirmed-meta-col + .confirmed-meta-col {
+    border-left: 0.5px solid #000;
+}
+
+.confirmed-meta-label {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.confirmed-meta-value {
+    font-family: var(--font-body);
+    font-size: 16px;
+}
+
+.confirmed-bottom {
+    display: grid;
+    gap: 24px;
+    border-top: 1px solid #A9A9A9;
+    padding-top: 24px;
+    position: relative;
+}
+
+.confirmed-bottom-col {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.confirmed-mail-icon {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 25px;
+    margin-top: 6px;
+}
+
+.confirmed-bottom-text {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.39;
+    margin: 0;
+}
+
+.confirmed-bottom-text a {
+    color: inherit;
+}
+
+@media (min-width: 1100px) {
+    html body .confirmed-page-root .confirmed-main {
+        height: calc(981 * var(--p));
+        padding: 0;
+    }
+
+    html body .confirmed-page-root .confirmed-watermark {
+        left: calc(996 * var(--p));
+        right: auto;
+        top: calc(98 * var(--p));
+        width: calc(715 * var(--p));
+        height: calc(716 * var(--p));
+        object-fit: contain;
+    }
+
+    html body .confirmed-page-root .confirmed-intro {
+        position: absolute;
+        left: calc(154 * var(--p));
+        top: calc(347 * var(--p));
+        width: calc(520 * var(--p));
+    }
+
+    html body .confirmed-page-root .confirmed-title {
+        font-size: calc(30 * var(--p));
+        line-height: 1.3667;
+    }
+
+    html body .confirmed-page-root .confirmed-tagline {
+        font-size: calc(20 * var(--p));
+        line-height: 1.35;
+        margin: calc(8 * var(--p)) 0 0;
+    }
+
+    html body .confirmed-page-root .confirmed-rule {
+        width: calc(141.4 * var(--p));
+        height: max(1px, calc(3 * var(--p)));
+        margin: calc(42.5 * var(--p)) 0 0 calc(-4 * var(--p));
+    }
+
+    html body .confirmed-page-root .confirmed-note {
+        font-size: calc(20 * var(--p));
+        line-height: 1.35;
+        margin: calc(41.5 * var(--p)) 0 0;
+    }
+
+    html body .confirmed-page-root .confirmed-meta {
+        position: absolute;
+        left: calc(980 * var(--p));
+        top: calc(432 * var(--p));
+        width: calc(749 * var(--p));
+        margin: 0;
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    html body .confirmed-page-root .confirmed-meta-col {
+        height: calc(67 * var(--p));
+        gap: calc(7 * var(--p));
+        padding: calc(4 * var(--p)) 0 0;
+    }
+
+    html body .confirmed-page-root .confirmed-meta-label {
+        font-size: calc(18 * var(--p));
+        line-height: 1.39;
+    }
+
+    html body .confirmed-page-root .confirmed-meta-value {
+        font-size: calc(20 * var(--p));
+        line-height: 1.35;
+    }
+
+    html body .confirmed-page-root .confirmed-bottom {
+        position: absolute;
+        left: calc(149 * var(--p));
+        right: calc(150 * var(--p));
+        top: calc(814 * var(--p));
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        padding: calc(23 * var(--p)) 0 0;
+    }
+
+    /* vertical divider at x 960 (y 837–958) */
+    html body .confirmed-page-root .confirmed-bottom::before {
+        content: "";
+        position: absolute;
+        left: calc(811 * var(--p));
+        top: calc(23 * var(--p));
+        width: 0.5px;
+        height: calc(121 * var(--p));
+        background: #A9A9A9;
+    }
+
+    html body .confirmed-page-root .confirmed-bottom-col {
+        gap: calc(34 * var(--p));
+        padding: calc(36 * var(--p)) 0 0 calc(77 * var(--p));
+    }
+
+    html body .confirmed-page-root .confirmed-bottom-col + .confirmed-bottom-col {
+        padding-left: calc(318 * var(--p));
+        flex-direction: column;
+        gap: calc(10 * var(--p));
+    }
+
+    html body .confirmed-page-root .confirmed-mail-icon {
+        flex: 0 0 calc(40 * var(--p));
+        width: calc(40 * var(--p));
+        height: calc(25 * var(--p));
+        margin-top: calc(12 * var(--p));
+    }
+
+    html body .confirmed-page-root .confirmed-bottom-text {
+        font-size: calc(18 * var(--p));
+        line-height: calc(25 * var(--p));
+    }
+
+    html body .confirmed-page-root .collection-bottom-bar {
+        margin-top: 0 !important;
+    }
+}

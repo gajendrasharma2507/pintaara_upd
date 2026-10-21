@@ -303,10 +303,11 @@ export default function CheckoutPage() {
                                     order_number: verifyRes.order_number,
                                     payment_id: response.razorpay_payment_id || verifyRes.payment_id,
                                     payment_method: 'Gpay',
+                                    delivery_method: deliveryMethod,
                                     date: new Date().toISOString()
                                 }));
                             } catch (e) {}
-                            router.push('/account/collection');
+                            router.push('/order-confirmed');
                         } else {
                             setCheckoutError(verifyRes?.message || 'Payment verification failed');
                             setSubmitting(false);
@@ -391,11 +392,12 @@ export default function CheckoutPage() {
                         order_number: verifyRes.order_number,
                         payment_id: mockPaymentId,
                         payment_method: 'Gpay',
+                        delivery_method: deliveryMethod,
                         date: new Date().toISOString()
                     }));
                 } catch (e) {}
                 setTestPaymentModal(null);
-                router.push('/account/collection');
+                router.push('/order-confirmed');
             } else {
                 setPaymentErrorMessage(verifyRes?.message || 'Payment verification failed');
                 setPaymentProcessing(false);
@@ -571,6 +573,7 @@ export default function CheckoutPage() {
 
                                                 <div className="shipping-form-grid">
                                                     <div className="form-field-row">
+                                                        <label className="form-field-label">Full Name</label>
                                                         <input 
                                                             type="text" 
                                                             placeholder="Full Name *" 
@@ -581,6 +584,7 @@ export default function CheckoutPage() {
                                                         {fieldErrors.fullName && <span className="field-error-text">{fieldErrors.fullName}</span>}
                                                     </div>
                                                     <div className="form-field-row">
+                                                        <label className="form-field-label">Address Line 1</label>
                                                         <input 
                                                             type="text" 
                                                             placeholder="Address Line 1 *" 
@@ -591,6 +595,7 @@ export default function CheckoutPage() {
                                                         {fieldErrors.address1 && <span className="field-error-text">{fieldErrors.address1}</span>}
                                                     </div>
                                                     <div className="form-field-row">
+                                                        <label className="form-field-label">Address Line 2</label>
                                                         <input 
                                                             type="text" 
                                                             placeholder="Address Line 2 (Apartment, suite, etc.)" 
@@ -601,6 +606,7 @@ export default function CheckoutPage() {
                                                     </div>
                                                     <div className="form-field-split-row">
                                                         <div style={{ flex: 1 }}>
+                                                            <label className="form-field-label">City</label>
                                                             <input 
                                                                 type="text" 
                                                                 placeholder="City *" 
@@ -611,6 +617,7 @@ export default function CheckoutPage() {
                                                             {fieldErrors.city && <span className="field-error-text">{fieldErrors.city}</span>}
                                                         </div>
                                                         <div style={{ flex: 1 }}>
+                                                            <label className="form-field-label">Pin</label>
                                                             <input 
                                                                 type="text" 
                                                                 placeholder="Pin Code *" 
@@ -623,6 +630,7 @@ export default function CheckoutPage() {
                                                     </div>
                                                     <div className="form-field-split-row">
                                                         <div style={{ flex: 1 }}>
+                                                            <label className="form-field-label">State</label>
                                                             <input 
                                                                 type="text" 
                                                                 placeholder="State / Province *" 
@@ -632,6 +640,7 @@ export default function CheckoutPage() {
                                                             />
                                                         </div>
                                                         <div style={{ flex: 1 }}>
+                                                            <label className="form-field-label">Country</label>
                                                             <input 
                                                                 type="text" 
                                                                 placeholder="Country" 
@@ -642,6 +651,7 @@ export default function CheckoutPage() {
                                                         </div>
                                                     </div>
                                                     <div className="form-field-row">
+                                                        <label className="form-field-label">Contact</label>
                                                         <input 
                                                             type="text" 
                                                             placeholder="Contact Number *" 
@@ -652,6 +662,7 @@ export default function CheckoutPage() {
                                                         {fieldErrors.contact && <span className="field-error-text">{fieldErrors.contact}</span>}
                                                     </div>
                                                     <div className="form-field-row">
+                                                        <label className="form-field-label">Email</label>
                                                         <input 
                                                             type="email" 
                                                             placeholder="Email Address *" 
@@ -837,7 +848,7 @@ export default function CheckoutPage() {
                                         {submitting 
                                             ? 'PROCESSING...' 
                                             : activeStep === 3 
-                                                ? 'CHECKOUT' 
+                                                ? 'PLACE YOUR ORDER' 
                                                 : 'CONTINUE'}
                                     </button>
                                 </div>

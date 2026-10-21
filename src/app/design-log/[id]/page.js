@@ -7,6 +7,24 @@ import { useRouter } from 'next/navigation';
 import { getBlueprintById } from '@/config/designLogs';
 import { apiFetch } from '@/lib/api';
 
+// Design-code prefix → piece type (e.g. BG-SG-OR-002 → Bangle)
+const TYPE_BY_PREFIX = {
+  PD: 'Pendant', RG: 'Ring', BG: 'Bangle', BR: 'Bracelet', ER: 'Earrings',
+  CH: 'Chain', NK: 'Necklace', NC: 'Necklace', MS: 'Mangalsutra',
+};
+
+// Options every piece is offered in on the product page
+const DEFAULT_MATERIALS = '14KT Gold  ·  18KT Gold  ·  22KT Gold  ·  92.5 Silver';
+const DEFAULT_FINISHES = 'Yellow Gold  ·  White Gold  ·  Rose Gold  ·  Black Gold';
+
+// "2026-09-20" → "SEPTEMBER 2026" (Website Design.pdf p.22 style)
+const formatRelease = (value) => {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value).toUpperCase();
+  return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase();
+};
+
 export default function DesignLogSubPage({ params }) {
   const router = useRouter();
   const resolvedParams = use(params);
@@ -23,21 +41,28 @@ export default function DesignLogSubPage({ params }) {
           if (!isMounted) return;
           const item = res.data;
           const specs = item.specs || {};
+          // Admin data wins; empty fields fall back to the local sheet
+          // (src/config/designLogs.js), then to values derived from the
+          // product, so the spec panel matches Website Design.pdf p.22.
+          const code = item.product?.design_code || item.code || (item.design_code ? item.design_code : `DL-${item.id}`);
+          // getBlueprintById() returns the first sheet for unknown codes — only use an exact match
+          const fb = fallbackBp && String(fallbackBp.code).toLowerCase() === String(code).toLowerCase() ? fallbackBp : {};
+          const prefix = String(code).split('-')[0].toUpperCase();
           setBp({
             id: item.product?.design_code || item.id,
-            code: item.product?.design_code || item.code || (item.design_code ? item.design_code : `DL-${item.id}`),
-            image: item.blueprint_image || item.cad_image || item.product?.primary_image || '/images/design-log/PD-SG-OR-001.JPG',
-            type: specs.type || item.design_type || '',
-            materials: specs.material_options || '',
-            finishes: specs.finish_options || '',
-            sizeOptions: specs.size_options || '',
-            gemOptions: specs.gem_options || (typeof item.gem_details === 'string' ? item.gem_details : ''),
-            inspiredBy: specs.inspired_by || item.inspired_by || '',
-            brandOrigin: specs.brand_origin || '',
-            designer: specs.designed_by || item.product?.designed_by || '',
-            status: item.status || 'UNDER DEVELOPMENT',
-            collection: item.product?.collection_name || 'ORIGIN',
-            release: item.release_date || '2026',
+            code,
+            image: item.blueprint_image || fb.image || item.cad_image || item.product?.primary_image || '/images/design-log/PD-SG-OR-001.JPG',
+            type: specs.type || item.design_type || fb.type || TYPE_BY_PREFIX[prefix] || '',
+            materials: specs.material_options || fb.materials || DEFAULT_MATERIALS,
+            finishes: specs.finish_options || fb.finishes || DEFAULT_FINISHES,
+            sizeOptions: specs.size_options || fb.sizeOptions || '',
+            gemOptions: specs.gem_options || (typeof item.gem_details === 'string' ? item.gem_details : '') || fb.gemOptions || '',
+            inspiredBy: specs.inspired_by || item.inspired_by || fb.inspiredBy || '',
+            brandOrigin: specs.brand_origin || fb.brandOrigin || 'A PINTAARA™ ORIGINAL',
+            designer: specs.designed_by || item.product?.designed_by || fb.designer || '',
+            status: item.status || fb.status || 'UNDER DEVELOPMENT',
+            collection: (item.product?.collection_name || item.product?.tier || fb.collection || 'ORIGIN').toUpperCase(),
+            release: formatRelease(item.release_date || item.product?.release_date) || fb.release || '2026',
             productId: item.product?.design_code || item.product_id,
           });
         } else if (fallbackBp) {
@@ -53,8 +78,11 @@ export default function DesignLogSubPage({ params }) {
     return () => { isMounted = false; };
   }, [resolvedParams.id, fallbackBp]);
 
-  // Prevent body scroll — the page itself is position:fixed
+  // Prevent body scroll — on small screens the page itself is position:fixed.
+  // From 1100px the Website Design.pdf layout (src/styles/pdf-pages.css) is a
+  // normal 1080px-tall page, so shorter windows must be able to scroll.
   useEffect(() => {
+    if (window.matchMedia('(min-width: 1100px)').matches) return undefined;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = prev; };

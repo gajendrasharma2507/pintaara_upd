@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
@@ -8,7 +8,21 @@ import { useCart } from '@/context/CartContext';
 export default function Header({ headerStyle, reveal, onNavigate }) {
     const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isScrolledPast, setIsScrolledPast] = useState(false);
     const { cartCount } = useCart();
+
+    const isHome = pathname === '/';
+
+    // Inner pages: the header sits at the top of the page and scrolls away
+    // with it; once it is out of view it floats hidden and reappears on
+    // hover — the same behaviour as the home slides.
+    useEffect(() => {
+        if (isHome) return undefined;
+        const onScroll = () => setIsScrolledPast(window.scrollY > 120);
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, [isHome]);
 
     // Style class logic
     let headerClass = "main-header";
@@ -24,6 +38,9 @@ export default function Header({ headerStyle, reveal, onNavigate }) {
     // Hidden until the pointer moves over the top of the screen
     if (reveal) {
         headerClass += " header-reveal";
+    }
+    if (!isHome) {
+        headerClass += isScrolledPast ? " header-page-floating header-reveal" : " header-page-scroll";
     }
 
     const toggleMenu = () => {

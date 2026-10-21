@@ -192,7 +192,7 @@ export default function Legacy1976Page() {
                         </div>
                         <div className="timeline-media-col">
                             <div className="timeline-image-wrapper">
-                                <img src="/images/1976/1976_s.png" alt="1976 Workshop and sketches" className="timeline-img" />
+                                <img src="/images/1976/1976_s1.png" alt="1976 Workshop and sketches" className="timeline-img" />
                             </div>
                         </div>
                     </div>
@@ -201,7 +201,7 @@ export default function Legacy1976Page() {
                     <div className="timeline-item item-right-text">
                         <div className="timeline-media-col">
                             <div className="timeline-image-wrapper">
-                                <img src="/images/1976/1976_h.png" alt="50+ Years of Craft & Trust — Jewellery Store" className="timeline-img" />
+                                <img src="/images/1976/1976_h%20-%20Copy.png" alt="50+ Years of Craft & Trust — Jewellery Store" className="timeline-img" />
                             </div>
                         </div>
                         <div className="timeline-text-col text-left-align">
@@ -234,7 +234,7 @@ export default function Legacy1976Page() {
                         </div>
                         <div className="timeline-media-col">
                             <div className="timeline-image-wrapper">
-                                <img src="/images/1976/1976_p.png" alt="Today 2025 — PINTAARA Gold Ring Design" className="timeline-img" />
+                                <img src="/images/1976/1976_p2.png" alt="Today 2025 — PINTAARA Gold Ring Design" className="timeline-img" />
                             </div>
                         </div>
                     </div>
@@ -253,7 +253,7 @@ export default function Legacy1976Page() {
                         THE PAST SHAPED US. NOW IT'S TIME TO SHAPE WHAT'S NEXT.
                     </h2>
                     <p className="future-subtext">
-                        Foundation – Old. Vision – New. Commitment – The same.
+                        Foundation — Old.&nbsp; Vision — New.&nbsp; Commitment — The same.
                     </p>
                 </div>
 

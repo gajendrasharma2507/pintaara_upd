@@ -175,6 +175,7 @@ const finishBarsData = [
     {
         name: 'Yellow Gold',
         code: 'YG',
+        label: 'YELLOW',
         style: {
             background: 'linear-gradient(180deg, #8B6508 0%, #C99700 15%, #E5B824 35%, #FBE580 50%, #C99700 80%, #7D5A02 100%)',
         }
@@ -190,6 +191,7 @@ const finishBarsData = [
     {
         name: 'Rose Gold',
         code: 'RG',
+        label: 'ROSE',
         style: {
             background: 'linear-gradient(180deg, #874112 0%, #BA6222 15%, #DB7F3E 35%, #F5B37B 50%, #BA6222 80%, #75360B 100%)',
         }
@@ -197,6 +199,8 @@ const finishBarsData = [
     {
         name: 'Black Ruthenium',
         code: 'BLK',
+        label: 'BLACK',
+        labelLight: true,
         style: {
             background: 'linear-gradient(180deg, #111315 0%, #2A2E33 15%, #4C525A 35%, #828A94 50%, #2A2E33 80%, #111315 100%)',
         }
@@ -817,8 +821,9 @@ export default function DynamicCollectionPage({ params }) {
                                             />
                                         </div>
                                         <div className="category-product-info">
-                                            <span className="cat-prod-collection">{item.collection} ({item.defaultWeight}g)</span>
-                                            <h3 className="cat-prod-code">{item.name ? `${item.name} (${item.code})` : item.code}</h3>
+                                            {/* Website Design.pdf p.11: design name, then code, then price */}
+                                            <span className="cat-prod-collection">{(item.name || item.collection || '').toUpperCase()}</span>
+                                            <h3 className="cat-prod-code">{item.code}</h3>
                                             <span className="cat-prod-price">₹ {total.toLocaleString('en-IN')}</span>
                                         </div>
                                     </Link>
@@ -991,11 +996,12 @@ export default function DynamicCollectionPage({ params }) {
 
                 {/* Right Column: Customizer Controls & Specifications */}
                 <div className="atelier-specs-column">
+                    {/* Website Design.pdf p.13: design code as the title, design name below */}
                     <h1 className="atelier-product-title">
-                        {productDetail?.name || productDetail?.design_code || resolvedParams?.id}
+                        {String(productDetail?.design_code || resolvedParams?.id || '').toUpperCase()}
                     </h1>
                     <div className="atelier-product-subtitle">
-                        {(productDetail?.collection?.name || 'ATELIER PIECE').toUpperCase()}
+                        {(productDetail?.name || productDetail?.collection?.name || 'ATELIER PIECE').toUpperCase()}
                     </div>
                     <div className="atelier-specs-divider" />
 
@@ -1026,7 +1032,7 @@ export default function DynamicCollectionPage({ params }) {
                     {/* FINISH OPTION — full-width 4-bar row */}
                     <div className="atelier-control-group">
                         <div className="atelier-spec-label">
-                            FINISH OPTION
+                            FINISH OPTIONS
                         </div>
                         <div className="atelier-finish-row">
                             {finishBarsData.map((bar, idx) => {
@@ -1046,7 +1052,7 @@ export default function DynamicCollectionPage({ params }) {
                                             else if (idx === 2) setActiveImgIndex(2);
                                         }}
                                     >
-                                        {bar.label && <span className="atelier-finish-bar-label">{bar.label}</span>}
+                                        {bar.label && <span className={`atelier-finish-bar-label${bar.labelLight ? ' is-light' : ''}`}>{bar.label}</span>}
                                     </button>
                                 );
                             })}

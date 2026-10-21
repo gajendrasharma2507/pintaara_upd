@@ -54,7 +54,7 @@ export default function PhilosophyPage() {
                     <div className="phil-media-col justify-end">
                         <div className="phil-media-frame">
                             <img
-                                src="/images/about/philosophy1.png"
+                                src="/images/concept-philosophy.png"
                                 alt="Pintaara Gold Butterfly Pendant"
                                 className="phil-media-img"
                             />
@@ -67,7 +67,7 @@ export default function PhilosophyPage() {
                     <div className="phil-media-col justify-start">
                         <div className="phil-media-frame">
                             <img
-                                src="/images/about/philosophy2.png"
+                                src="/images/products/philosophy-star.png"
                                 alt="Why Pintaara Exists Star Emblem"
                                 className="phil-media-img"
                             />
@@ -130,7 +130,7 @@ export default function PhilosophyPage() {
                     <div className="phil-media-col justify-end">
                         <div className="phil-media-frame">
                             <img
-                                src="/images/about/philosophy3.png"
+                                src="/images/products/drives-flame.png"
                                 alt="What Drives Me Flame Emblem"
                                 className="phil-media-img"
                             />
