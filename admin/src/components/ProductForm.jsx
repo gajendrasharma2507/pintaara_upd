@@ -627,14 +627,6 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       const weight = parseFloat(formState.base_weight_grams) || 0;
       const wastage = parseFloat(formState.wastage_percent) || 0;
       const making = parseFloat(formState.making_charge) || 0;
-      let stones = parseFloat(formState.stone_charge) || 0;
-      if (stones === 0 && Array.isArray(formState.options)) {
-        const gemOpt = formState.options.find((o) => o.name?.toLowerCase().includes("gem") || o.name?.toLowerCase().includes("stone"));
-        const activeGem = (gemOpt?.values || []).find((v) => v.enabled !== false && parseFloat(v.price_delta) > 0);
-        if (activeGem) {
-          stones = parseFloat(activeGem.price_delta) || 0;
-        }
-      }
 
       const fraction = purity.purity_fraction || 0.750;
       const isSilver = purity.code?.toLowerCase().includes("925") || 
@@ -651,7 +643,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
       const metalValue = Math.round(weight * ratePerGram);
       const wastageValue = Math.round(metalValue * (wastage / 100));
-      const subtotal = metalValue + wastageValue + making + stones;
+      const subtotal = metalValue + wastageValue + making;
       const gst = Math.round(subtotal * 0.03);
       const total = subtotal + gst;
 
@@ -664,7 +656,6 @@ export default function ProductForm({ isEdit = false, productId = null, existing
         metalValue,
         wastageValue,
         making,
-        stones,
         gst,
         total,
         isPrimary,
@@ -2103,7 +2094,6 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Metal Value</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Wastage ({formState.wastage_percent}%)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Making Charge (₹)</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Stones (₹)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>GST (3%)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 700, color: "var(--admin-text-primary)", textAlign: "right" }}>Total Retail MRP (₹)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)", textAlign: "center" }}>Storefront Role</th>
@@ -2129,7 +2119,6 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                         <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.metalValue.toLocaleString("en-IN")}</td>
                         <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.wastageValue.toLocaleString("en-IN")}</td>
                         <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.making.toLocaleString("en-IN")}</td>
-                        <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.stones.toLocaleString("en-IN")}</td>
                         <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.gst.toLocaleString("en-IN")}</td>
                         <td style={{ padding: "12px 14px", textAlign: "right", fontFamily: "monospace", fontSize: "14px", fontWeight: 700, color: "var(--admin-text-primary)" }}>
                           ₹{calc.total.toLocaleString("en-IN")}
