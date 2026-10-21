@@ -804,7 +804,19 @@ export default function DynamicCollectionPage({ params }) {
                                 const metalVal = rate22kt_g * item.defaultWeight;
                                 const sub = metalVal + Number(item.makingCharge || 0);
                                 const calculatedTotal = Math.round(sub * 1.03);
-                                const total = item.livePrice || calculatedTotal;
+                                const total = Number(item.livePrice || calculatedTotal || 0);
+                                const formattedPrice = Math.round(total).toLocaleString('en-IN');
+
+                                // Website Design.pdf p.11: design line tag (e.g. ORIGIN), code, then price
+                                const codeUpper = (item.code || '').toUpperCase();
+                                let collectionTag = 'ORIGIN';
+                                if (codeUpper.includes('-OR-') || codeUpper.includes('ORIGIN')) {
+                                    collectionTag = 'ORIGIN';
+                                } else if (item.collection && !['BRACELETS', 'BRACELET', 'PENDANTS', 'PENDANT', 'NECKLACES', 'NECKLACE', 'RINGS', 'RING', 'EARRINGS', 'EARRING', 'CHAINS', 'CHAIN', 'BANGLES', 'BANGLE'].includes(item.collection.toUpperCase())) {
+                                    collectionTag = item.collection.toUpperCase();
+                                } else if (item.name && !item.name.toLowerCase().startsWith('piece') && item.name.toUpperCase() !== codeUpper) {
+                                    collectionTag = item.name.toUpperCase();
+                                }
 
                                 return (
                                     <Link
@@ -821,10 +833,9 @@ export default function DynamicCollectionPage({ params }) {
                                             />
                                         </div>
                                         <div className="category-product-info">
-                                            {/* Website Design.pdf p.11: design name, then code, then price */}
-                                            <span className="cat-prod-collection">{(item.name || item.collection || '').toUpperCase()}</span>
+                                            <span className="cat-prod-collection">{collectionTag}</span>
                                             <h3 className="cat-prod-code">{item.code}</h3>
-                                            <span className="cat-prod-price">₹ {total.toLocaleString('en-IN')}</span>
+                                            <span className="cat-prod-price">₹ {formattedPrice}</span>
                                         </div>
                                     </Link>
                                 );
