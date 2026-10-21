@@ -143,9 +143,11 @@ export default {
           ...res,
           data: res.data.map(p => ({
             ...p,
+            sku: p.sku || p.design_code || `P-${p.id}`,
+            image: p.image || p.primary_image || (Array.isArray(p.images) && p.images[0]) || '',
             status: p.status || 'active',
             collection_master_id: p.collection_master_id || p.collection?.id,
-            collection_name: p.collection_name || p.collection?.name,
+            collection_name: p.collection_name || p.collection?.name || 'Jewelry',
           }))
         };
       }
@@ -163,9 +165,13 @@ export default {
             ...pubJson,
             data: pubJson.data.map(p => ({
               ...p,
+              sku: p.sku || p.design_code || `P-${p.id}`,
+              image: p.image || p.primary_image || (Array.isArray(p.images) && p.images[0]) || '',
               status: p.status || 'active',
               collection_master_id: p.collection_master_id || p.collection?.id,
-              collection_name: p.collection_name || p.collection?.name,
+              collection_name: p.collection_name || p.collection?.name || 'Jewelry',
+              total_price: p.total_price || p.live_price?.total_price,
+              price: p.price || (p.live_price?.total_price ? `₹${Math.round(p.live_price.total_price).toLocaleString('en-IN')}` : undefined),
             }))
           };
         }
@@ -184,9 +190,13 @@ export default {
             ...liveJson,
             data: liveJson.data.map(p => ({
               ...p,
+              sku: p.sku || p.design_code || `P-${p.id}`,
+              image: p.image || p.primary_image || (Array.isArray(p.images) && p.images[0]) || '',
               status: p.status || 'active',
               collection_master_id: p.collection_master_id || p.collection?.id,
-              collection_name: p.collection_name || p.collection?.name,
+              collection_name: p.collection_name || p.collection?.name || 'Jewelry',
+              total_price: p.total_price || p.live_price?.total_price,
+              price: p.price || (p.live_price?.total_price ? `₹${Math.round(p.live_price.total_price).toLocaleString('en-IN')}` : undefined),
             }))
           };
         }
