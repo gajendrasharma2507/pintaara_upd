@@ -549,6 +549,62 @@ export default function DynamicCollectionPage({ params }) {
     const hasGem = Boolean(gemGroup && gemGroup.values?.length > 0);
     const hasChain = Boolean(chainGroup && chainGroup.values?.length > 0);
 
+    // Dynamic available finishes filtered by selected purity & product finish matrix
+    const availableFinishes = useMemo(() => {
+        if (!finishGroup || !finishGroup.values || finishGroup.values.length === 0) return [];
+        const matrix = productDetail?.finish_purities;
+        if (Array.isArray(matrix) && matrix.length > 0 && selectedPurity) {
+            const cleanSelectedPurity = selectedPurity.replace(/\s+/g, '').toUpperCase();
+            const allowedForPurity = matrix.filter((item) => {
+                const itemPurity = (item.purity_code || item.purity_name || '').replace(/\s+/g, '').toUpperCase();
+                return itemPurity === cleanSelectedPurity || cleanSelectedPurity.includes(itemPurity) || itemPurity.includes(cleanSelectedPurity);
+            });
+
+            if (allowedForPurity.length > 0) {
+                const filtered = finishGroup.values.filter((fVal) => {
+                    const valStr = (typeof fVal === 'string' ? fVal : fVal.value || '').toLowerCase();
+                    const fCode = (fVal.code || '').toUpperCase();
+                    return allowedForPurity.some((item) => {
+                        const mName = (item.finish_name || '').toLowerCase();
+                        const mCode = (item.finish_code || '').toUpperCase();
+                        return (
+                            (fCode && mCode && fCode === mCode) ||
+                            valStr.includes(mName) ||
+                            mName.includes(valStr) ||
+                            (valStr.includes('yellow') && (mName.includes('yellow') || mCode === 'YG')) ||
+                            (valStr.includes('rose') && (mName.includes('rose') || mCode === 'RG')) ||
+                            (valStr.includes('white') && (mName.includes('white') || mCode === 'WG')) ||
+                            (valStr.includes('black') && (mName.includes('black') || mCode === 'BLK' || mCode === 'BG')) ||
+                            (valStr.includes('silver') && (mName.includes('silver') || mCode === 'SILVER'))
+                        );
+                    });
+                });
+                if (filtered.length > 0) return filtered;
+            }
+        }
+        return finishGroup.values;
+    }, [finishGroup, productDetail?.finish_purities, selectedPurity]);
+
+    // Ensure selected finish is always valid when availableFinishes changes
+    useEffect(() => {
+        if (availableFinishes && availableFinishes.length > 0) {
+            const isCurrentAvailable = availableFinishes.some((fVal) => {
+                const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                const valLower = valStr.toLowerCase();
+                const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : '');
+                return selectedFinishCode === code || selectedFinishCode === valStr;
+            });
+            if (!isCurrentAvailable) {
+                const first = availableFinishes[0];
+                const valStr = typeof first === 'string' ? first : first.value;
+                const valLower = valStr.toLowerCase();
+                const code = first.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : 'YG');
+                setSelectedFinishCode(code);
+                handleSelectOption('FINISH OPTION', { value: valStr, price_delta: 0, image: first.image });
+            }
+        }
+    }, [availableFinishes, selectedFinishCode]);
+
     // Synchronize default selections when option groups change
     useEffect(() => {
         if (activeOptionGroups && activeOptionGroups.length > 0) {
@@ -626,23 +682,58 @@ export default function DynamicCollectionPage({ params }) {
         const purityEntry = Object.entries(selectedOptions).find(([k]) =>
             k.toLowerCase().includes('purity') || k.toLowerCase().includes('metal') || k.toLowerCase().includes('karat')
         );
-        const purityStr = purityEntry?.[1]?.value || '22KT';
+        const purityStr = purityEntry?.[1]?.value || selectedPurity || '22KT';
         const gemEntry = Object.entries(selectedOptions).find(([k]) =>
             k.toLowerCase().includes('gem') || k.toLowerCase().includes('stone')
         );
         const gemName = gemEntry?.[1]?.value || '';
         const optionBreakdowns = [];
         let optionDelta = 0;
+        let extraGrams = 0;
+        let flatGemPrice = 0;
+
         Object.entries(selectedOptions).forEach(([optName, valObj]) => {
             const lowerName = optName.toLowerCase();
+            const valStr = typeof valObj === 'object' ? (valObj?.value || '') : String(valObj || '');
             const delta = Number(valObj?.price_delta) || 0;
+
+            // 1. Gram-based Size: check if value has grams e.g. "Size 12 (2.0g)" or "2g"
+            if (lowerName.includes('size')) {
+                const match = valStr.match(/(\d+(?:\.\d+)?)\s*g(?:ram)?/i);
+                if (match) {
+                    extraGrams += parseFloat(match[1]);
+                    optionBreakdowns.push({ name: optName, value: valStr, charge: `+${match[1]}g (metal)` });
+                }
+            }
+
+            // 2. Gram-based Chain: check if chain has grams e.g. "Box Chain (5.0g)" or "5g"
+            if (lowerName.includes('chain')) {
+                const match = valStr.match(/(\d+(?:\.\d+)?)\s*g(?:ram)?/i);
+                if (match) {
+                    extraGrams += parseFloat(match[1]);
+                    optionBreakdowns.push({ name: optName, value: valStr, charge: `+${match[1]}g (metal)` });
+                }
+            }
+
+            // 3. Flat Gemstone Price: flat charge for gemstone (e.g. ₹2,500 or ₹5,000)
+            if (lowerName.includes('gem') || lowerName.includes('stone') || lowerName.includes('diamond')) {
+                if (delta > 0) {
+                    flatGemPrice += delta;
+                    optionBreakdowns.push({ name: optName, value: valStr, charge: delta });
+                }
+            }
+
+            // Other flat option additions
             if (delta && !lowerName.includes('purity') && !lowerName.includes('metal') &&
                 !lowerName.includes('finish') && !lowerName.includes('size') &&
-                !lowerName.includes('gem') && !lowerName.includes('stone')) {
+                !lowerName.includes('gem') && !lowerName.includes('stone') && !lowerName.includes('chain')) {
                 optionDelta += delta;
                 optionBreakdowns.push({ name: optName, value: valObj.value, charge: delta });
             }
         });
+
+        const baseWeight = Number(productDetail.base_weight_grams) || 8.5;
+        const totalWeight = Math.round((baseWeight + extraGrams) * 100) / 100;
 
         let cancelled = false;
         const calculate = async () => {
@@ -650,12 +741,13 @@ export default function DynamicCollectionPage({ params }) {
                 const response = await apiFetch('/price/calculate', {
                     method: 'POST',
                     body: JSON.stringify({
-                        weight_grams: Number(productDetail.base_weight_grams) || 8.5,
+                        weight_grams: totalWeight,
                         purity: purityStr,
                         making_charge_flat: Number(productDetail.making_charge) || 0,
                         making_charge_percent: productDetail.making_charge_percent,
                         wastage_percent: Number(productDetail.wastage_percent) || 0,
                         gem: gemName,
+                        stone_charge: flatGemPrice,
                     }),
                 });
                 const data = response?.data;
@@ -1044,13 +1136,13 @@ export default function DynamicCollectionPage({ params }) {
                     )}
 
                     {/* FINISH OPTION — only render if configured for this product */}
-                    {finishGroup && finishGroup.values?.length > 0 && (
+                    {availableFinishes && availableFinishes.length > 0 && (
                         <div className="atelier-control-group">
                             <div className="atelier-spec-label">
                                 FINISH OPTIONS
                             </div>
                             <div className="atelier-finish-row">
-                                {finishGroup.values.map((fVal, idx) => {
+                                {availableFinishes.map((fVal, idx) => {
                                     const valStr = typeof fVal === 'string' ? fVal : fVal.value;
                                     const valLower = valStr.toLowerCase();
                                     const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
@@ -1070,10 +1162,17 @@ export default function DynamicCollectionPage({ params }) {
                                             style={matchedBar.style}
                                             onClick={() => {
                                                 setSelectedFinishCode(code);
-                                                handleSelectOption('FINISH OPTION', { value: valStr, price_delta: 0 });
-                                                if (code === 'YG' || idx === 0) setActiveImgIndex(0);
-                                                else if (code === 'WG' || idx === 1) setActiveImgIndex(1);
-                                                else if (code === 'RG' || idx === 2) setActiveImgIndex(2);
+                                                handleSelectOption('FINISH OPTION', { value: valStr, price_delta: 0, image: fVal.image });
+                                                if (fVal.image) {
+                                                    const imgIdx = thumbnails.findIndex(t => t.src === fVal.image);
+                                                    if (imgIdx !== -1) {
+                                                        setActiveImgIndex(imgIdx);
+                                                        return;
+                                                    }
+                                                }
+                                                if (code === 'YG' || valLower.includes('yellow')) setActiveImgIndex(0);
+                                                else if (code === 'WG' || valLower.includes('white')) setActiveImgIndex(1);
+                                                else if (code === 'RG' || valLower.includes('rose')) setActiveImgIndex(2);
                                             }}
                                         >
                                             {matchedBar.label && (
