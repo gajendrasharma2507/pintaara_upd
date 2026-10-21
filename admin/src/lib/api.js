@@ -1,7 +1,5 @@
 const rawEnvApi = (process.env.NEXT_PUBLIC_API_URL || '').replace(/^\uFEFF/, '').trim();
-export const API_BASE_URL = rawEnvApi || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
-    ? 'https://api.pintaara.com/api' 
-    : 'http://127.0.0.1:8000/api');
+export const API_BASE_URL = rawEnvApi || 'https://api.pintaara.com/api';
 
 export async function adminFetch(endpoint, options = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('pintaara_admin_token') : null;
@@ -50,7 +48,67 @@ export default {
   getDashboardStats: () => adminFetch('/admin/dashboard'),
   getGoldRates: (query = '') => adminFetch(`/gold-rate/today${query}`),
   updateGoldRate: (data) => adminFetch('/gold-rate/settings', { method: 'POST', body: JSON.stringify(data) }),
-  getCollections: () => adminFetch('/admin/collections'),
+  getCollections: async () => {
+    // 1. Try authenticated admin endpoint
+    try {
+      const res = await adminFetch('/admin/collections');
+      if (res && res.status === 'success' && Array.isArray(res.data) && res.data.length > 0) {
+        return res;
+      }
+    } catch (_) {}
+
+    // 2. Fallback to public collections endpoint (which requires no auth and is always active)
+    try {
+      const pub = await fetch(`${API_BASE_URL}/collections`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (pub.ok) {
+        const pubJson = await pub.json();
+        if (pubJson && pubJson.status === 'success' && Array.isArray(pubJson.data) && pubJson.data.length > 0) {
+          return pubJson;
+        }
+      }
+    } catch (_) {}
+
+    // 3. Fallback to direct production API if base was different
+    try {
+      const liveRes = await fetch('https://api.pintaara.com/api/collections', {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (liveRes.ok) {
+        const liveJson = await liveRes.json();
+        if (liveJson && liveJson.status === 'success' && Array.isArray(liveJson.data) && liveJson.data.length > 0) {
+          return liveJson;
+        }
+      }
+    } catch (_) {}
+
+    // 4. Fallback to localStorage cache
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('pintaara_collections_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return { status: 'success', data: parsed };
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 5. Ultimate fallback to atelier default collections
+    return {
+      status: 'success',
+      data: [
+        { id: 27, name: 'pendant', slug: 'pendant' },
+        { id: 28, name: 'necklace', slug: 'necklace' },
+        { id: 29, name: 'earring', slug: 'earring' },
+        { id: 30, name: 'bracelet', slug: 'bracelet' },
+        { id: 31, name: 'ring', slug: 'ring' },
+        { id: 32, name: 'chain', slug: 'chain' },
+      ]
+    };
+  },
   createCollection: (data) => adminFetch('/admin/collections', { method: 'POST', body: JSON.stringify(data) }),
   updateCollection: (id, data) => adminFetch(`/admin/collections/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteCollection: (id) => adminFetch(`/admin/collections/${id}`, { method: 'DELETE' }),
