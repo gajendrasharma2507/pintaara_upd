@@ -301,10 +301,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
   useEffect(() => {
     async function loadMetadata() {
       try {
-        const colRes = await adminApi.getCollections();
-        if (colRes && colRes.status === "success" && Array.isArray(colRes.data)) {
-          setCollections(colRes.data);
-        }
+        try {
+          const colRes = await adminApi.getCollections();
+          if (colRes && colRes.status === "success" && Array.isArray(colRes.data) && colRes.data.length > 0) {
+            setCollections(colRes.data);
+          }
+        } catch (_) {}
 
         try {
           const mastersRes = await adminApi.getMasters();
@@ -1642,7 +1644,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   <option value="">None / Unassigned</option>
                   {collections.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name}
+                      {c.name ? c.name.charAt(0).toUpperCase() + c.name.slice(1) : `Collection #${c.id}`}
                     </option>
                   ))}
                 </select>

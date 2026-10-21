@@ -1,8 +1,6 @@
 export function getApiBaseUrl() {
   const raw = (process.env.NEXT_PUBLIC_API_URL || '').replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
-  return raw || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
-      ? 'https://api.pintaara.com/api' 
-      : 'http://127.0.0.1:8000/api');
+  return raw || 'https://api.pintaara.com/api';
 }
 
 export function getApiHost() {
