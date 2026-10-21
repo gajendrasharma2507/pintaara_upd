@@ -282,7 +282,7 @@ export default function AdminMastersPage() {
   };
 
   const handleDeleteCategory = async (catId, catName) => {
-    if (!confirm(`Delete category '${catName}'?`)) return;
+    if (!window.confirm(`Delete category '${catName}'?`)) return;
     setIsSaving(true);
     try {
       await adminApi.deleteMaster(catId);
@@ -402,7 +402,7 @@ export default function AdminMastersPage() {
   };
 
   const handleDeleteValue = async (valId, valName) => {
-    if (!confirm(`Delete option '${valName}'?`)) return;
+    if (!window.confirm(`Delete option '${valName}'?`)) return;
     setIsSaving(true);
     try {
       await adminApi.deleteMasterValue(valId);
@@ -484,7 +484,7 @@ export default function AdminMastersPage() {
   };
 
   const handleResetPresets = async () => {
-    if (!confirm("Reset all Customization Masters to factory presets? Any custom entries will be reset.")) return;
+    if (!window.confirm("Reset all Customization Masters to factory presets? Any custom entries will be reset.")) return;
     setIsSaving(true);
     try {
       const res = await adminApi.resetMasters();

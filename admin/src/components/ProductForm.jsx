@@ -11,8 +11,8 @@ const resolveImageUrl = (img) => {
     return img;
   }
   if (img.startsWith("/storage/")) {
-    const apiHost = process.env.NEXT_PUBLIC_API_URL 
-      ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
+    const apiHost = process.env.NEXT_PUBLIC_API_URL
+      ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
       : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? 'https://api.pintaara.com' : 'http://127.0.0.1:8000');
     return `${apiHost}${img}`;
   }
@@ -127,7 +127,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
         if (res && (res.status === "success" || res.base_22kt_rate_per_10g || res.data)) {
           data = res.data || res;
         }
-      } catch (_) {}
+      } catch (_) { }
 
       if (!data) {
         const raw = await fetch(`${API_BASE_URL}/gold-rate/today`, { headers: { Accept: "application/json" } });
@@ -305,7 +305,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           if (colRes && colRes.status === "success" && Array.isArray(colRes.data) && colRes.data.length > 0) {
             setCollections(colRes.data);
           }
-        } catch (_) {}
+        } catch (_) { }
 
         try {
           const mastersRes = await adminApi.getMasters();
@@ -547,10 +547,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       }
     }
 
-    const isSilver = metalType === "silver" || 
-                     String(item.karat || "").toLowerCase().includes("silver") || 
-                     String(item.karat || "").toLowerCase().includes("925") ||
-                     String(item.metal || "").toLowerCase().includes("silver");
+    const isSilver = metalType === "silver" ||
+      String(item.karat || "").toLowerCase().includes("silver") ||
+      String(item.karat || "").toLowerCase().includes("925") ||
+      String(item.metal || "").toLowerCase().includes("silver");
 
     let ratePerGram;
     if (isSilver) {
@@ -575,12 +575,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
   const allAvailablePurities = puritiesList.length > 0
     ? puritiesList
     : [
-        { id: 1, code: "22KT", name: "22KT Gold", purity_fraction: 0.916, metal: "Gold" },
-        { id: 2, code: "18KT", name: "18KT Gold", purity_fraction: 0.750, metal: "Gold" },
-        { id: 3, code: "14KT", name: "14KT Gold", purity_fraction: 0.585, metal: "Gold" },
-        { id: 4, code: "925", name: "925 Silver", purity_fraction: 0.925, metal: "Silver" },
-        { id: 5, code: "24KT", name: "24KT Gold", purity_fraction: 0.999, metal: "Gold" },
-      ];
+      { id: 1, code: "22KT", name: "22KT Gold", purity_fraction: 0.916, metal: "Gold" },
+      { id: 2, code: "18KT", name: "18KT Gold", purity_fraction: 0.750, metal: "Gold" },
+      { id: 3, code: "14KT", name: "14KT Gold", purity_fraction: 0.585, metal: "Gold" },
+      { id: 4, code: "925", name: "925 Silver", purity_fraction: 0.925, metal: "Silver" },
+      { id: 5, code: "24KT", name: "24KT Gold", purity_fraction: 0.999, metal: "Gold" },
+    ];
 
   const handleToggleBenchmarkPurity = (pCode, purity) => {
     setBenchmarkPurities((prev) => {
@@ -629,10 +629,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       const making = parseFloat(formState.making_charge) || 0;
 
       const fraction = purity.purity_fraction || 0.750;
-      const isSilver = purity.code?.toLowerCase().includes("925") || 
-                       purity.name?.toLowerCase().includes("silver") ||
-                       purity.metal?.toLowerCase() === "silver" ||
-                       purity.type?.toLowerCase() === "silver";
+      const isSilver = purity.code?.toLowerCase().includes("925") ||
+        purity.name?.toLowerCase().includes("silver") ||
+        purity.metal?.toLowerCase() === "silver" ||
+        purity.type?.toLowerCase() === "silver";
 
       let ratePerGram;
       if (isSilver) {
@@ -1023,12 +1023,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
             const cleanStoneCode = stoneName.includes("Diamond")
               ? "DIA"
               : stoneName.includes("Emerald")
-              ? "EMR"
-              : stoneName.includes("Sapphire")
-              ? "SAP"
-              : stoneName.includes("Ruby")
-              ? "RUB"
-              : "SOL";
+                ? "EMR"
+                : stoneName.includes("Sapphire")
+                  ? "SAP"
+                  : stoneName.includes("Ruby")
+                    ? "RUB"
+                    : "SOL";
 
             chainListToUse.forEach((chainItem) => {
               const chainName = chainItem ? (typeof chainItem === "object" ? chainItem.value : chainItem) : null;
@@ -1301,8 +1301,8 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       (o) => o.name.toLowerCase().includes("purity") || o.name.toLowerCase().includes("metal")
     );
     const activePurities = purityOpt?.values?.filter((v) => v.enabled)?.map((v) => v.value.split(" ")[0]) || [];
-    const matStr = activePurities.length > 0 
-      ? activePurities.map((p) => `${p} Solid Gold`).join(", ") 
+    const matStr = activePurities.length > 0
+      ? activePurities.map((p) => `${p} Solid Gold`).join(", ")
       : "18KT Solid Gold";
 
     // 2. Finish Options from enabled finishes
@@ -1431,7 +1431,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
             ? list.map((p) => (String(p.id) === String(savedId) ? { ...p, ...updatedItem } : p))
             : [updatedItem, ...list];
           localStorage.setItem("pintaara_products_cache", JSON.stringify(updated));
-        } catch (_) {}
+        } catch (_) { }
       }
 
       if (savedId && productFinishMatrix && Object.keys(productFinishMatrix).length > 0) {
@@ -1856,7 +1856,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                           <input
                             type="checkbox"
                             checked={isSelected}
-                            onChange={() => {}}
+                            onChange={() => { }}
                             style={{
                               width: "16px",
                               height: "16px",
@@ -1975,10 +1975,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
-                    Wastage / Value Addition (VA %)
+                    Making Charge (%)
                   </label>
                   <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
-                    Casting & polishing wastage % (e.g. 2.5%, 20%)
+                    Artisan crafting & making % (e.g. 2.5%, 12%)
                   </span>
                   <input
                     type="number"
@@ -1993,10 +1993,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
-                    Making Charges (₹ Flat)
+                    AUTHOR Charges (₹ Flat)
                   </label>
                   <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
-                    Artisan crafting and labor fee in ₹
+                    Lead designer & author fee in ₹
                   </span>
                   <input
                     type="number"
@@ -2079,7 +2079,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                     Live Benchmark Retail Price Table
                   </h3>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "4px 0 0" }}>
-                    Calculated in real-time according to live bullion rates, purity hallmarks, wastage (VA %), making charges (₹), and 3% GST.
+                    Calculated in real-time according to live bullion rates, purity hallmarks, making charges (%), AUTHOR charges (₹), and 3% GST.
                   </p>
                 </div>
               </div>
@@ -2092,8 +2092,8 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Purity Grade</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Live Rate / g</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Metal Value</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Wastage ({formState.wastage_percent}%)</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Making Charge (₹)</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Making Charge ({formState.wastage_percent}%)</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>AUTHOR Charges (₹)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>GST (3%)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 700, color: "var(--admin-text-primary)", textAlign: "right" }}>Total Retail MRP (₹)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)", textAlign: "center" }}>Storefront Role</th>
@@ -3141,8 +3141,8 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               const mediaItems = Array.isArray(formState.images) && formState.images.length > 0
                 ? formState.images
                 : formState.image
-                ? [formState.image]
-                : [];
+                  ? [formState.image]
+                  : [];
 
               if (mediaItems.length === 0) return null;
 

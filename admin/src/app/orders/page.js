@@ -62,11 +62,14 @@ export default function AdminOrdersPage() {
 
   const handleStatusChange = async (orderId, newStatus, e) => {
     e.stopPropagation();
+    const prev = orders.find((o) => o.id === orderId)?.status;
     setOrders(orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
     try {
       await api.updateOrderStatus(orderId, newStatus);
+      showToast(`Order status updated to ${newStatus}`);
     } catch (err) {
-      console.warn("Could not sync status to live API:", err);
+      setOrders(orders.map((o) => (o.id === orderId ? { ...o, status: prev } : o)));
+      showToast(`⚠ Failed to update status: ${err.message}`);
     }
   };
 
