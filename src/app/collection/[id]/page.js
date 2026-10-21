@@ -1193,41 +1193,6 @@ export default function DynamicCollectionPage({ params }) {
                 </div>
             </main>
 
-            {relatedProducts.length > 0 && (
-                <section className="atelier-related-section" aria-labelledby="related-pieces-title">
-                    <div className="atelier-related-heading">
-                        <span className="atelier-related-kicker">CONTINUE EXPLORING</span>
-                        <h2 id="related-pieces-title">Related Pieces</h2>
-                        <p>Discover more designs from the {productDetail?.collection?.name || 'Pintaara'} collection.</p>
-                    </div>
-
-                    <div className="atelier-related-grid">
-                        {relatedProducts.map((product) => (
-                            <Link
-                                href={`/collection/${product.code}`}
-                                className="atelier-related-card"
-                                key={product.id}
-                            >
-                                <div className="atelier-related-image-frame">
-                                    <img src={product.image} alt={product.name || 'Related Pintaara jewelry'} />
-                                </div>
-                                <div className="atelier-related-card-info">
-                                    <div>
-                                        <span className="atelier-related-collection">{product.collection}</span>
-                                        <h3>{product.name || product.code}</h3>
-                                    </div>
-                                    {product.livePrice && (
-                                        <span className="atelier-related-price">
-                                            MRP ₹ {Number(product.livePrice).toLocaleString('en-IN')}
-                                        </span>
-                                    )}
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </section>
-            )}
-
             {/* Bottom Footer Bar */}
             <footer className="collection-bottom-bar light-theme">
                 <Link href="/" className="bottom-brand">PINTAARA™</Link>
