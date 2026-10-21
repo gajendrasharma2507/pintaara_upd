@@ -2016,53 +2016,6 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                     style={{ width: "100%", fontSize: "13px" }}
                   />
                 </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
-                    Default Stone Charge (₹)
-                  </label>
-                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
-                    Cost for default mounted stones/diamonds
-                  </span>
-                  <input
-                    type="number"
-                    className="admin-input"
-                    placeholder="e.g. 0"
-                    value={formState.stone_charge}
-                    onChange={(e) => setFormState({ ...formState, stone_charge: e.target.value })}
-                    style={{ width: "100%", fontSize: "13px" }}
-                  />
-                  {getOptionValues("gem").filter((v) => v.enabled !== false).length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginTop: "6px" }}>
-                      {getOptionValues("gem")
-                        .filter((v) => v.enabled !== false)
-                        .map((v, i) => {
-                          const delta = parseFloat(v.price_delta) || 0;
-                          const isSelected = parseFloat(formState.stone_charge) === delta;
-                          return (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => setFormState({ ...formState, stone_charge: delta })}
-                              className="admin-btn-ghost"
-                              style={{
-                                fontSize: "10.5px",
-                                padding: "2px 6px",
-                                borderRadius: "4px",
-                                border: isSelected ? "1.5px solid var(--admin-primary, #3C50E0)" : "1px solid var(--admin-border)",
-                                background: isSelected ? "var(--admin-primary-light, #EFF2FE)" : "transparent",
-                                color: isSelected ? "var(--admin-primary, #3C50E0)" : "var(--admin-text-secondary)",
-                                cursor: "pointer",
-                                fontWeight: isSelected ? 700 : 500,
-                              }}
-                            >
-                              {v.value} ({delta > 0 ? `+₹${delta.toLocaleString("en-IN")}` : "₹0"})
-                            </button>
-                          );
-                        })}
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
 
