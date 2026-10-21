@@ -1570,10 +1570,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           }}
         >
           {[
-            { id: "essentials", label: "1. Essentials & Media" },
-            { id: "pricing", label: "2. Crafting Benchmark" },
-            { id: "matrix", label: "3. Bespoke Matrix & Variants" },
-            { id: "design_log", label: "4. Atelier Design Log" },
+            { id: "essentials", label: "1. Basic Details & Photos" },
+            { id: "pricing", label: "2. Gold Weight & Live Pricing" },
+            { id: "matrix", label: "3. Customization Options" },
+            { id: "design_log", label: "4. Website Design Story & Blueprint" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1595,18 +1595,21 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           ))}
         </div>
 
-        {/* TAB 1: ESSENTIALS (GENERAL INFORMATION) */}
+        {/* TAB 1: BASIC DETAILS (GENERAL INFORMATION) */}
         {activeTab === "essentials" && (
           <div className="admin-card" style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "18px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Product Title <span style={{ fontWeight: 400, color: "var(--admin-text-muted)" }}>(Optional)</span>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Product Title / Name
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Customer-facing display title (e.g. &ldquo;Piece BR-SG-OR-001&rdquo; or &ldquo;Royal Diamond Bracelet&rdquo;)
+                </span>
                 <input
                   type="text"
                   className="admin-input"
-                  placeholder="e.g. Sovereign Diamond Band (Optional)"
+                  placeholder="e.g. Royal Butterfly Diamond Pendant"
                   value={formState.name}
                   onChange={(e) => setFormState({ ...formState, name: e.target.value })}
                   style={{ width: "100%", fontSize: "13px" }}
@@ -1614,14 +1617,17 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  SKU / Design Code *
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Design Code / SKU *
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Unique identifier code (e.g. BR-SG-OR-001)
+                </span>
                 <input
                   type="text"
                   required
                   className="admin-input"
-                  placeholder="e.g. PIN-SOV-001"
+                  placeholder="e.g. BR-SG-OR-001"
                   value={formState.design_code}
                   onChange={(e) => setFormState({ ...formState, design_code: e.target.value.toUpperCase() })}
                   style={{ width: "100%", fontFamily: "monospace", fontSize: "13px" }}
@@ -1629,19 +1635,21 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               </div>
             </div>
 
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Collection
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Jewellery Collection / Category
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Category on storefront (e.g. Bracelet, Ring, Necklace)
+                </span>
                 <select
                   className="admin-input"
                   value={formState.collection_master_id}
                   onChange={(e) => setFormState({ ...formState, collection_master_id: e.target.value })}
                   style={{ width: "100%", fontSize: "13px" }}
                 >
-                  <option value="">None / Unassigned</option>
+                  <option value="">None / Unassigned Category</option>
                   {collections.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name ? c.name.charAt(0).toUpperCase() + c.name.slice(1) : `Collection #${c.id}`}
@@ -1651,29 +1659,35 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Status
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Storefront Visibility Status
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Whether buyers can view and purchase this piece online
+                </span>
                 <select
                   className="admin-input"
                   value={formState.status}
                   onChange={(e) => setFormState({ ...formState, status: e.target.value })}
                   style={{ width: "100%", fontSize: "13px" }}
                 >
-                  <option value="active">Active (Visible)</option>
-                  <option value="draft">Draft (Hidden)</option>
+                  <option value="active">Active (Visible & Buyable on Storefront)</option>
+                  <option value="draft">Draft (Hidden in Atelier Admin Only)</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                Description & Craftsmanship Notes
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                Product Description & Story
               </label>
+              <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                Craftsmanship highlights, sacred geometry, diamond details, and styling notes shown to customers
+              </span>
               <textarea
                 rows="4"
                 className="admin-input"
-                placeholder="Product specifications, story, craftsmanship notes..."
+                placeholder="Describe the craftsmanship, metal finish, comfort-fit ergonomics, and diamond cut..."
                 value={formState.description}
                 onChange={(e) => setFormState({ ...formState, description: e.target.value })}
                 style={{ width: "100%", fontSize: "13px" }}
@@ -1682,9 +1696,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Designed By
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Lead Designer / Artisan
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Creator credited on certificates and product page
+                </span>
                 <input
                   type="text"
                   className="admin-input"
@@ -1696,9 +1713,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Release Date
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Collection Release Date
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Launch or crafting debut date
+                </span>
                 <input
                   type="date"
                   className="admin-input"
@@ -1706,6 +1726,72 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   onChange={(e) => setFormState({ ...formState, release_date: e.target.value })}
                   style={{ width: "100%", fontSize: "13px" }}
                 />
+              </div>
+            </div>
+
+            {/* BIS Hallmark & Authenticity Certificate */}
+            <div style={{ marginTop: "12px", paddingTop: "18px", borderTop: "1px solid var(--admin-border-light)" }}>
+              <div style={{ marginBottom: "14px" }}>
+                <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
+                  Government Hallmark & Authenticity Certification (BIS / HUID)
+                </h4>
+                <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "3px 0 0" }}>
+                  Official Bureau of Indian Standards (BIS) hallmark and diamond grading laboratory verification.
+                </p>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    BIS HUID Number
+                  </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    6-character alphanumeric code laser-etched on gold (e.g. 7X3M9P)
+                  </span>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    className="admin-input"
+                    placeholder="e.g. 7X3M9P"
+                    value={formState.huid || ""}
+                    onChange={(e) => setFormState({ ...formState, huid: e.target.value.toUpperCase() })}
+                    style={{ width: "100%", fontFamily: "monospace", fontSize: "13px" }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Laboratory Certificate Number
+                  </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Official SGL / IGI / GIA report number (e.g. SGL-J948271)
+                  </span>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    placeholder="e.g. SGL-J948271"
+                    value={formState.certificate_number || ""}
+                    onChange={(e) => setFormState({ ...formState, certificate_number: e.target.value })}
+                    style={{ width: "100%", fontSize: "13px" }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Certificate Verification Link / PDF
+                  </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Customer-facing web link to verify grading report online
+                  </span>
+                  <input
+                    type="url"
+                    className="admin-input"
+                    placeholder="e.g. https://sgl-labs.com/verify/..."
+                    value={formState.certificate_url || ""}
+                    onChange={(e) => setFormState({ ...formState, certificate_url: e.target.value })}
+                    style={{ width: "100%", fontSize: "13px" }}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1817,18 +1903,21 @@ export default function ProductForm({ isEdit = false, productId = null, existing
             <div className="admin-card" style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
               <div>
                 <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                  Crafting Cost Benchmarks
+                  Gold Weight & Crafting Cost Benchmarks
                 </h3>
                 <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "4px 0 0" }}>
-                  Define base crafting parameters. These apply proportionally across all selected purities.
+                  Define base gold weight and crafting charges. These calculate live storefront prices proportionally across all chosen purities.
                 </p>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "16px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Primary Catalog Karat
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Default Showcase Purity
                   </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Initial purity selected on product page
+                  </span>
                   <select
                     className="admin-input"
                     value={formState.karat}
@@ -1847,21 +1936,25 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                       .filter((p) => benchmarkPurities.some((bp) => bp === p.code || bp === p.id || bp === p.name))
                       .map((p) => (
                         <option key={p.id || p.code} value={p.code || p.name}>
-                          {p.name} ({Math.round((p.purity_fraction || 1) * 1000) / 10}%)
+                          {p.name} ({Math.round((p.purity_fraction || 1) * 1000) / 10}% pure)
                         </option>
                       ))}
                   </select>
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Net Base Weight (g) *
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Net Gold Weight (Grams) *
                   </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Metal weight in grams (without gems)
+                  </span>
                   <input
                     type="number"
                     step="0.001"
                     required
                     className="admin-input"
+                    placeholder="e.g. 10.5"
                     value={formState.base_weight_grams}
                     onChange={(e) => setFormState({ ...formState, base_weight_grams: e.target.value })}
                     style={{ width: "100%", fontSize: "13px" }}
@@ -1869,13 +1962,17 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Making (%)
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Wastage / Value Addition (VA %)
                   </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Casting & polishing wastage % (e.g. 2.5%, 20%)
+                  </span>
                   <input
                     type="number"
                     step="0.1"
                     className="admin-input"
+                    placeholder="e.g. 2.5"
                     value={formState.wastage_percent}
                     onChange={(e) => setFormState({ ...formState, wastage_percent: e.target.value })}
                     style={{ width: "100%", fontSize: "13px" }}
@@ -1883,12 +1980,16 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Other Charges (₹)
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Making Charges (₹ Flat)
                   </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Artisan crafting and labor fee in ₹
+                  </span>
                   <input
                     type="number"
                     className="admin-input"
+                    placeholder="e.g. 3500"
                     value={formState.making_charge}
                     onChange={(e) => setFormState({ ...formState, making_charge: e.target.value })}
                     style={{ width: "100%", fontSize: "13px" }}
@@ -1896,12 +1997,16 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Stone Charge (₹)
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Default Stone Charge (₹)
                   </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Cost for default mounted stones/diamonds
+                  </span>
                   <input
                     type="number"
                     className="admin-input"
+                    placeholder="e.g. 0"
                     value={formState.stone_charge}
                     onChange={(e) => setFormState({ ...formState, stone_charge: e.target.value })}
                     style={{ width: "100%", fontSize: "13px" }}
@@ -2009,7 +2114,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                     Live Benchmark Retail Price Table
                   </h3>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "4px 0 0" }}>
-                    Calculated in real-time according to live bullion rates, purity hallmarks, making (%), other charges (₹), and 3% GST.
+                    Calculated in real-time according to live bullion rates, purity hallmarks, wastage (VA %), making charges (₹), and 3% GST.
                   </p>
                 </div>
               </div>
@@ -2020,14 +2125,14 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   <thead>
                     <tr style={{ borderBottom: "1px solid var(--admin-border)", background: "var(--admin-surface-elevated)", textAlign: "left" }}>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Purity Grade</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Rate / g</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Live Rate / g</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Metal Value</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Making ({formState.wastage_percent}%)</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Other Charges (₹)</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Wastage ({formState.wastage_percent}%)</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Making Charge (₹)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Stones (₹)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>GST (3%)</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 700, color: "var(--admin-text-primary)", textAlign: "right" }}>Calculated Retail Price</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)", textAlign: "center" }}>Role</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 700, color: "var(--admin-text-primary)", textAlign: "right" }}>Total Retail MRP (₹)</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)", textAlign: "center" }}>Storefront Role</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2116,7 +2221,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <h3 style={{ fontSize: "17px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                      Product Availability & Bespoke Matrix
+                      Customer Customization Options & Availability Matrix
                     </h3>
                     <span
                       style={{
@@ -2129,11 +2234,11 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                         border: "1px solid rgba(60,80,224,0.2)",
                       }}
                     >
-                      Bespoke Atelier Engine
+                      Storefront Bespoke Selector
                     </span>
                   </div>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: "4px 0 0" }}>
-                    Manage customer-selectable options across <strong>Metal Purity</strong>, <strong>Finish Options</strong>, <strong>Size</strong>, <strong>Gem / Stone Options</strong>, and <strong>Chain Type</strong>.
+                    Configure the choices customers see on the product page: <strong>Gold Color & Purity</strong>, <strong>Sizes</strong>, <strong>Gemstones & Diamonds</strong>, and <strong>Chain Options</strong>.
                   </p>
                 </div>
 
@@ -2152,7 +2257,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                     className="admin-btn-outline"
                     style={{ fontSize: "12px", padding: "6px 14px" }}
                   >
-                    Select All Availability
+                    Select All Options
                   </button>
                 </div>
               </div>
@@ -2162,13 +2267,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
                   <div>
                     <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span>1. Metal Purity & Finish Matrix</span>
+                      <span>1. Metal Colors & Purities (Gold & Platinum Matrix)</span>
                       <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)" }}>
-                        ({activeFinishes.filter((f) => (productFinishMatrix[f.id] || []).length > 0).length} of {activeFinishes.length} Finishes Active)
+                        ({activeFinishes.filter((f) => (productFinishMatrix[f.id] || []).length > 0).length} of {activeFinishes.length} Metal Colors Active)
                       </span>
                     </h4>
                     <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                      Configure which karat standards can be cast for each metal finish on this product.
+                      Choose which karat standards (24KT, 22KT, 18KT, 14KT, PT950) can be cast for each metal color on this piece.
                     </p>
                   </div>
                 </div>
@@ -2317,13 +2422,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
                   <div>
                     <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span>2. Size Availability</span>
+                      <span>2. Available Sizes & Dimensions (Rings, Bangles & Chains)</span>
                       <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)" }}>
                         ({getOptionValues("size").filter((v) => v.enabled !== false).length} Sizes Active)
                       </span>
                     </h4>
                     <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                      Toggle ring sizes, bangle diameters, or chain lengths permitted on this product.
+                      Select the ring sizes, bangle diameters, or chain lengths offered for this piece. You can add extra price (+₹) for larger sizes.
                     </p>
                   </div>
 
@@ -2451,13 +2556,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
                   <div>
                     <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span>3. Gem / Stone Options Availability</span>
+                      <span>3. Gemstones & Natural Diamond Choices</span>
                       <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)" }}>
                         ({getOptionValues("gem").filter((v) => v.enabled !== false).length} Gems Active)
                       </span>
                     </h4>
                     <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                      Select precious stones, certified natural diamonds, and solid gold options permitted on this piece.
+                      Select precious stones, certified natural diamonds (VVS-VS), and solid gold options permitted on this piece. Set price delta (+₹) added when customer selects that stone.
                     </p>
                   </div>
 
@@ -2593,13 +2698,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
                   <div>
                     <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span>4. Chain Type Availability</span>
+                      <span>4. Accompanying Chain Options (Pendants & Necklaces)</span>
                       <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)" }}>
                         ({getOptionValues("chain").filter((v) => v.enabled !== false).length} Chains Active)
                       </span>
                     </h4>
                     <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                      Configure chain link styles and lengths available with this design (or pendant only).
+                      Configure chain link styles and lengths (e.g. Box Chain 18&quot;, Cable Chain) or &quot;Pendant Only (No Chain)&quot;. Enter extra price (+₹) for each chain.
                     </p>
                   </div>
 
@@ -2737,7 +2842,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                      Product Variants & Bespoke Crafting Table
+                      5. Handcrafted Variants & Live Pricing Matrix
                     </h3>
                     <span
                       style={{
@@ -2750,11 +2855,11 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                         border: "1px solid var(--admin-border)",
                       }}
                     >
-                      {productVariants.length} Variants
+                      {productVariants.length} Combinations Generated
                     </span>
                   </div>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: "4px 0 0" }}>
-                    Fine jewellery pieces are handcrafted to order. Set SKU, custom weight, and live calculated pricing for each permitted combination.
+                    Fine jewellery pieces are handcrafted to order. Set exact gold weight (g) and final retail price (₹) for each permitted customer configuration.
                   </p>
                 </div>
 
@@ -2810,7 +2915,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   }}
                 >
                   <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "4px" }}>
-                    No Variants Created Yet
+                    No Variant Combinations Generated Yet
                   </div>
                   <div style={{ fontSize: "12px", maxWidth: "440px", margin: "0 auto 16px" }}>
                     Configure your allowed Finish, Metal Purity, Size, Gem / Stone, and Chain rules above, then click &ldquo;Auto-Generate from Availability&rdquo; to populate combination SKUs and pricing.
@@ -2829,11 +2934,11 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", textAlign: "left" }}>
                     <thead>
                       <tr style={{ background: "var(--admin-surface-elevated, #F8FAFC)", borderBottom: "1px solid var(--admin-border)" }}>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Finish & Purity</th>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Size</th>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Gem / Stone</th>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Weight (g)</th>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Price (₹)</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Metal Color & Purity</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Size / Dimension</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Gemstone / Natural Diamond</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Net Gold Weight (g)</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Retail Selling Price (₹)</th>
                         <th style={{ padding: "12px 14px", fontWeight: 600, textAlign: "right" }}>Actions</th>
                       </tr>
                     </thead>
@@ -2994,10 +3099,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           <div className="admin-card" style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "22px", marginTop: "20px" }}>
             <div>
               <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                Media
+                Product Photography, 360° Video & 3D Interactive Assets
               </h3>
               <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: "4px 0 0" }}>
-                Add product imagery, promotional clips, and interactive 3D assets for the atelier view.
+                Upload high-resolution jewelry photos, editorial clips, or interactive 3D models (.glb, .gltf). The first item is automatically displayed as the primary showcase image on product cards.
               </p>
             </div>
 
@@ -3575,10 +3680,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
                   <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                    Blueprint & Technical Drawing Sheet
+                    1. Technical Blueprint & CAD Drawing Sheet
                   </h4>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                    Technical drawing sheet, orthographic blueprint, or 3D CAD render.
+                    Archival orthographic drawing sheet, technical CAD sketch, or 3D render displayed on the public Design Log page.
                   </p>
                 </div>
                 {formState.design_log?.blueprint_image && formState.design_log?.blueprint_image !== "/images/design-log/PD-SG-OR-001.JPG" && (
@@ -3751,10 +3856,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", borderBottom: "1px solid var(--admin-border)", paddingBottom: "16px" }}>
                 <div>
                   <h4 style={{ fontSize: "15px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                    Design Log Specifications
+                    2. Design Log Editorial Story & Public Specifications
                   </h4>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "4px 0 0" }}>
-                    Public specifications displayed on the website Design Log (<code style={{ background: "rgba(60, 80, 224, 0.08)", padding: "2px 6px", borderRadius: "4px", color: "var(--admin-primary)" }}>pintaara.com/design-log</code>). If any field is left empty, it will not be displayed on the frontend.
+                    Public specifications displayed on the website Design Log (<code style={{ background: "rgba(60, 80, 224, 0.08)", padding: "2px 6px", borderRadius: "4px", color: "var(--admin-primary)" }}>pintaara.com/design-log</code>). If any field is left empty, it will be hidden automatically on the storefront.
                   </p>
                 </div>
 
@@ -3803,16 +3908,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "18px" }}>
                 {/* 1. TYPE */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      TYPE
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Jewelry Piece Type
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Classification on design log (e.g. BESPOKE BRACELET, SIGNATURE PENDANT)
+                    </span>
                   </div>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g. BESPOKE DESIGN"
+                    placeholder="e.g. BESPOKE BRACELET"
                     value={formState.design_log?.design_type || ""}
                     onChange={(e) =>
                       setFormState({
@@ -3826,16 +3933,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 2. MATERIAL OPTIONS */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      MATERIAL OPTIONS
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Gold & Precious Metal Standards
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Purity hallmarks offered (e.g. 22KT Royal Gold · 18KT Fine Gold)
+                    </span>
                   </div>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g. 18KT Solid Gold"
+                    placeholder="e.g. 18KT Solid Gold · 22KT Royal Gold"
                     value={formState.design_log?.material_options || ""}
                     onChange={(e) =>
                       setFormState({
@@ -3849,11 +3958,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 3. FINISH OPTIONS */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      FINISH OPTIONS
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Gold Color & Surface Finishes
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Metal color treatments (e.g. Yellow Gold · White Gold · Rose Gold)
+                    </span>
                   </div>
                   <input
                     type="text"
@@ -3872,16 +3983,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 4. SIZE OPTIONS */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      SIZE OPTIONS
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Available Sizing & Dimension Options
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Wearable dimensions (e.g. Standard Size · Ring Sizes 10–18 · 2.4 Bangle)
+                    </span>
                   </div>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g. Standard"
+                    placeholder="e.g. Standard Size or Ring Sizes 10–18"
                     value={formState.design_log?.size_options || ""}
                     onChange={(e) =>
                       setFormState({
@@ -3895,16 +4008,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 5. GEM / STONE OPTIONS */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      GEM / STONE OPTIONS
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Gemstones & Diamond Accents
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Natural diamonds & precious stones (e.g. Natural Diamond (VVS-VS) · Solid Gold)
+                    </span>
                   </div>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g. Natural Diamond"
+                    placeholder="e.g. Natural Diamond (VVS-VS) · Solid Gold"
                     value={formState.design_log?.gem_options || ""}
                     onChange={(e) =>
                       setFormState({
@@ -3918,11 +4033,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 6. INSPIRED BY */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      INSPIRED BY
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Design Story & Architectural Inspiration
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Poetic story, sacred geometry, or aesthetic philosophy behind the piece
+                    </span>
                   </div>
                   <input
                     type="text"
@@ -3941,11 +4058,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 7. A PINTAARA™ ORIGINAL */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      A PINTAARA™ ORIGINAL (Brand Origin)
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Atelier Brand Origin & Lineage
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Atelier authenticity trademark and brand provenance
+                    </span>
                   </div>
                   <input
                     type="text"
@@ -3964,11 +4083,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 8. DESIGNED X Darshit Soni */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      DESIGNED BY
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Lead Designer / Master Artisan
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Master creator credited in the Design Log and authenticity report
+                    </span>
                   </div>
                   <input
                     type="text"
