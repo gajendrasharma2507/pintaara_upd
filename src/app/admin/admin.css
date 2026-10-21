@@ -1,0 +1,230 @@
+/* ============================================================
+   PINTAARA ATELIER ADMIN — LUXURY DESIGN SYSTEM
+   ============================================================ */
+
+:root {
+  --admin-bg: #0C0B09;
+  --admin-surface: #141310;
+  --admin-surface-elevated: #1B1915;
+  --admin-surface-hover: #22201B;
+  --admin-border: rgba(212, 175, 55, 0.12);
+  --admin-border-focus: rgba(212, 175, 55, 0.45);
+  --admin-gold: #C9A961;
+  --admin-gold-light: #E5CF98;
+  --admin-gold-dark: #9A7C38;
+  --admin-gold-glow: rgba(201, 169, 97, 0.15);
+  --admin-text-primary: #F7F3EB;
+  --admin-text-secondary: #A69E90;
+  --admin-text-muted: #6B655B;
+  --admin-danger: #D96A6A;
+  --admin-danger-bg: rgba(217, 106, 106, 0.12);
+  --admin-success: #5DBB81;
+  --admin-success-bg: rgba(93, 187, 129, 0.12);
+  --admin-warning: #E5A93C;
+  --admin-warning-bg: rgba(229, 169, 60, 0.12);
+  --admin-info: #64A6E8;
+  --admin-info-bg: rgba(100, 166, 232, 0.12);
+}
+
+/* Base Admin Reset & Font */
+.admin-shell {
+  min-height: 100vh;
+  background-color: var(--admin-bg);
+  color: var(--admin-text-primary);
+  font-family: 'Avenir Next', sans-serif;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Typography Helpers */
+.admin-serif {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+}
+
+.admin-editorial {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* Custom Scrollbars */
+.admin-custom-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.admin-custom-scroll::-webkit-scrollbar-track {
+  background: var(--admin-bg);
+}
+.admin-custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(201, 169, 97, 0.25);
+  border-radius: 4px;
+}
+.admin-custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-gold);
+}
+
+/* Glass & Card Surfaces */
+.admin-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.admin-card-hover:hover {
+  border-color: rgba(201, 169, 97, 0.3);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 20px var(--admin-gold-glow);
+}
+
+/* Buttons */
+.admin-btn-gold {
+  background: linear-gradient(135deg, #DFCA97 0%, #C9A961 60%, #9E7D33 100%);
+  color: #12100C;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(201, 169, 97, 0.25);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+.admin-btn-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(201, 169, 97, 0.4);
+  filter: brightness(1.05);
+}
+
+.admin-btn-outline {
+  background: transparent;
+  color: var(--admin-gold-light);
+  border: 1px solid rgba(201, 169, 97, 0.3);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.admin-btn-outline:hover {
+  border-color: var(--admin-gold);
+  background: rgba(201, 169, 97, 0.08);
+  color: #FFF;
+}
+
+.admin-btn-ghost {
+  background: transparent;
+  color: var(--admin-text-secondary);
+  border: none;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.admin-btn-ghost:hover {
+  color: var(--admin-text-primary);
+  background: var(--admin-surface-hover);
+}
+
+/* Badges */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.admin-badge-success {
+  background: var(--admin-success-bg);
+  color: var(--admin-success);
+  border: 1px solid rgba(93, 187, 129, 0.3);
+}
+
+.admin-badge-warning {
+  background: var(--admin-warning-bg);
+  color: var(--admin-warning);
+  border: 1px solid rgba(229, 169, 60, 0.3);
+}
+
+.admin-badge-info {
+  background: var(--admin-info-bg);
+  color: var(--admin-info);
+  border: 1px solid rgba(100, 166, 232, 0.3);
+}
+
+.admin-badge-danger {
+  background: var(--admin-danger-bg);
+  color: var(--admin-danger);
+  border: 1px solid rgba(217, 106, 106, 0.3);
+}
+
+.admin-badge-gold {
+  background: rgba(201, 169, 97, 0.12);
+  color: var(--admin-gold-light);
+  border: 1px solid rgba(201, 169, 97, 0.25);
+}
+
+/* Table styling */
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.admin-table th {
+  background: var(--admin-surface-elevated);
+  color: var(--admin-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 13px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--admin-border);
+}
+.admin-table td {
+  padding: 15px 18px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.06);
+  color: var(--admin-text-primary);
+  vertical-align: middle;
+}
+.admin-table tr:hover td {
+  background: var(--admin-surface-hover);
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+.admin-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5DBB81;
+  box-shadow: 0 0 8px #5DBB81;
+  animation: pulseGlow 2s infinite ease-in-out;
+}

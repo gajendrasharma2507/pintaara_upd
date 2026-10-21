@@ -1,0 +1,62 @@
+.cat-prod-price,
+.atelier-price-value {
+    font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+}
+
+.cat-prod-price {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    width: fit-content;
+    padding: 0.35rem 0.55rem;
+    border-left: 2px solid #b88745;
+    background: rgba(184, 135, 69, 0.08);
+    color: #2c2825;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.cat-prod-price::before {
+    content: "MRP";
+    font-family: var(--font-body);
+    font-size: 0.58em;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: #8b6335;
+}
+
+.atelier-price-label {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: #80786f;
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.atelier-price-value {
+    font-variant-numeric: tabular-nums;
+    color: #2c2825;
+    font-size: clamp(1.8rem, 3vw, 2.35rem);
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+@media (max-width: 767px) {
+    .atelier-bottom-inner {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .atelier-buttons-block {
+        width: 100% !important;
+    }
+
+    .atelier-price-value {
+        font-size: 1.45rem !important;
+    }
+}

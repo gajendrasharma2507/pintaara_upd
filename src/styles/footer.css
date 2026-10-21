@@ -1,0 +1,43 @@
+.subpage-footer,
+.collection-bottom-bar,
+.about-footer,
+.design-log-footer {
+    font-family: var(--font-body);
+}
+
+.footer-brand,
+.bottom-brand {
+    font-family: var(--font-logo);
+    letter-spacing: 0.16em;
+    font-weight: 500;
+}
+
+.footer-right,
+.bottom-copyright {
+    font-family: var(--font-body);
+    letter-spacing: 0.14em;
+    font-weight: 400;
+}
+
+@media (max-width: 600px) {
+    .subpage-footer,
+    .collection-bottom-bar,
+    .about-footer,
+    .design-log-footer {
+        gap: 16px;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        font-size: 0.62rem !important;
+    }
+
+    .footer-brand,
+    .bottom-brand {
+        letter-spacing: 0.1em;
+    }
+
+    .footer-right,
+    .bottom-copyright {
+        text-align: right;
+        letter-spacing: 0.08em;
+    }
+}

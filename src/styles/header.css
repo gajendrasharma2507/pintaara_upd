@@ -1,0 +1,314 @@
+/* Keep dark-header navigation readable on light collection and commerce pages. */
+.main-header.header-dark {
+    background: rgba(248, 243, 238, 0.94) !important;
+    background-color: rgba(248, 243, 238, 0.94) !important;
+    backdrop-filter: blur(12px) saturate(110%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(110%) !important;
+    border-bottom-color: rgba(44, 40, 37, 0.14) !important;
+}
+
+.main-header.header-dark .header-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.main-header.header-dark .nav-menu {
+    justify-self: center;
+}
+
+.main-header.header-dark .header-icons {
+    justify-self: end;
+}
+
+/* The 1976 hero is intentionally dark and textured, so keep its light
+   navigation readable without hiding the artwork underneath. */
+.legacy-page-root .main-header.header-light {
+    background: linear-gradient(180deg, rgba(18, 12, 8, 0.72), rgba(18, 12, 8, 0.18)) !important;
+    border-bottom-color: rgba(248, 243, 238, 0.2) !important;
+    box-shadow: 0 8px 24px rgba(10, 7, 4, 0.12);
+    backdrop-filter: blur(5px) saturate(105%) !important;
+    -webkit-backdrop-filter: blur(5px) saturate(105%) !important;
+}
+
+@media (max-width: 767px) {
+    .main-header {
+        padding: 0 20px;
+    }
+
+    .header-container {
+        display: flex !important;
+        gap: 16px;
+    }
+
+    .logo {
+        flex: 0 0 auto;
+    }
+
+    .header-logo-img {
+        width: auto;
+        height: 22px;
+        max-width: 120px;
+    }
+
+    .nav-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        gap: 0;
+        padding: 10px 20px 16px;
+        background: rgba(248, 243, 238, 0.98);
+        border-bottom: 1px solid rgba(44, 40, 37, 0.12);
+        box-shadow: 0 12px 24px rgba(44, 40, 37, 0.08);
+    }
+
+    .nav-menu.open {
+        display: flex;
+    }
+
+    .nav-menu .nav-link {
+        display: block;
+        padding: 12px 0;
+        color: #2C2825 !important;
+        border-bottom: 1px solid rgba(44, 40, 37, 0.1);
+    }
+
+    .nav-menu .nav-link:last-child {
+        border-bottom: 0;
+    }
+
+    .header-icons {
+        gap: 12px !important;
+        margin-left: auto;
+    }
+
+    .header-icons svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .mobile-menu-toggle {
+        flex: 0 0 24px;
+        width: 24px;
+        height: 24px;
+        padding: 3px 0;
+        border: 0;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
+    .mobile-menu-toggle span {
+        display: block;
+        width: 100%;
+        height: 1px;
+        background: currentColor;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .mobile-menu-toggle.open span:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+
+    .mobile-menu-toggle.open span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-menu-toggle.open span:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+
+    .main-header.header-light .nav-menu {
+        background: rgba(14, 11, 9, 0.98);
+    }
+
+    .main-header.header-light .nav-menu .nav-link {
+        color: #F8F3EE !important;
+        border-bottom-color: rgba(248, 243, 238, 0.16);
+    }
+
+    .legacy-page-root .main-header.header-light {
+        background: linear-gradient(180deg, rgba(18, 12, 8, 0.88), rgba(18, 12, 8, 0.42)) !important;
+    }
+
+    .legacy-page-root .header-logo-img {
+        height: 24px;
+        max-width: 136px;
+    }
+}
+
+/* ============================================================
+   HEADER — matched to Website Design.pdf (drawn at 1920px wide):
+   logo Baskerville 40 / 0.25em tracking / brand gradient,
+   nav Avenir Next 20 / 0.1em tracking / ~70px gaps,
+   thin-line profile + bag icons ~40px tall.
+   ============================================================ */
+.header-logo-text {
+    display: block;
+    font-family: var(--font-logo);
+    font-size: var(--fs-logo);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.25em;
+    margin-right: -0.25em; /* cancel trailing tracking after last letter */
+    white-space: nowrap;
+    background: var(--pintaara-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    transition: opacity 0.3s ease;
+}
+
+.logo:hover .header-logo-text {
+    opacity: 0.85;
+}
+
+.main-header .nav-menu {
+    gap: clamp(28px, 3.6vw, 86px);
+}
+
+.main-header .nav-link {
+    font-size: var(--fs-link) !important;
+    letter-spacing: 0.1em !important;
+    opacity: 1;
+}
+
+.main-header .header-icons {
+    gap: clamp(16px, 1.75vw, 42px) !important;
+}
+
+.main-header .header-icons svg {
+    width: clamp(22px, 2.1vw, 50px);
+    height: clamp(22px, 2.1vw, 50px);
+}
+
+.main-header .header-icons .header-icon-svg {
+    stroke-width: 1;
+}
+
+.main-header .icon-link {
+    opacity: 1;
+}
+
+/* Buttons don't inherit color by default — keep the hamburger visible
+   on dark headers (it was rendering black-on-black). */
+.main-header .mobile-menu-toggle {
+    color: inherit;
+}
+
+/* Home page: full-bleed header with no rule, 70px side margins and
+   items centred ~57px from the top, as on PDF page 2. */
+.slider-root-wrapper .main-header {
+    height: clamp(64px, 5.94vw, 140px);
+    padding: 0 clamp(20px, 3.65vw, 88px);
+}
+
+.slider-root-wrapper .main-header.header-light,
+.slider-root-wrapper .main-header.header-dark {
+    border-bottom: none !important;
+}
+
+.slider-root-wrapper .main-header .header-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.slider-root-wrapper .main-header .nav-menu {
+    justify-self: center;
+}
+
+.slider-root-wrapper .main-header .header-icons {
+    justify-self: end;
+}
+
+/* Footer slide shows only the profile + bag icons, top-right (PDF p.7) */
+.slider-root-wrapper .main-header.header-icons-only .header-container {
+    display: flex;
+    justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+    .header-logo-text {
+        font-size: 18px;
+        letter-spacing: 0.2em;
+        margin-right: -0.2em;
+    }
+
+    .main-header .nav-link {
+        font-size: 14px !important;
+    }
+
+    .main-header .header-icons svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .slider-root-wrapper .main-header .header-container {
+        display: flex !important;
+    }
+}
+
+/* ============================================================
+   HOME — transparent header, hover reveal after the first slide.
+   Slides with headerReveal (slides.js) hide the header until the
+   pointer moves over the top band; on the footer slide the icons
+   stay visible and the logo + nav fade in. Touch screens (no
+   hover) keep the header visible so the menu stays reachable.
+   ============================================================ */
+.slider-root-wrapper .main-header,
+.slider-root-wrapper .main-header.header-light,
+.slider-root-wrapper .main-header.header-dark {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .main-header.header-reveal {
+        opacity: 0;
+        animation: none !important;
+        transition: opacity 0.35s ease;
+    }
+
+    .main-header.header-reveal:hover,
+    .main-header.header-reveal:focus-within {
+        opacity: 1;
+    }
+
+    /* Footer slide: icons always visible, logo + nav on hover */
+    .main-header.header-icons-only.header-reveal {
+        opacity: 1;
+    }
+
+    .slider-root-wrapper .main-header.header-icons-only.header-reveal .header-container {
+        display: grid;
+    }
+
+    .main-header.header-icons-only.header-reveal .logo {
+        display: inline-flex !important;
+    }
+
+    .main-header.header-icons-only.header-reveal .nav-menu {
+        display: flex !important;
+    }
+
+    .main-header.header-icons-only.header-reveal .logo,
+    .main-header.header-icons-only.header-reveal .nav-menu {
+        opacity: 0;
+        transition: opacity 0.35s ease;
+    }
+
+    .main-header.header-icons-only.header-reveal:hover .logo,
+    .main-header.header-icons-only.header-reveal:hover .nav-menu,
+    .main-header.header-icons-only.header-reveal:focus-within .logo,
+    .main-header.header-icons-only.header-reveal:focus-within .nav-menu {
+        opacity: 1;
+    }
+}
