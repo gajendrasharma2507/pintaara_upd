@@ -254,15 +254,14 @@ export default function ProductForm({ isEdit = false, productId = null, existing
     if (!file) return;
     showToast(`Uploading ${file.name}...`);
     try {
-      const formData = new FormData();
-      formData.append("media", file);
-      const res = await adminApi.uploadMedia(formData);
-      if (res && res.status === "success" && res.data?.url) {
+      const res = await adminApi.uploadProductMedia(file);
+      const uploadedUrl = res?.url || res?.data?.url;
+      if (res && (res.status === "success" || uploadedUrl) && uploadedUrl) {
         setFormState((prev) => ({
           ...prev,
           design_log: {
             ...prev.design_log,
-            blueprint_image: res.data.url,
+            blueprint_image: uploadedUrl,
           },
         }));
         showToast("Blueprint drawing uploaded successfully.");
@@ -1381,18 +1380,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       certificate_number: formState.certificate_number ? formState.certificate_number.trim() : null,
       certificate_url: formState.certificate_url ? formState.certificate_url.trim() : null,
       designed_by: formState.designed_by || "Darshit Soni",
-      release_date: formState.release_date,
+      release_date: formState.release_date && formState.release_date.trim() ? formState.release_date.trim() : new Date().toISOString().split("T")[0],
       description: formState.description,
       model_3d_url: formState.model_3d_url || null,
       image: typeof formState.image === "object" ? formState.image.url : formState.image,
       images: (formState.images || []).map((img) => (typeof img === "object" ? img.url : img)),
       options: sanitizedOptions,
       design_log: {
-        blueprint_image: formState.design_log?.blueprint_image || null,
+        blueprint_image: typeof formState.design_log?.blueprint_image === "object" ? formState.design_log.blueprint_image.url : formState.design_log?.blueprint_image || null,
         design_type: formState.design_log?.design_type || formState.design_log?.type || null,
         status: formState.design_log?.status || "UNDER DEVELOPMENT",
         inspired_by: formState.design_log?.inspired_by || null,
-        release_date: formState.design_log?.release_date || formState.release_date || null,
+        release_date: formState.design_log?.release_date && formState.design_log.release_date.trim() ? formState.design_log.release_date.trim() : null,
         specs: {
           type: formState.design_log?.design_type || formState.design_log?.type || null,
           material_options: formState.design_log?.material_options || null,
@@ -1412,31 +1411,36 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
       if (isEdit && productId) {
         apiRes = await adminApi.updateProduct(productId, payload);
+        if (!apiRes || (apiRes.status && apiRes.status === "error") || apiRes.errors) {
+          const errorMsg = apiRes?.message || (apiRes?.errors ? Object.values(apiRes.errors).flat().join(", ") : "Failed to update product on backend.");
+          showToast("Error: " + errorMsg);
+          setIsSubmitting(false);
+          return;
+        }
         savedId = productId;
       } else {
         apiRes = await adminApi.createProduct(payload);
-        if (apiRes?.data?.id) {
-          savedId = apiRes.data.id;
+        if (!apiRes || !apiRes?.data?.id || (apiRes.status && apiRes.status === "error") || apiRes.errors) {
+          const errorMsg = apiRes?.message || (apiRes?.errors ? Object.values(apiRes.errors).flat().join(", ") : "Failed to create product on backend.");
+          showToast("Error: " + errorMsg);
+          setIsSubmitting(false);
+          return;
         }
+        savedId = apiRes.data.id;
       }
 
-      const updatedItem = apiRes?.data || {
-        id: savedId || Date.now(),
-        ...payload,
-        sku: payload.design_code,
-        collection_name: selectedCol?.name || "Unassigned",
-        karat: formState.karat,
-        purity_fraction: formState.purity_fraction,
-      };
+      const updatedItem = apiRes.data;
 
       const cached = localStorage.getItem("pintaara_products_cache");
       if (cached) {
-        const list = JSON.parse(cached);
-        const exists = list.some((p) => String(p.id) === String(savedId));
-        const updated = exists
-          ? list.map((p) => (String(p.id) === String(savedId) ? { ...p, ...updatedItem } : p))
-          : [updatedItem, ...list];
-        localStorage.setItem("pintaara_products_cache", JSON.stringify(updated));
+        try {
+          const list = JSON.parse(cached);
+          const exists = list.some((p) => String(p.id) === String(savedId));
+          const updated = exists
+            ? list.map((p) => (String(p.id) === String(savedId) ? { ...p, ...updatedItem } : p))
+            : [updatedItem, ...list];
+          localStorage.setItem("pintaara_products_cache", JSON.stringify(updated));
+        } catch (_) {}
       }
 
       if (savedId && productFinishMatrix && Object.keys(productFinishMatrix).length > 0) {
@@ -1483,13 +1487,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
       setTimeout(() => {
         router.push("/products");
-      }, 600);
+      }, 700);
     } catch (err) {
-      console.warn("Save offline error:", err);
-      showToast("Saved locally.");
-      setTimeout(() => {
-        router.push("/products");
-      }, 600);
+      console.error("Save error:", err);
+      showToast("Error: " + (err.message || "Failed to connect to backend server."));
     } finally {
       setIsSubmitting(false);
     }
@@ -1544,18 +1545,38 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           </span>
         </div>
 
-        <div>
-          <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--admin-text-primary)", margin: 0, letterSpacing: "-0.01em" }}>
-            {isEdit ? "Edit Product" : "New Product"}
-          </h1>
-          <p style={{ fontSize: "13px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: 0 }}>
-            {isEdit ? `Update specifications for SKU: ${formState.design_code || "—"}` : "Configure specifications, valuation, and customization options."}
-          </p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+          <div>
+            <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--admin-text-primary)", margin: 0, letterSpacing: "-0.01em" }}>
+              {isEdit ? "Edit Product" : "New Product"}
+            </h1>
+            <p style={{ fontSize: "13px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: 0 }}>
+              {isEdit ? `Update specifications for SKU: ${formState.design_code || "—"}` : "Configure specifications, valuation, and customization options."}
+            </p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <Link
+              href="/products"
+              className="admin-btn-outline"
+              style={{ fontSize: "13px", padding: "8px 18px" }}
+            >
+              Cancel
+            </Link>
+            <button
+              type="submit"
+              form="product-main-form"
+              disabled={isSubmitting}
+              className="admin-btn-primary"
+              style={{ fontSize: "13px", padding: "8px 24px", display: "flex", alignItems: "center", gap: "6px" }}
+            >
+              <span>{isSubmitting ? "Saving..." : isEdit ? "Save Changes" : "Create Product"}</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Main Form Layout */}
-      <form onSubmit={handleSubmit}>
+      <form id="product-main-form" onSubmit={handleSubmit}>
         {/* Navigation Tabs */}
         <div
           className="admin-card"

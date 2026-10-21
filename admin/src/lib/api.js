@@ -314,12 +314,30 @@ export default {
       body: formData,
     });
   },
-  uploadProductMedia: async (file) => {
-    const formData = new FormData();
-    formData.append('media', file);
+  uploadProductMedia: async (fileOrFormData) => {
+    let body;
+    if (fileOrFormData instanceof FormData) {
+      body = fileOrFormData;
+    } else {
+      body = new FormData();
+      body.append('media', fileOrFormData);
+    }
     return adminFetch('/admin/products/upload-media', {
       method: 'POST',
-      body: formData,
+      body,
+    });
+  },
+  uploadMedia: async (fileOrFormData) => {
+    let body;
+    if (fileOrFormData instanceof FormData) {
+      body = fileOrFormData;
+    } else {
+      body = new FormData();
+      body.append('media', fileOrFormData);
+    }
+    return adminFetch('/admin/products/upload-media', {
+      method: 'POST',
+      body,
     });
   },
   // Sequel 247 Logistics

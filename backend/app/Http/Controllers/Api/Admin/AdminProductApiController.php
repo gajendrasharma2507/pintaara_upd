@@ -11,9 +11,12 @@ use App\Models\ProductImage;
 use App\Models\ProductOption;
 use App\Models\ProductOptionValue;
 use App\Services\JewelryPricingService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AdminProductApiController extends Controller
@@ -120,6 +123,66 @@ class AdminProductApiController extends Controller
             'status' => 'success',
             'data' => self::getDefaultOptionMasters(),
         ]);
+    }
+
+    /**
+     * Process an image or media URL. If it's a Base64 data URI (from canvas/fileReader),
+     * decode and save it properly to storage disk so it fits in varchar(255).
+     */
+    protected function processMediaUrl(?string $url, string $subfolder = 'images'): ?string
+    {
+        if (empty($url)) {
+            return null;
+        }
+
+        $url = trim($url);
+
+        // If it's a base64 data URI, decode and save to public storage
+        if (preg_match('/^data:([^;]+);base64,(.+)$/', $url, $matches)) {
+            try {
+                $mime = strtolower(trim($matches[1]));
+                $data = base64_decode($matches[2]);
+                if ($data !== false) {
+                    $ext = 'jpg';
+                    if (str_contains($mime, 'png')) $ext = 'png';
+                    elseif (str_contains($mime, 'webp')) $ext = 'webp';
+                    elseif (str_contains($mime, 'gif')) $ext = 'gif';
+                    elseif (str_contains($mime, 'svg')) $ext = 'svg';
+                    elseif (str_contains($mime, 'mp4')) $ext = 'mp4';
+                    elseif (str_contains($mime, 'pdf')) $ext = 'pdf';
+
+                    $fileName = 'media_' . time() . '_' . Str::random(8) . '.' . $ext;
+                    $path = 'products/' . $subfolder . '/' . $fileName;
+                    Storage::disk('public')->put($path, $data);
+                    return url('storage/' . $path);
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Base64 media decode error: " . $e->getMessage());
+            }
+        }
+
+        // If it exceeds varchar(255), truncate safely or fallback
+        if (strlen($url) > 255) {
+            Log::warning("Media URL exceeds 255 characters; using default fallback: " . substr($url, 0, 50));
+            return '/images/concept-hero1.png';
+        }
+
+        return $url;
+    }
+
+    /**
+     * Parse date safely into Y-m-d or null
+     */
+    protected function parseSafeDate($date): ?string
+    {
+        if (empty($date) || !is_string($date) || trim($date) === '') {
+            return null;
+        }
+        try {
+            return Carbon::parse(trim($date))->toDateString();
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
@@ -313,15 +376,15 @@ class AdminProductApiController extends Controller
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
             'design_code' => 'nullable|string|max:100',
-            'tier' => 'nullable|in:Signature,Curated,Heritage',
+            'tier' => 'nullable|string',
             'collection_master_id' => 'nullable|exists:collections_master,id',
             'base_weight_grams' => 'required|numeric|min:0.01',
             'making_charge' => 'nullable|numeric|min:0',
             'making_charge_percent' => 'nullable|numeric|min:0|max:100',
             'wastage_percent' => 'nullable|numeric|min:0|max:100',
-            'status' => 'nullable|in:active,draft,archived',
+            'status' => 'nullable|string',
             'designed_by' => 'nullable|string|max:255',
-            'release_date' => 'nullable|date',
+            'release_date' => 'nullable|string',
             'description' => 'nullable|string',
             'model_3d_url' => 'nullable|string',
             'image' => 'nullable|string',
@@ -358,6 +421,9 @@ class AdminProductApiController extends Controller
             $validated['name'] = !empty($code) ? "Piece {$code}" : 'Bespoke Jewelry Piece';
         }
 
+        $releaseDate = $this->parseSafeDate($validated['release_date'] ?? null) ?? now()->toDateString();
+        $model3dUrl = $this->processMediaUrl($validated['model_3d_url'] ?? $request->model_3d_url ?? null, 'models');
+
         DB::beginTransaction();
         try {
             $product = Product::create([
@@ -366,20 +432,20 @@ class AdminProductApiController extends Controller
                 'tier' => $validated['tier'] ?? 'Signature',
                 'collection_master_id' => $validated['collection_master_id'] ?? null,
                 'description' => $validated['description'] ?? '',
-                'model_3d_url' => $validated['model_3d_url'] ?? $request->model_3d_url ?? null,
+                'model_3d_url' => $model3dUrl,
                 'base_weight_grams' => (float) $validated['base_weight_grams'],
                 'making_charge' => isset($validated['making_charge']) && $validated['making_charge'] !== '' ? (float) $validated['making_charge'] : null,
                 'making_charge_percent' => isset($validated['making_charge_percent']) && $validated['making_charge_percent'] !== '' ? (float) $validated['making_charge_percent'] : null,
                 'wastage_percent' => (float) ($validated['wastage_percent'] ?? 0.0),
                 'status' => $validated['status'] ?? 'active',
                 'designed_by' => $validated['designed_by'] ?? 'Darshit Soni',
-                'release_date' => $validated['release_date'] ?? now()->toDateString(),
+                'release_date' => $releaseDate,
                 'huid' => $request->huid ?? null,
                 'certificate_number' => $request->certificate_number ?? null,
                 'certificate_url' => $request->certificate_url ?? null,
             ]);
 
-            // Handle images
+            // Handle images safely (decoding Base64 data URIs so they fit in varchar 255)
             $imagesList = [];
             if (!empty($validated['images']) && is_array($validated['images'])) {
                 $imagesList = $validated['images'];
@@ -389,15 +455,18 @@ class AdminProductApiController extends Controller
                 $imagesList = ['/images/concept-hero1.png'];
             }
 
-            foreach ($imagesList as $index => $imgItem) {
+            $imgOrder = 0;
+            foreach ($imagesList as $imgItem) {
                 $imgUrl = is_array($imgItem) ? ($imgItem['url'] ?? '') : (string) $imgItem;
-                if (trim($imgUrl)) {
+                $processedUrl = $this->processMediaUrl($imgUrl, 'images');
+                if ($processedUrl) {
                     ProductImage::create([
                         'product_id' => $product->id,
-                        'url' => trim($imgUrl),
-                        'sort_order' => $index,
-                        'is_primary' => $index === 0,
+                        'url' => $processedUrl,
+                        'sort_order' => $imgOrder,
+                        'is_primary' => $imgOrder === 0,
                     ]);
+                    $imgOrder++;
                 }
             }
 
@@ -406,27 +475,30 @@ class AdminProductApiController extends Controller
                 $this->syncProductOptions($product, $validated['options']);
             }
 
-            // Handle Design Log
+            // Handle Design Log safely
             if (isset($validated['design_log']) && is_array($validated['design_log'])) {
                 $dlData = $validated['design_log'];
+                $blueprintImg = $this->processMediaUrl($dlData['blueprint_image'] ?? null, 'blueprints');
+                $dlReleaseDate = $this->parseSafeDate($dlData['release_date'] ?? null);
+
                 DesignLog::updateOrCreate(
                     ['product_id' => $product->id],
                     [
-                        'blueprint_image' => $dlData['blueprint_image'] ?? null,
+                        'blueprint_image' => $blueprintImg,
                         'design_type' => $dlData['design_type'] ?? null,
                         'status' => $dlData['status'] ?? 'UNDER DEVELOPMENT',
                         'inspired_by' => $dlData['inspired_by'] ?? null,
-                        'release_date' => $dlData['release_date'] ?? null,
+                        'release_date' => $dlReleaseDate,
                         'measurements' => $dlData['measurements'] ?? null,
                         'gem_details' => $dlData['gem_details'] ?? null,
                         'specs' => $dlData['specs'] ?? null,
-                        'idea_image' => $dlData['idea_image'] ?? null,
+                        'idea_image' => $this->processMediaUrl($dlData['idea_image'] ?? null, 'ideas'),
                         'idea_note' => $dlData['idea_note'] ?? null,
-                        'cad_image' => $dlData['cad_image'] ?? null,
+                        'cad_image' => $this->processMediaUrl($dlData['cad_image'] ?? null, 'cad'),
                         'cad_note' => $dlData['cad_note'] ?? null,
-                        'craft_image' => $dlData['craft_image'] ?? null,
+                        'craft_image' => $this->processMediaUrl($dlData['craft_image'] ?? null, 'craft'),
                         'craft_note' => $dlData['craft_note'] ?? null,
-                        'creation_image' => $dlData['creation_image'] ?? null,
+                        'creation_image' => $this->processMediaUrl($dlData['creation_image'] ?? null, 'creation'),
                         'creation_note' => $dlData['creation_note'] ?? null,
                     ]
                 );
@@ -545,15 +617,15 @@ class AdminProductApiController extends Controller
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
             'design_code' => 'nullable|string|max:100',
-            'tier' => 'nullable|in:Signature,Curated,Heritage',
+            'tier' => 'nullable|string',
             'collection_master_id' => 'nullable|exists:collections_master,id',
             'base_weight_grams' => 'required|numeric|min:0.01',
             'making_charge' => 'nullable|numeric|min:0',
             'making_charge_percent' => 'nullable|numeric|min:0|max:100',
             'wastage_percent' => 'nullable|numeric|min:0|max:100',
-            'status' => 'nullable|in:active,draft,archived',
+            'status' => 'nullable|string',
             'designed_by' => 'nullable|string|max:255',
-            'release_date' => 'nullable|date',
+            'release_date' => 'nullable|string',
             'description' => 'nullable|string',
             'model_3d_url' => 'nullable|string',
             'image' => 'nullable|string',
@@ -584,7 +656,7 @@ class AdminProductApiController extends Controller
             $product->collection_master_id = array_key_exists('collection_master_id', $validated) ? $validated['collection_master_id'] : $product->collection_master_id;
             $product->description = $validated['description'] ?? $product->description;
             if ($request->has('model_3d_url')) {
-                $product->model_3d_url = $request->model_3d_url;
+                $product->model_3d_url = $this->processMediaUrl($request->model_3d_url, 'models');
             }
             $product->base_weight_grams = (float) $validated['base_weight_grams'];
             $product->making_charge = isset($validated['making_charge']) && $validated['making_charge'] !== '' ? (float) $validated['making_charge'] : null;
@@ -601,12 +673,12 @@ class AdminProductApiController extends Controller
             if ($request->has('certificate_url')) {
                 $product->certificate_url = $request->certificate_url;
             }
-            if (!empty($validated['release_date'])) {
-                $product->release_date = $validated['release_date'];
+            if (array_key_exists('release_date', $validated)) {
+                $product->release_date = $this->parseSafeDate($validated['release_date']);
             }
             $product->save();
 
-            // Update images if provided
+            // Update images safely if provided
             if (isset($validated['images']) || isset($validated['image'])) {
                 $imagesList = [];
                 if (!empty($validated['images']) && is_array($validated['images'])) {
@@ -617,15 +689,18 @@ class AdminProductApiController extends Controller
 
                 if (!empty($imagesList)) {
                     $product->images()->delete();
-                    foreach ($imagesList as $index => $imgItem) {
+                    $imgOrder = 0;
+                    foreach ($imagesList as $imgItem) {
                         $imgUrl = is_array($imgItem) ? ($imgItem['url'] ?? '') : (string) $imgItem;
-                        if (trim($imgUrl)) {
+                        $processedUrl = $this->processMediaUrl($imgUrl, 'images');
+                        if ($processedUrl) {
                             ProductImage::create([
                                 'product_id' => $product->id,
-                                'url' => trim($imgUrl),
-                                'sort_order' => $index,
-                                'is_primary' => $index === 0,
+                                'url' => $processedUrl,
+                                'sort_order' => $imgOrder,
+                                'is_primary' => $imgOrder === 0,
                             ]);
+                            $imgOrder++;
                         }
                     }
                 }
@@ -636,27 +711,30 @@ class AdminProductApiController extends Controller
                 $this->syncProductOptions($product, $validated['options']);
             }
 
-            // Sync Design Log
+            // Sync Design Log safely
             if (array_key_exists('design_log', $validated) && is_array($validated['design_log'])) {
                 $dlData = $validated['design_log'];
+                $blueprintImg = $this->processMediaUrl($dlData['blueprint_image'] ?? null, 'blueprints');
+                $dlReleaseDate = $this->parseSafeDate($dlData['release_date'] ?? null);
+
                 DesignLog::updateOrCreate(
                     ['product_id' => $product->id],
                     [
-                        'blueprint_image' => $dlData['blueprint_image'] ?? null,
+                        'blueprint_image' => $blueprintImg,
                         'design_type' => $dlData['design_type'] ?? null,
                         'status' => $dlData['status'] ?? 'UNDER DEVELOPMENT',
                         'inspired_by' => $dlData['inspired_by'] ?? null,
-                        'release_date' => $dlData['release_date'] ?? null,
+                        'release_date' => $dlReleaseDate,
                         'measurements' => $dlData['measurements'] ?? null,
                         'gem_details' => $dlData['gem_details'] ?? null,
                         'specs' => $dlData['specs'] ?? null,
-                        'idea_image' => $dlData['idea_image'] ?? null,
+                        'idea_image' => $this->processMediaUrl($dlData['idea_image'] ?? null, 'ideas'),
                         'idea_note' => $dlData['idea_note'] ?? null,
-                        'cad_image' => $dlData['cad_image'] ?? null,
+                        'cad_image' => $this->processMediaUrl($dlData['cad_image'] ?? null, 'cad'),
                         'cad_note' => $dlData['cad_note'] ?? null,
-                        'craft_image' => $dlData['craft_image'] ?? null,
+                        'craft_image' => $this->processMediaUrl($dlData['craft_image'] ?? null, 'craft'),
                         'craft_note' => $dlData['craft_note'] ?? null,
-                        'creation_image' => $dlData['creation_image'] ?? null,
+                        'creation_image' => $this->processMediaUrl($dlData['creation_image'] ?? null, 'creation'),
                         'creation_note' => $dlData['creation_note'] ?? null,
                     ]
                 );
