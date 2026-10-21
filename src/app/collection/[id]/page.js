@@ -430,9 +430,27 @@ export default function DynamicCollectionPage({ params }) {
     const activeOptionGroups = useMemo(() => {
         // If product has specific options configured in Admin, use them!
         if (productDetail?.options && Array.isArray(productDetail.options) && productDetail.options.length > 0) {
-            return productDetail.options.map((opt, oIdx) => {
-                const optName = opt.name || `Option ${oIdx + 1}`;
+            const seen = new Set();
+            const groups = [];
+
+            productDetail.options.forEach((opt, oIdx) => {
+                const optName = (opt.name || `Option ${oIdx + 1}`).trim();
                 const lower = optName.toLowerCase();
+
+                // Skip certificate standards or empty names
+                if (lower.includes('certificate') || !optName) return;
+
+                // Normalize key to deduplicate e.g. "Metal Purity (KT)" vs "METAL PURITY (KT)"
+                const normKey = lower.includes('purity') ? 'purity'
+                    : lower.includes('finish') ? 'finish'
+                    : lower.includes('size') ? 'size'
+                    : lower.includes('gem') || lower.includes('stone') ? 'gem'
+                    : lower.includes('chain') ? 'chain'
+                    : lower;
+
+                if (seen.has(normKey)) return;
+                seen.add(normKey);
+
                 let inputType = opt.input_type;
                 if (!inputType) {
                     if (lower.includes('finish') || lower.includes('gem') || lower.includes('stone') || lower.includes('color')) {
@@ -445,113 +463,91 @@ export default function DynamicCollectionPage({ params }) {
                 }
 
                 const rawValues = Array.isArray(opt.values) ? opt.values : [];
-                const parsedValues = rawValues.map((v, vIdx) => {
-                    if (typeof v === 'object' && v !== null) {
+                const parsedValues = rawValues
+                    .map((v, vIdx) => {
+                        if (typeof v === 'object' && v !== null) {
+                            return {
+                                id: v.id || `${optName}_${vIdx}`,
+                                value: v.value || '',
+                                code: v.code || '',
+                                image: v.image || '',
+                                hex_color: v.hex_color || null,
+                                price_delta: parseFloat(v.price_delta) || 0,
+                            };
+                        }
                         return {
-                            id: v.id || `${optName}_${vIdx}`,
-                            value: v.value || '',
-                            code: v.code || '',
-                            image: v.image || '',
-                            hex_color: v.hex_color || null,
-                            price_delta: parseFloat(v.price_delta) || 0,
+                            id: `${optName}_${vIdx}`,
+                            value: String(v),
+                            code: String(v),
+                            image: '',
+                            hex_color: null,
+                            price_delta: 0,
                         };
-                    }
-                    return {
-                        id: `${optName}_${vIdx}`,
-                        value: String(v),
-                        code: String(v),
-                        image: '',
-                        hex_color: null,
-                        price_delta: 0,
-                    };
-                });
+                    })
+                    .filter((v) => v.value && v.value.trim().length > 0);
 
-                return {
-                    id: opt.id || optName,
-                    name: optName,
-                    code: opt.code || optName.toUpperCase().replace(/[^A-Z0-9]/g, '_'),
-                    input_type: inputType,
-                    values: parsedValues,
-                };
+                if (parsedValues.length > 0) {
+                    groups.push({
+                        id: opt.id || optName,
+                        name: optName,
+                        code: opt.code || optName.toUpperCase().replace(/[^A-Z0-9]/g, '_'),
+                        input_type: inputType,
+                        values: parsedValues,
+                    });
+                }
             });
+
+            return groups;
         }
 
-        // If no product-level overrides, use the global customization masters!
-        if (customizationMasters && customizationMasters.length > 0) {
-            return customizationMasters
-                .filter((m) => m.is_active !== false)
-                .map((m) => ({
-                    id: m.id,
-                    name: m.name,
-                    code: m.code,
-                    input_type: m.input_type || 'text_button',
-                    values: (m.values || []).filter((v) => v.is_active !== false).map((v) => ({
-                        id: v.id,
-                        value: v.value,
-                        code: v.code || '',
-                        image: v.image || '',
-                        hex_color: v.hex_color || null,
-                        price_delta: parseFloat(v.price_delta) || 0,
-                    })),
-                }));
+        // When productDetail is loaded and has an empty options array, return empty
+        if (productDetail) {
+            return [];
         }
 
-        // Fallback default presets if offline matching exact atelier specifications
-        return [
-            {
-                name: 'METAL PURITY (KT)',
-                code: 'PURITY',
-                input_type: 'text_button',
-                values: [
-                    { value: '22KT', code: '22K', price_delta: 12000 },
-                    { value: '18KT', code: '18K', price_delta: 0 },
-                    { value: '14KT', code: '14K', price_delta: -10000 },
-                    { value: '925 SILVER', code: '925', price_delta: -45000 },
-                ],
-            },
-            {
-                name: 'FINISH OPTION',
-                code: 'FINISH',
-                input_type: 'swatch_image',
-                values: [
-                    { value: 'Yellow Gold', code: 'YG', hex_color: '#E6C875', price_delta: 0 },
-                    { value: 'White Gold', code: 'WG', hex_color: '#E0E0E0', price_delta: 0 },
-                    { value: 'Rose Gold', code: 'RG', hex_color: '#E8A88A', price_delta: 0 },
-                    { value: 'Black Ruthenium', code: 'BLK', hex_color: '#2A2A2A', price_delta: 0 },
-                ],
-            },
-            {
-                name: 'SIZE',
-                code: 'SIZE',
-                input_type: 'dropdown',
-                values: ['10', '11', '12', '13', '14', '15', '16'].map((s) => ({ value: s, code: s, price_delta: 0 })),
-            },
-            {
-                name: 'CHAIN',
-                code: 'CHAIN',
-                input_type: 'dropdown',
-                values: [
-                    { value: 'Box', code: 'BOX', price_delta: 0 },
-                    { value: 'Cable', code: 'CAB', price_delta: -2000 },
-                    { value: 'Rope', code: 'ROP', price_delta: 3000 },
-                    { value: 'Wheat', code: 'WHT', price_delta: 2500 },
-                    { value: 'None', code: 'NONE', price_delta: -8000 },
-                ],
-            },
-            {
-                name: 'GEM / STONE OPTIONS',
-                code: 'GEM',
-                input_type: 'swatch_image',
-                values: [
-                    { value: 'Natural Diamond', code: 'DIA', image: '/images/gems/diamond.png', price_delta: 0 },
-                    { value: 'Zambian Emerald', code: 'EMR', image: '/images/gems/emerald.png', price_delta: 2000 },
-                    { value: 'Ceylon Blue Sapphire', code: 'SAP', image: '/images/gems/sapphire.png', price_delta: 3500 },
-                    { value: 'Burmese Ruby', code: 'RUB', image: '/images/gems/ruby.png', price_delta: 4000 },
-                    { value: 'No Stone / Solid Gold', code: 'NONE', image: '', price_delta: 0 },
-                ],
-            },
-        ];
-    }, [productDetail, customizationMasters]);
+        // Initial placeholder state while loading
+        return [];
+    }, [productDetail]);
+
+    // Active Customization Category Helpers
+    const purityGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return l.includes('purity') || l.includes('karat') || g.code === 'PURITY';
+        });
+    }, [activeOptionGroups]);
+
+    const finishGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return l.includes('finish') || l.includes('tone') || g.code === 'FINISH';
+        });
+    }, [activeOptionGroups]);
+
+    const sizeGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return (l.includes('size') || g.code === 'SIZE') && !l.includes('gem') && !l.includes('stone') && !l.includes('diamond');
+        });
+    }, [activeOptionGroups]);
+
+    const gemGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return l.includes('gem') || l.includes('stone') || l.includes('diamond') || g.code === 'GEM';
+        });
+    }, [activeOptionGroups]);
+
+    const chainGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return l.includes('chain') || g.code === 'CHAIN';
+        });
+    }, [activeOptionGroups]);
+
+    const hasSize = Boolean(sizeGroup && sizeGroup.values?.length > 0);
+    const hasGem = Boolean(gemGroup && gemGroup.values?.length > 0);
+    const hasChain = Boolean(chainGroup && chainGroup.values?.length > 0);
 
     // Synchronize default selections when option groups change
     useEffect(() => {
@@ -563,29 +559,31 @@ export default function DynamicCollectionPage({ params }) {
                     const currentSelected = next[gName];
                     const exists = currentSelected && group.values.some((v) => v.value === currentSelected.value);
                     if (!exists && group.values.length > 0) {
-                        if (gName.includes('PURITY')) {
+                        const l = gName.toLowerCase();
+                        if (l.includes('purity')) {
                             const val = group.values.find((v) => v.value.includes('22K')) || group.values[0];
                             next[gName] = val;
-                            setSelectedPurity(val.value.includes('22K') ? '22KT' : val.value);
-                        } else if (gName.includes('FINISH')) {
-                            const val = group.values.find((v) => v.value.toLowerCase().includes('white')) || group.values[1] || group.values[0];
+                            const match = val.value.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i);
+                            setSelectedPurity(match ? match[0].toUpperCase() : val.value);
+                        } else if (l.includes('finish')) {
+                            const val = group.values.find((v) => v.value.toLowerCase().includes('yellow')) || group.values[0];
                             next[gName] = val;
-                            setSelectedFinishCode('WG');
-                        } else if (gName.includes('SIZE')) {
-                            const val = group.values.find((v) => v.value === '12') || group.values[0];
+                            setSelectedFinishCode(val.code || 'YG');
+                        } else if (l.includes('size')) {
+                            const val = group.values[0];
                             next[gName] = val;
-                            setSelectedSize(val.value);
-                        } else if (gName.includes('CHAIN')) {
+                            setSelectedSize(val.value.replace(/^(Ring\s*Size|Size)\s*/i, ''));
+                        } else if (l.includes('chain')) {
                             const val = group.values.find((v) => v.value.toLowerCase().includes('box')) || group.values[0];
                             next[gName] = val;
-                            setSelectedChain(val.value.includes('Box') ? 'Box' : val.value);
-                        } else if (gName.includes('GEM') || gName.includes('STONE')) {
+                            setSelectedChain(val.value.replace(/\s*Chain\s*/i, ' ').trim());
+                        } else if (l.includes('gem') || l.includes('stone')) {
                             const val = group.values.find((v) => {
                                 const value = v.value.toLowerCase();
-                                return value.includes('no stone') || value.includes('solid gold') || value === 'none';
+                                return value.includes('diamond') || value.includes('vvs');
                             }) || group.values[0];
                             next[gName] = val;
-                            setSelectedGem(val.value.toLowerCase().includes('emerald') ? 'emerald' : val.value.toLowerCase().includes('sapphire') ? 'sapphire' : val.value.toLowerCase().includes('ruby') ? 'ruby' : 'none');
+                            setSelectedGem(val.value.toLowerCase().includes('emerald') ? 'emerald' : val.value.toLowerCase().includes('sapphire') ? 'sapphire' : val.value.toLowerCase().includes('ruby') ? 'ruby' : 'diamond');
                         } else {
                             next[gName] = group.values[0];
                         }
@@ -1016,146 +1014,180 @@ export default function DynamicCollectionPage({ params }) {
                     </div>
                     <div className="atelier-specs-divider" />
 
-                    {/* METAL PURITY — full-width 4-button row */}
-                    <div className="atelier-control-group">
-                        <div className="atelier-spec-label">METAL PURITY (KT)</div>
-                        <div className="atelier-purity-row">
-                            {['22KT', '18KT', '14KT', '925 SILVER'].map((purity) => {
-                                const isSelected = selectedPurity === purity;
-                                const delta = purity === '22KT' ? 12000 : purity === '14KT' ? -10000 : purity === '925 SILVER' ? -45000 : 0;
-                                return (
-                                    <button
-                                        key={purity}
-                                        type="button"
-                                        className={`atelier-purity-btn ${isSelected ? 'active' : ''}`}
-                                        onClick={() => {
-                                            setSelectedPurity(purity);
-                                            handleSelectOption('METAL PURITY (KT)', { value: purity, price_delta: delta });
-                                        }}
-                                    >
-                                        {purity}
-                                    </button>
-                                );
-                            })}
+                    {/* METAL PURITY — only render if configured for this product */}
+                    {purityGroup && purityGroup.values?.length > 0 && (
+                        <div className="atelier-control-group">
+                            <div className="atelier-spec-label">METAL PURITY (KT)</div>
+                            <div className="atelier-purity-row">
+                                {purityGroup.values.map((pVal) => {
+                                    const rawVal = pVal.value || pVal.code || pVal;
+                                    const match = typeof rawVal === 'string' ? rawVal.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
+                                    const cleanPurity = match ? match[0].toUpperCase() : rawVal;
+                                    const isSelected = selectedPurity === cleanPurity || selectedPurity === rawVal;
+                                    const delta = Number(pVal.price_delta) || (cleanPurity === '22KT' ? 12000 : cleanPurity === '14KT' ? -10000 : cleanPurity === '925 SILVER' ? -45000 : 0);
+                                    return (
+                                        <button
+                                            key={pVal.id || rawVal}
+                                            type="button"
+                                            className={`atelier-purity-btn ${isSelected ? 'active' : ''}`}
+                                            onClick={() => {
+                                                setSelectedPurity(cleanPurity);
+                                                handleSelectOption('METAL PURITY (KT)', { value: rawVal, price_delta: delta });
+                                            }}
+                                        >
+                                            {cleanPurity}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* FINISH OPTION — full-width 4-bar row */}
-                    <div className="atelier-control-group">
-                        <div className="atelier-spec-label">
-                            FINISH OPTIONS
+                    {/* FINISH OPTION — only render if configured for this product */}
+                    {finishGroup && finishGroup.values?.length > 0 && (
+                        <div className="atelier-control-group">
+                            <div className="atelier-spec-label">
+                                FINISH OPTIONS
+                            </div>
+                            <div className="atelier-finish-row">
+                                {finishGroup.values.map((fVal, idx) => {
+                                    const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                                    const valLower = valStr.toLowerCase();
+                                    const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
+                                    const matchedBar = finishBarsData.find((b) => b.code === code || b.name.toLowerCase() === valLower) || {
+                                        name: valStr,
+                                        code: code,
+                                        label: valStr.split(' ')[0].toUpperCase(),
+                                        style: fVal.hex_color ? { background: fVal.hex_color } : { background: '#D4AF37' }
+                                    };
+                                    const isSelected = selectedFinishCode === code || selectedFinishCode === valStr;
+                                    return (
+                                        <button
+                                            key={fVal.id || code}
+                                            type="button"
+                                            aria-label={matchedBar.name || valStr}
+                                            className={`atelier-finish-bar ${isSelected ? 'active' : ''}`}
+                                            style={matchedBar.style}
+                                            onClick={() => {
+                                                setSelectedFinishCode(code);
+                                                handleSelectOption('FINISH OPTION', { value: valStr, price_delta: 0 });
+                                                if (code === 'YG' || idx === 0) setActiveImgIndex(0);
+                                                else if (code === 'WG' || idx === 1) setActiveImgIndex(1);
+                                                else if (code === 'RG' || idx === 2) setActiveImgIndex(2);
+                                            }}
+                                        >
+                                            {matchedBar.label && (
+                                                <span className={`atelier-finish-bar-label${matchedBar.labelLight ? ' is-light' : ''}`}>
+                                                    {matchedBar.label}
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
-                        <div className="atelier-finish-row">
-                            {finishBarsData.map((bar, idx) => {
-                                const isSelected = selectedFinishCode === bar.code;
-                                return (
-                                    <button
-                                        key={bar.code}
-                                        type="button"
-                                        aria-label={bar.name}
-                                        className={`atelier-finish-bar ${isSelected ? 'active' : ''}`}
-                                        style={bar.style}
-                                        onClick={() => {
-                                            setSelectedFinishCode(bar.code);
-                                            handleSelectOption('FINISH OPTION', { value: bar.name, price_delta: 0 });
-                                            if (idx === 0) setActiveImgIndex(0);
-                                            else if (idx === 1) setActiveImgIndex(1);
-                                            else if (idx === 2) setActiveImgIndex(2);
-                                        }}
-                                    >
-                                        {bar.label && <span className={`atelier-finish-bar-label${bar.labelLight ? ' is-light' : ''}`}>{bar.label}</span>}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    )}
 
-                    {/* SIZE + GEM on the same row */}
-                    <div className="atelier-size-gem-row">
-                        <div className="atelier-control-group" style={{ marginBottom: 0 }}>
-                            <div className="atelier-spec-label">SIZE</div>
-                            <div className="atelier-box-select-wrapper">
+                    {/* SIZE and/or GEM: Only render if at least one is enabled */}
+                    {(hasSize || hasGem) && (
+                        <div className={hasSize && hasGem ? "atelier-size-gem-row" : "atelier-single-option-row"}>
+                            {hasSize && (
+                                <div className="atelier-control-group" style={{ marginBottom: 0, maxWidth: hasGem ? '100%' : '50%' }}>
+                                    <div className="atelier-spec-label">SIZE</div>
+                                    <div className="atelier-box-select-wrapper">
+                                        <select
+                                            className="atelier-box-select"
+                                            value={selectedSize}
+                                            onChange={(e) => {
+                                                setSelectedSize(e.target.value);
+                                                handleSelectOption('SIZE', { value: e.target.value, price_delta: 0 });
+                                            }}
+                                        >
+                                            {sizeGroup.values.map((szObj) => {
+                                                const szVal = typeof szObj === 'string' ? szObj : szObj.value;
+                                                const cleanSz = szVal.replace(/^(Ring\s*Size|Size)\s*/i, '');
+                                                return (
+                                                    <option key={szObj.id || szVal} value={cleanSz}>
+                                                        {cleanSz}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+
+                            {hasGem && (
+                                <div className="atelier-control-group" style={{ marginBottom: 0 }}>
+                                    <div className="atelier-spec-label">GEM / STONE OPTIONS</div>
+                                    <div className="atelier-gems-row">
+                                        {gemGroup.values.map((gem, idx) => {
+                                            const valLower = (gem.value || '').toLowerCase();
+                                            const codeLower = (gem.code || '').toLowerCase();
+                                            const typeStr = codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
+                                                : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
+                                                    : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
+                                                        : codeLower.includes('rub') || valLower.includes('rub') ? 'ruby'
+                                                            : 'diamond';
+
+                                            const currentVal = selectedOptions['GEM / STONE OPTIONS']?.value;
+                                            const isSelected = currentVal ? currentVal === gem.value : selectedGem === typeStr || (idx === 0 && !selectedGem);
+
+                                            const rawDelta = parseFloat(gem.price_delta) || 0;
+                                            const delta = Math.abs(rawDelta);
+                                            const gemTitle = delta > 0 ? `${gem.value} (+₹${delta.toLocaleString('en-IN')})` : gem.value;
+
+                                            return (
+                                                <FacetedGemstone
+                                                    key={gem.id || gem.code || gem.value || idx}
+                                                    type={typeStr}
+                                                    imageUrl={gem.image || `/images/gems/${typeStr}.png`}
+                                                    title={gemTitle}
+                                                    isSelected={isSelected}
+                                                    onClick={() => {
+                                                        setSelectedGem(typeStr);
+                                                        handleSelectOption('GEM / STONE OPTIONS', { value: gem.value, price_delta: delta, image: gem.image });
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* CHAIN — only render if chain option is enabled for this piece */}
+                    {hasChain && (
+                        <div className="atelier-control-group" style={{ marginTop: '0.9rem' }}>
+                            <div className="atelier-spec-label">CHAIN</div>
+                            <div className="atelier-box-select-wrapper" style={{ maxWidth: '50%' }}>
                                 <select
                                     className="atelier-box-select"
-                                    value={selectedSize}
+                                    value={selectedChain}
                                     onChange={(e) => {
-                                        setSelectedSize(e.target.value);
-                                        handleSelectOption('SIZE', { value: e.target.value, price_delta: 0 });
+                                        const chosenVal = e.target.value;
+                                        const foundObj = chainGroup.values.find((c) => (c.value || c) === chosenVal || (c.code || '') === chosenVal);
+                                        setSelectedChain(chosenVal);
+                                        handleSelectOption('CHAIN', {
+                                            value: chosenVal,
+                                            price_delta: Number(foundObj?.price_delta || (chosenVal === 'None' ? -8000 : chosenVal === 'Rope' ? 3000 : 0))
+                                        });
                                     }}
                                 >
-                                    {['10', '11', '12', '13', '14', '15', '16'].map((sz) => (
-                                        <option key={sz} value={sz}>{sz}</option>
-                                    ))}
+                                    {chainGroup.values.map((chObj) => {
+                                        const chVal = typeof chObj === 'string' ? chObj : chObj.value;
+                                        const cleanCh = chVal.replace(/\s*Chain\s*/i, ' ').trim();
+                                        return (
+                                            <option key={chObj.id || chVal} value={cleanCh}>
+                                                {cleanCh}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             </div>
                         </div>
-
-                        <div className="atelier-control-group" style={{ marginBottom: 0 }}>
-                            <div className="atelier-spec-label">GEM / STONE OPTIONS</div>
-                            <div className="atelier-gems-row">
-                                {(() => {
-                                    const gemGroup = activeOptionGroups?.find((g) => g.name.includes('GEM') || g.code === 'GEM');
-                                    const gemValues = gemGroup?.values?.length ? gemGroup.values : [
-                                        { value: 'Natural Diamond', code: 'DIA', image: '/images/gems/diamond.png', price_delta: 0 },
-                                        { value: 'Zambian Emerald', code: 'EMR', image: '/images/gems/emerald.png', price_delta: 2000 },
-                                        { value: 'Ceylon Blue Sapphire', code: 'SAP', image: '/images/gems/sapphire.png', price_delta: 3500 },
-                                    ];
-
-                                    return gemValues.map((gem, idx) => {
-                                        const valLower = (gem.value || '').toLowerCase();
-                                        const codeLower = (gem.code || '').toLowerCase();
-                                        const typeStr = codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
-                                            : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
-                                                : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
-                                                    : 'diamond';
-
-                                        const currentVal = selectedOptions['GEM / STONE OPTIONS']?.value;
-                                        const isSelected = currentVal ? currentVal === gem.value : selectedGem === typeStr || (idx === 0 && !selectedGem);
-
-                                        const rawDelta = parseFloat(gem.price_delta) || 0;
-                                        const delta = Math.abs(rawDelta);
-                                        const gemTitle = delta > 0 ? `${gem.value} (+₹${delta.toLocaleString('en-IN')})` : gem.value;
-
-                                        return (
-                                            <FacetedGemstone
-                                                key={gem.id || gem.code || gem.value || idx}
-                                                type={typeStr}
-                                                imageUrl={gem.image || `/images/gems/${typeStr}.png`}
-                                                title={gemTitle}
-                                                isSelected={isSelected}
-                                                onClick={() => {
-                                                    setSelectedGem(typeStr);
-                                                    handleSelectOption('GEM / STONE OPTIONS', { value: gem.value, price_delta: delta, image: gem.image });
-                                                }}
-                                            />
-                                        );
-                                    });
-                                })()}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* CHAIN — below the size+gem row */}
-                    <div className="atelier-control-group" style={{ marginTop: '0.9rem' }}>
-                        <div className="atelier-spec-label">CHAIN</div>
-                        <div className="atelier-box-select-wrapper" style={{ maxWidth: '50%' }}>
-                            <select
-                                className="atelier-box-select"
-                                value={selectedChain}
-                                onChange={(e) => {
-                                    setSelectedChain(e.target.value);
-                                    handleSelectOption('CHAIN', {
-                                        value: e.target.value,
-                                        price_delta: e.target.value === 'None' ? -8000 : e.target.value === 'Rope' ? 3000 : 0
-                                    });
-                                }}
-                            >
-                                {['Box', 'Cable', 'Rope', 'Wheat', 'None'].map((ch) => (
-                                    <option key={ch} value={ch}>{ch}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                    )}
 
                     {/* BOTTOM ACTION ROW: full-width line, then price left / buttons right */}
                     <div className="atelier-bottom-action-row">
