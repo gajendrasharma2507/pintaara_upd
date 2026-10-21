@@ -77,3 +77,5 @@ css_*.css
 model_capabilities.yaml
 GSD-STYLE.md
 PROJECT_RULES.md
+.vercel
+.env*
