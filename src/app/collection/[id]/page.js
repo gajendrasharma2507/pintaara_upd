@@ -616,8 +616,8 @@ export default function DynamicCollectionPage({ params }) {
                     const exists = currentSelected && group.values.some((v) => v.value === currentSelected.value);
                     if (!exists && group.values.length > 0) {
                         const l = gName.toLowerCase();
-                        if (l.includes('purity')) {
-                            const val = group.values.find((v) => v.value.includes('22K')) || group.values[0];
+                        if (l.includes('purity') || l.includes('metal') || l.includes('karat')) {
+                            const val = group.values.find((v) => v.value.includes('18K')) || group.values.find((v) => v.value.includes('22K')) || group.values[0];
                             next[gName] = val;
                             const match = val.value.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i);
                             setSelectedPurity(match ? match[0].toUpperCase() : val.value);
@@ -636,10 +636,11 @@ export default function DynamicCollectionPage({ params }) {
                         } else if (l.includes('gem') || l.includes('stone')) {
                             const val = group.values.find((v) => {
                                 const value = v.value.toLowerCase();
-                                return value.includes('diamond') || value.includes('vvs');
+                                return value.includes('no stone') || value.includes('solid gold') || value.includes('none');
                             }) || group.values[0];
                             next[gName] = val;
-                            setSelectedGem(val.value.toLowerCase().includes('emerald') ? 'emerald' : val.value.toLowerCase().includes('sapphire') ? 'sapphire' : val.value.toLowerCase().includes('ruby') ? 'ruby' : 'diamond');
+                            const valLower = val.value.toLowerCase();
+                            setSelectedGem(valLower.includes('emerald') ? 'emerald' : valLower.includes('sapphire') ? 'sapphire' : valLower.includes('ruby') ? 'ruby' : valLower.includes('diamond') ? 'diamond' : 'none');
                         } else {
                             next[gName] = group.values[0];
                         }
@@ -738,11 +739,13 @@ export default function DynamicCollectionPage({ params }) {
         let cancelled = false;
         const calculate = async () => {
             try {
+                const purityFraction = purityStr.includes('24') ? 1.0 : purityStr.includes('18') ? 0.75 : purityStr.includes('14') ? 0.585 : purityStr.includes('925') ? 0.925 : 0.916;
                 const response = await apiFetch('/price/calculate', {
                     method: 'POST',
                     body: JSON.stringify({
                         weight_grams: totalWeight,
                         purity: purityStr,
+                        purity_fraction: purityFraction,
                         making_charge_flat: Number(productDetail.making_charge) || 0,
                         making_charge_percent: productDetail.making_charge_percent,
                         wastage_percent: Number(productDetail.wastage_percent) || 0,
@@ -1003,9 +1006,9 @@ export default function DynamicCollectionPage({ params }) {
     }
 
     const displayPrice = priceBreakdown?.total
-        ? Number(priceBreakdown.total).toLocaleString('en-IN')
+        ? Number(Math.round(priceBreakdown.total)).toLocaleString('en-IN')
         : (productDetail?.base_pricing?.total_price
-            ? Number(productDetail.base_pricing.total_price).toLocaleString('en-IN')
+            ? Number(Math.round(productDetail.base_pricing.total_price)).toLocaleString('en-IN')
             : '0');
 
     return (
@@ -1198,8 +1201,10 @@ export default function DynamicCollectionPage({ params }) {
                                             className="atelier-box-select"
                                             value={selectedSize}
                                             onChange={(e) => {
-                                                setSelectedSize(e.target.value);
-                                                handleSelectOption('SIZE', { value: e.target.value, price_delta: 0 });
+                                                const chosenVal = e.target.value;
+                                                const foundObj = sizeGroup.values.find((s) => (s.value || s) === chosenVal || (s.value || s).replace(/^(Ring\s*Size|Size)\s*/i, '') === chosenVal);
+                                                setSelectedSize(chosenVal);
+                                                handleSelectOption('SIZE', { value: foundObj ? foundObj.value : chosenVal, price_delta: 0 });
                                             }}
                                         >
                                             {sizeGroup.values.map((szObj) => {
@@ -1374,52 +1379,52 @@ export default function DynamicCollectionPage({ params }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
                                 <span>Metal Weight &amp; Purity:</span>
-                                <strong style={{ color: '#1A1A1A' }}>{priceBreakdown.weight_grams}g ({selectedPurity})</strong>
+                                <strong style={{ color: '#1A1A1A' }}>{priceBreakdown.weight_grams}g ({selectedPurity || '18KT'})</strong>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Live Metal Value (@ ₹{priceBreakdown.rate_used?.rate_per_gram}/g):</span>
-                                <strong style={{ color: '#1A1A1A' }}>₹{Number(priceBreakdown.metal_value).toLocaleString('en-IN')}</strong>
+                                <span>Metal Value (@ ₹{Number(Math.round(priceBreakdown.rate_used?.rate_per_gram || priceBreakdown.rate_per_gram || 0)).toLocaleString('en-IN')}/g):</span>
+                                <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.metal_value)).toLocaleString('en-IN')}</strong>
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Making Charges:</span>
-                                <strong style={{ color: '#1A1A1A' }}>₹{Number(priceBreakdown.making_charge).toLocaleString('en-IN')}</strong>
-                            </div>
+                            {(priceBreakdown.wastage_value > 0 || priceBreakdown.making_percent_value > 0) && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                                    <span>Making ({priceBreakdown.wastage_percent || 2.5}% of Metal):</span>
+                                    <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.wastage_value || priceBreakdown.making_percent_value)).toLocaleString('en-IN')}</strong>
+                                </div>
+                            )}
+
+                            {(priceBreakdown.author_charge > 0 || priceBreakdown.making_charge > 0) && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                                    <span>Author / Crafting Fee:</span>
+                                    <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.author_charge || priceBreakdown.making_charge)).toLocaleString('en-IN')}</strong>
+                                </div>
+                            )}
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Gemstone Option ({selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value || (selectedGem === 'diamond' ? 'Natural Diamond' : selectedGem === 'emerald' ? 'Zambian Emerald' : 'Ceylon Blue Sapphire')}):</span>
+                                <span>Gemstone Option ({selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value || 'Solid Gold / No Stone'}):</span>
                                 <strong style={{ color: '#1A1A1A' }}>
-                                    {(() => {
-                                        const gemDelta = selectedOptions['GEM / STONE OPTIONS']?.price_delta ?? selectedOptions['GEM']?.price_delta ?? (selectedGem === 'emerald' ? 2000 : selectedGem === 'sapphire' ? 3500 : 0);
-                                        const numDelta = Math.abs(parseFloat(gemDelta) || 0);
-                                        if (numDelta > 0) return `+₹${numDelta.toLocaleString('en-IN')}`;
-                                        return 'Included';
-                                    })()}
+                                    {Number(priceBreakdown.stone_charge || 0) > 0
+                                        ? `+₹${Number(Math.round(priceBreakdown.stone_charge)).toLocaleString('en-IN')}`
+                                        : '₹0 (Included)'}
                                 </strong>
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Chain Selection ({selectedOptions['CHAIN']?.value || selectedOptions['CHAIN TYPE']?.value || selectedChain}):</span>
-                                <strong style={{ color: '#1A1A1A' }}>
-                                    {(() => {
-                                        const chainDelta = selectedOptions['CHAIN']?.price_delta ?? selectedOptions['CHAIN TYPE']?.price_delta ?? (selectedChain === 'None' ? -8000 : selectedChain === 'Rope' ? 3000 : 0);
-                                        const numDelta = parseFloat(chainDelta) || 0;
-                                        if (numDelta > 0) return `+₹${numDelta.toLocaleString('en-IN')}`;
-                                        if (numDelta < 0) return `-₹${Math.abs(numDelta).toLocaleString('en-IN')}`;
-                                        return 'Included';
-                                    })()}
-                                </strong>
-                            </div>
+                            {hasChain && selectedChain && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                                    <span>Chain Selection ({selectedChain}):</span>
+                                    <strong style={{ color: '#1A1A1A' }}>Included</strong>
+                                </div>
+                            )}
 
                             <div style={{ borderTop: '1px solid #EEE', paddingTop: '0.6rem', display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Subtotal:</span>
-                                <strong style={{ color: '#1A1A1A' }}>₹{Number(priceBreakdown.subtotal).toLocaleString('en-IN')}</strong>
+                                <span>Taxable Subtotal:</span>
+                                <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.subtotal)).toLocaleString('en-IN')}</strong>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
                                 <span>GST (3%):</span>
-                                <strong style={{ color: '#1A1A1A' }}>₹{Number(priceBreakdown.gst).toLocaleString('en-IN')}</strong>
+                                <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.gst || priceBreakdown.gst_amount)).toLocaleString('en-IN')}</strong>
                             </div>
 
                             <div style={{
@@ -1432,14 +1437,14 @@ export default function DynamicCollectionPage({ params }) {
                                 justifyContent: 'space-between',
                                 alignItems: 'center'
                             }}>
-                                <span style={{ fontWeight: '700', color: '#1A1A1A' }}>Final Transparent Total:</span>
+                                <span style={{ fontWeight: '700', color: '#1A1A1A' }}>Final Transparent MRP:</span>
                                 <span style={{ fontWeight: '800', color: '#1A1A1A', fontSize: '1.25rem' }}>
-                                    ₹{Number(priceBreakdown.total).toLocaleString('en-IN')}
+                                    ₹{Number(Math.round(priceBreakdown.total || priceBreakdown.total_price)).toLocaleString('en-IN')}
                                 </span>
                             </div>
 
                             <div style={{ fontSize: '0.72rem', color: '#777', marginTop: '0.5rem', textAlign: 'center' }}>
-                                Live Spot Rate certified Gujarat Jeweler Association daily bulletin ({priceBreakdown.rate_used?.rate_date}).
+                                Live Spot Rate certified Gujarat Jeweler Association daily bulletin ({priceBreakdown.rate_used?.rate_date || 'Today'}).
                             </div>
                         </div>
                     </div>

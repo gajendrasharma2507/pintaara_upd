@@ -36,28 +36,49 @@ class PricingApiController extends Controller
         $weight = (float) $request->weight_grams;
         $metalType = $request->metal_type ?? 'gold';
 
-        // Resolve Purity Fraction
+        // Resolve Purity Fraction & Metal Type
         $fraction = 0.916;
         if ($request->filled('purity_fraction')) {
             $fraction = (float) $request->purity_fraction;
         } elseif ($request->filled('purity')) {
-            $purity = MetalPurity::where('name', $request->purity)->first();
+            $purityInput = trim($request->purity);
+            $purity = MetalPurity::where('name', $purityInput)->first();
             if ($purity) {
                 $fraction = (float) $purity->purity_fraction;
                 $metalType = $purity->type;
+            } elseif (preg_match('/24\s*K/i', $purityInput)) {
+                $fraction = 1.0;
+                $metalType = 'gold';
+            } elseif (preg_match('/22\s*K/i', $purityInput)) {
+                $fraction = 0.916;
+                $metalType = 'gold';
+            } elseif (preg_match('/18\s*K/i', $purityInput)) {
+                $fraction = 0.750;
+                $metalType = 'gold';
+            } elseif (preg_match('/14\s*K/i', $purityInput)) {
+                $fraction = 0.585;
+                $metalType = 'gold';
+            } elseif (preg_match('/925|SILVER/i', $purityInput)) {
+                $fraction = 0.925;
+                $metalType = 'silver';
             }
         }
 
         // Resolve Stone Charge
-        $stoneCharge = (float) ($request->stone_charge ?? 0.0);
-        if ($stoneCharge === 0.0 && $request->filled('gem') && !in_array(strtolower($request->gem), ['none', 'no stone', ''])) {
-            $gem = GemOption::where('stone_type', 'LIKE', "%{$request->gem}%")->first();
-            if ($gem) {
-                $stoneCharge = (float) $gem->default_stone_charge;
-            } else {
-                $stone = \App\Models\Stone::where('name', 'LIKE', "%{$request->gem}%")->first();
-                if ($stone) {
-                    $stoneCharge = (float) $stone->price_delta;
+        $stoneCharge = 0.0;
+        if ($request->has('stone_charge') && $request->stone_charge !== null) {
+            $stoneCharge = (float) $request->stone_charge;
+        } elseif ($request->filled('gem')) {
+            $gemLower = strtolower(trim($request->gem));
+            if (!in_array($gemLower, ['none', 'no stone', 'solid gold', 'no stone / solid gold', 'no stone/solid gold', ''])) {
+                $gem = GemOption::where('stone_type', 'LIKE', "%{$request->gem}%")->first();
+                if ($gem) {
+                    $stoneCharge = (float) $gem->default_stone_charge;
+                } else {
+                    $stone = \App\Models\Stone::where('name', 'LIKE', "%{$request->gem}%")->first();
+                    if ($stone) {
+                        $stoneCharge = (float) $stone->price_delta;
+                    }
                 }
             }
         }
