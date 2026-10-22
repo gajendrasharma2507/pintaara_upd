@@ -2989,7 +2989,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                           </span>
                           {val.image && (
                             <img
-                              src={val.image}
+                              src={resolveImageUrl(val.image)}
                               alt={val.value}
                               style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(0,0,0,0.1)" }}
                             />
@@ -3136,7 +3136,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                           </span>
                           {val.image && (
                             <img
-                              src={val.image}
+                              src={resolveImageUrl(val.image)}
                               alt={val.value}
                               style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(0,0,0,0.1)" }}
                             />

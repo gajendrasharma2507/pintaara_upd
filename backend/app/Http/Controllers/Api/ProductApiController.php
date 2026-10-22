@@ -113,6 +113,12 @@ class ProductApiController extends Controller
             'gems' => GemOption::orderBy('sort_order')->get(),
         ];
 
+        $customizationMasters = \App\Models\CustomizationMaster::with(['values' => function($q) {
+            $q->where('is_active', true)->orderBy('sort_order');
+        }])->where('is_active', true)->orderBy('sort_order')->get();
+
+        $allMasterValues = $customizationMasters->pluck('values')->flatten();
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -131,17 +137,48 @@ class ProductApiController extends Controller
                 'release_date' => $product->release_date,
                 'images' => $product->images,
                 'base_pricing' => $basePricing,
-                'options' => $product->options->map(function ($o) use ($masters) {
+                'options' => $product->options->map(function ($o) use ($masters, $allMasterValues) {
                     $isGem = str_contains(strtolower($o->name), 'gem') || str_contains(strtolower($o->name), 'stone');
                     $gems = $masters['gems'] ?? collect();
                     return [
                         'id' => $o->id,
                         'name' => $o->name,
-                        'values' => $o->values->map(function ($v) use ($isGem, $gems) {
+                        'values' => $o->values->map(function ($v) use ($isGem, $gems, $allMasterValues) {
                             $delta = (float) ($v->price_delta ?? 0);
-                            if ($delta == 0.0 && $isGem) {
-                                $vLower = strtolower(trim($v->value));
-                                if (!in_array($vLower, ['none', 'no stone', 'solid gold', 'no stone / solid gold', 'no stone/solid gold', ''])) {
+                            $vLower = strtolower(trim($v->value));
+                            $isNoStone = in_array($vLower, ['none', 'no stone', 'solid gold', 'no stone / solid gold', 'no stone/solid gold', '']);
+
+                            // Match against Customization Masters for dynamic image and rate resolution
+                            $matchedMaster = $allMasterValues->first(function($mv) use ($v, $vLower) {
+                                if (!empty($mv->code) && !empty($v->code) && strtoupper($mv->code) === strtoupper($v->code)) {
+                                    return true;
+                                }
+                                $mvLower = strtolower(trim($mv->value));
+                                if ($mvLower === $vLower) return true;
+                                if (str_contains($mvLower, 'diamond') && str_contains($vLower, 'diamond')) return true;
+                                if (str_contains($mvLower, 'emerald') && str_contains($vLower, 'emerald')) return true;
+                                if (str_contains($mvLower, 'sapphire') && str_contains($vLower, 'sapphire')) return true;
+                                if (str_contains($mvLower, 'ruby') && str_contains($vLower, 'ruby')) return true;
+                                return false;
+                            });
+
+                            $img = $v->image;
+                            if ($matchedMaster && !empty($matchedMaster->image)) {
+                                // If master has an image, prefer it over empty/unsplash images or if master was uploaded
+                                if (empty($img) || str_contains($img, 'unsplash.com') || str_contains($matchedMaster->image, '/storage/')) {
+                                    $img = $matchedMaster->image;
+                                }
+                            }
+                            if ($isNoStone) {
+                                $img = null;
+                            } elseif (!empty($img) && str_starts_with($img, '/storage/')) {
+                                $img = url($img);
+                            }
+
+                            if ($delta == 0.0 && $isGem && !$isNoStone) {
+                                if ($matchedMaster && (float)$matchedMaster->price_delta > 0) {
+                                    $delta = (float) $matchedMaster->price_delta;
+                                } else {
                                     $matched = $gems->first(function ($g) use ($v) {
                                         return stripos($v->value, $g->stone_type) !== false || stripos($g->stone_type, $v->value) !== false;
                                     });
@@ -153,10 +190,10 @@ class ProductApiController extends Controller
                             return [
                                 'id' => $v->id,
                                 'value' => $v->value,
-                                'code' => $v->code ?? null,
-                                'image' => $v->image,
+                                'code' => $v->code ?? ($matchedMaster?->code ?? null),
+                                'image' => $img,
                                 'price_delta' => $delta,
-                                'hex_color' => $v->hex_color ?? null,
+                                'hex_color' => $v->hex_color ?? ($matchedMaster?->hex_color ?? null),
                             ];
                         }),
                     ];
@@ -172,9 +209,7 @@ class ProductApiController extends Controller
                     'purity_name' => $fp->purity?->name,
                     'purity_code' => $fp->purity?->code,
                 ]),
-                'customization_masters' => \App\Models\CustomizationMaster::with(['values' => function($q) {
-                    $q->where('is_active', true)->orderBy('sort_order');
-                }])->where('is_active', true)->orderBy('sort_order')->get(),
+                'customization_masters' => $customizationMasters,
             ]
         ]);
     }

@@ -406,6 +406,34 @@ class AdminMasterApiController extends Controller
             'is_active' => array_key_exists('is_active', $validated) ? (bool) $validated['is_active'] : $value->is_active,
         ]);
 
+        // Cascade image update across all existing product options matching this value or code
+        if (array_key_exists('image', $validated)) {
+            $newImage = $validated['image'];
+            $valName = $value->value;
+            $valLower = strtolower($valName);
+
+            \App\Models\ProductOptionValue::where(function($q) use ($valName, $valLower) {
+                $q->where('value', $valName)
+                  ->orWhere('value', 'LIKE', '%' . $valName . '%');
+                
+                if (str_contains($valLower, 'diamond')) {
+                    $q->orWhere('value', 'LIKE', '%Diamond%');
+                } elseif (str_contains($valLower, 'emerald')) {
+                    $q->orWhere('value', 'LIKE', '%Emerald%');
+                } elseif (str_contains($valLower, 'sapphire')) {
+                    $q->orWhere('value', 'LIKE', '%Sapphire%');
+                } elseif (str_contains($valLower, 'ruby')) {
+                    $q->orWhere('value', 'LIKE', '%Ruby%');
+                } elseif (str_contains($valLower, 'yellow gold')) {
+                    $q->orWhere('value', 'LIKE', '%Yellow Gold%');
+                } elseif (str_contains($valLower, 'rose gold')) {
+                    $q->orWhere('value', 'LIKE', '%Rose Gold%');
+                } elseif (str_contains($valLower, 'white gold')) {
+                    $q->orWhere('value', 'LIKE', '%White Gold%');
+                }
+            })->update(['image' => $newImage]);
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => "Value '{$value->value}' updated successfully.",

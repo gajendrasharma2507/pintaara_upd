@@ -49,8 +49,24 @@ const resolveProductImage = (product, imageUrl) => {
     return normalizedUrl || '/images/products/ring.png';
 };
 
+const resolveImageUrl = (img) => {
+    if (!img) return '';
+    if (img.startsWith('data:') || img.startsWith('http://') || img.startsWith('https://')) {
+        return img;
+    }
+    if (img.startsWith('/storage/')) {
+        const apiHost = process.env.NEXT_PUBLIC_API_URL 
+            ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
+            : 'https://api.pintaara.com';
+        return `${apiHost}${img}`;
+    }
+    return img;
+};
+
 // 57-Facet Brilliant Cut Gemstone Component (supports custom uploaded image or SVG facet fallback)
 function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, title }) {
+    const [imgFailed, setImgFailed] = useState(false);
+
     if (type === 'none') {
         return (
             <button
@@ -75,7 +91,7 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
         );
     }
 
-    if (imageUrl) {
+    if (imageUrl && !imgFailed) {
         return (
             <button
                 type="button"
@@ -85,9 +101,10 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
                 className={`atelier-gem-btn ${isSelected ? 'active' : ''}`}
             >
                 <img
-                    src={imageUrl}
+                    src={resolveImageUrl(imageUrl)}
                     alt={title || type}
-                    style={{ width: '25px', height: '25px', objectFit: 'contain', borderRadius: '50%' }}
+                    onError={() => setImgFailed(true)}
+                    style={{ width: '25px', height: '25px', objectFit: 'cover', borderRadius: '50%' }}
                 />
             </button>
         );
@@ -502,17 +519,40 @@ export default function DynamicCollectionPage({ params }) {
                     }
                 }
 
+                const allMasterVals = Array.isArray(productDetail?.customization_masters)
+                    ? productDetail.customization_masters.flatMap((m) => m.values || [])
+                    : [];
+
                 const rawValues = Array.isArray(opt.values) ? opt.values : [];
                 const parsedValues = rawValues
                     .map((v, vIdx) => {
                         if (typeof v === 'object' && v !== null) {
+                            let valImg = v.image || '';
+                            const matchedMaster = allMasterVals.find((mv) => {
+                                if (v.code && mv.code && String(v.code).toUpperCase() === String(mv.code).toUpperCase()) return true;
+                                const vVal = String(v.value || '').toLowerCase().trim();
+                                const mvVal = String(mv.value || '').toLowerCase().trim();
+                                if (vVal === mvVal) return true;
+                                if (vVal.includes('diamond') && mvVal.includes('diamond')) return true;
+                                if (vVal.includes('emerald') && mvVal.includes('emerald')) return true;
+                                if (vVal.includes('sapphire') && mvVal.includes('sapphire')) return true;
+                                if (vVal.includes('ruby') && mvVal.includes('ruby')) return true;
+                                return false;
+                            });
+
+                            if (matchedMaster && matchedMaster.image) {
+                                if (!valImg || valImg.includes('unsplash.com') || matchedMaster.image.includes('/storage/')) {
+                                    valImg = matchedMaster.image;
+                                }
+                            }
+
                             return {
                                 id: v.id || `${optName}_${vIdx}`,
                                 value: v.value || '',
-                                code: v.code || '',
-                                image: v.image || '',
-                                hex_color: v.hex_color || null,
-                                price_delta: parseFloat(v.price_delta) || 0,
+                                code: v.code || (matchedMaster?.code ?? ''),
+                                image: resolveImageUrl(valImg),
+                                hex_color: v.hex_color || (matchedMaster?.hex_color ?? null),
+                                price_delta: parseFloat(v.price_delta) || (parseFloat(matchedMaster?.price_delta) || 0),
                             };
                         }
                         return {
