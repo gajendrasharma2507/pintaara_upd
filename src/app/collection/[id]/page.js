@@ -681,9 +681,10 @@ export default function DynamicCollectionPage({ params }) {
         }
 
         const purityEntry = Object.entries(selectedOptions).find(([k]) =>
+            (purityGroup && k === purityGroup.name) ||
             k.toLowerCase().includes('purity') || k.toLowerCase().includes('metal') || k.toLowerCase().includes('karat')
         );
-        const purityStr = purityEntry?.[1]?.value || selectedPurity || '22KT';
+        const purityStr = selectedPurity || purityEntry?.[1]?.value || '22KT';
         const gemEntry = Object.entries(selectedOptions).find(([k]) =>
             k.toLowerCase().includes('gem') || k.toLowerCase().includes('stone')
         );
@@ -1127,7 +1128,8 @@ export default function DynamicCollectionPage({ params }) {
                                             className={`atelier-purity-btn ${isSelected ? 'active' : ''}`}
                                             onClick={() => {
                                                 setSelectedPurity(cleanPurity);
-                                                handleSelectOption('METAL PURITY (KT)', { value: rawVal, price_delta: delta });
+                                                const grpName = purityGroup?.name || 'Metal Colors & Purities';
+                                                handleSelectOption(grpName, { value: rawVal, price_delta: delta });
                                             }}
                                         >
                                             {cleanPurity}
@@ -1165,7 +1167,8 @@ export default function DynamicCollectionPage({ params }) {
                                             style={matchedBar.style}
                                             onClick={() => {
                                                 setSelectedFinishCode(code);
-                                                handleSelectOption('FINISH OPTION', { value: valStr, price_delta: 0, image: fVal.image });
+                                                const grpName = finishGroup?.name || 'Finish Options';
+                                                handleSelectOption(grpName, { value: valStr, price_delta: 0, image: fVal.image });
                                                 if (fVal.image) {
                                                     const imgIdx = thumbnails.findIndex(t => t.src === fVal.image);
                                                     if (imgIdx !== -1) {
@@ -1204,7 +1207,8 @@ export default function DynamicCollectionPage({ params }) {
                                                 const chosenVal = e.target.value;
                                                 const foundObj = sizeGroup.values.find((s) => (s.value || s) === chosenVal || (s.value || s).replace(/^(Ring\s*Size|Size)\s*/i, '') === chosenVal);
                                                 setSelectedSize(chosenVal);
-                                                handleSelectOption('SIZE', { value: foundObj ? foundObj.value : chosenVal, price_delta: 0 });
+                                                const grpName = sizeGroup?.name || 'Size';
+                                                handleSelectOption(grpName, { value: foundObj ? foundObj.value : chosenVal, price_delta: 0 });
                                             }}
                                         >
                                             {sizeGroup.values.map((szObj) => {
@@ -1250,7 +1254,8 @@ export default function DynamicCollectionPage({ params }) {
                                                     isSelected={isSelected}
                                                     onClick={() => {
                                                         setSelectedGem(typeStr);
-                                                        handleSelectOption('GEM / STONE OPTIONS', { value: gem.value, price_delta: delta, image: gem.image });
+                                                        const grpName = gemGroup?.name || 'Gem & Stone Options';
+                                                        handleSelectOption(grpName, { value: gem.value, price_delta: delta, image: gem.image });
                                                     }}
                                                 />
                                             );
