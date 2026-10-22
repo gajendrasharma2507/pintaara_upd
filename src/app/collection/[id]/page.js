@@ -1406,19 +1406,21 @@ export default function DynamicCollectionPage({ params }) {
                                 </div>
                             )}
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Gemstone Option ({selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value || 'Solid Gold / No Stone'}):</span>
-                                <strong style={{ color: '#1A1A1A' }}>
-                                    {Number(priceBreakdown.stone_charge || 0) > 0
-                                        ? `+₹${Number(Math.round(priceBreakdown.stone_charge)).toLocaleString('en-IN')}`
-                                        : '₹0 (Included)'}
-                                </strong>
-                            </div>
+                            {hasGem && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                                    <span>Gem ({selectedOptions[gemGroup?.name]?.value || selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value || 'No Stone'}):</span>
+                                    <strong style={{ color: '#1A1A1A' }}>
+                                        {Number(priceBreakdown.stone_charge || 0) > 0
+                                            ? `+₹${Number(Math.round(priceBreakdown.stone_charge)).toLocaleString('en-IN')}`
+                                            : '₹0'}
+                                    </strong>
+                                </div>
+                            )}
 
                             {hasChain && selectedChain && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
                                     <span>Chain Selection ({selectedChain}):</span>
-                                    <strong style={{ color: '#1A1A1A' }}>Included</strong>
+                                    <strong style={{ color: '#1A1A1A' }}>₹0</strong>
                                 </div>
                             )}
 
