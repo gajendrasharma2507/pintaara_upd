@@ -289,7 +289,13 @@ export default {
 
     return null;
   },
-  updateGoldRate: (rateData) => adminFetch('/admin/gold-rates', { method: 'POST', body: JSON.stringify(rateData) }),
+  updateGoldRate: async (rateData) => {
+    try {
+      const res = await adminFetch('/gold-rate/settings', { method: 'POST', body: JSON.stringify(rateData) });
+      if (res && res.status === 'success') return res;
+    } catch (_) {}
+    return await adminFetch('/admin/gold-rates', { method: 'POST', body: JSON.stringify(rateData) });
+  },
   getOrders: () => adminFetch('/admin/orders'),
   getOrder: (id) => adminFetch(`/admin/orders/${id}`),
   updateOrderStatus: (id, status) => adminFetch(`/admin/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),

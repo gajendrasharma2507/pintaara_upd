@@ -22,9 +22,10 @@ class GoldRateApiController extends Controller
      * Fetch real-time live gold & silver spot rates directly from Aarav Bullion stream.
      * Supports ?realtime=1 or ?fresh=1 or ?t={ms} to bypass all caches for instant live tick.
      */
-    public function today(\Illuminate\Http\Request $request): JsonResponse
+    public function today(?\Illuminate\Http\Request $request = null): JsonResponse
     {
-        $forceRefresh = $request->boolean('realtime') || $request->has('refresh') || $request->has('fresh') || $request->has('t');
+        $req = $request ?? request();
+        $forceRefresh = $req ? ($req->boolean('realtime') || $req->has('refresh') || $req->has('fresh') || $req->has('t')) : false;
         $liveRates = $this->pricingService->fetchAaravLiveRates($forceRefresh);
 
         $rawGold24k = $liveRates ? (float)$liveRates['gold_24kt_per_10g'] : (float)($this->pricingService->getLatestRate('gold')?->rate_per_10g ?: 150854.0);
@@ -169,7 +170,7 @@ class GoldRateApiController extends Controller
         // Clear cached live rates so next request pulls fresh data with updated rules
         Cache::forget('aarav_live_rates');
 
-        return $this->today();
+        return $this->today($request);
     }
 
     /**
