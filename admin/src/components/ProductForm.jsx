@@ -45,7 +45,8 @@ const defaultOptionMasters = [
       { value: "24KT (99.9% Pure Gold)", image: "https://images.unsplash.com/photo-1610375461246-83df859d849d?q=80&w=200&auto=format&fit=crop", enabled: false },
       { value: "22KT (91.6% Royal Gold)", image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=200&auto=format&fit=crop", enabled: true },
       { value: "18KT (75.0% Fine Gold)", image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=200&auto=format&fit=crop", enabled: true },
-      { value: "14KT (58.5% Modern Gold)", image: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?q=80&w=200&auto=format&fit=crop", enabled: false },
+      { value: "14KT (58.5% Modern Gold)", image: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?q=80&w=200&auto=format&fit=crop", enabled: true },
+      { value: "925 Silver (92.5% Hallmark)", image: "", enabled: true },
       { value: "PT950 (Platinum)", image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop", enabled: false },
     ],
   },
@@ -520,6 +521,26 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
     const finalOptions = [...mergedOptions, ...customMasters];
 
+    // Extract and initialize benchmark purities from existing options & finish_purities
+    const initialBench = [];
+    const pOpt = existingOptions.find((o) => (o.name || "").toLowerCase().includes("purity") || (o.name || "").toLowerCase().includes("karat"));
+    if (pOpt && Array.isArray(pOpt.values)) {
+      pOpt.values.forEach((v) => {
+        const vStr = typeof v === "object" ? v.value : v;
+        const match = typeof vStr === "string" ? vStr.match(/(\d+KT|\d+\s*SILVER|925|PT\d+)/i) : null;
+        if (match && !initialBench.includes(match[0].toUpperCase())) initialBench.push(match[0].toUpperCase());
+      });
+    }
+    if (Array.isArray(prod.finish_purities)) {
+      prod.finish_purities.forEach((fp) => {
+        const pCode = (fp.purity_code || fp.purity_name || "").toUpperCase();
+        if (pCode && !initialBench.includes(pCode)) initialBench.push(pCode);
+      });
+    }
+    if (initialBench.length > 0) {
+      setBenchmarkPurities(initialBench);
+    }
+
     setFormState({
       name: prod.name || "",
       design_code: prod.sku || prod.design_code || "",
@@ -616,9 +637,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
   const handleToggleBenchmarkPurity = (pCode, purity) => {
     setBenchmarkPurities((prev) => {
       const exists = prev.some((p) => p === pCode || p === purity.id || p === purity.name);
+      let next;
       if (exists) {
         if (prev.length <= 1) return prev;
-        const next = prev.filter((p) => p !== pCode && p !== purity.id && p !== purity.name);
+        next = prev.filter((p) => p !== pCode && p !== purity.id && p !== purity.name);
         if (formState.karat === pCode || formState.karat === purity.name) {
           const firstRem = allAvailablePurities.find((ap) => next.includes(ap.code) || next.includes(ap.name) || next.includes(ap.id));
           if (firstRem) {
@@ -629,10 +651,46 @@ export default function ProductForm({ isEdit = false, productId = null, existing
             }));
           }
         }
-        return next;
       } else {
-        return [...prev, pCode];
+        next = [...prev, pCode];
       }
+
+      // Automatically sync updated purities to formState.options
+      setFormState((fs) => {
+        const nextOpts = (fs.options || []).map((opt) => {
+          const oName = (opt.name || "").toLowerCase();
+          if (oName.includes("purity") || oName.includes("karat") || oName.includes("metal")) {
+            const updatedVals = [...(opt.values || [])];
+            next.forEach((bpCode) => {
+              const bpClean = String(bpCode).replace(/\s+/g, "").toUpperCase();
+              const idx = updatedVals.findIndex((v) => (v.value || "").replace(/\s+/g, "").toUpperCase().includes(bpClean));
+              if (idx >= 0) {
+                updatedVals[idx] = { ...updatedVals[idx], enabled: true };
+              } else {
+                updatedVals.push({
+                  value: bpClean.includes("925") ? "925 Silver (92.5% Hallmark)" : `${bpClean} Gold`,
+                  image: "",
+                  enabled: true,
+                  price_delta: 0,
+                });
+              }
+            });
+            return {
+              ...opt,
+              enabled: true,
+              values: updatedVals.map((v) => {
+                const vClean = (v.value || "").replace(/\s+/g, "").toUpperCase();
+                const shouldBeEnabled = next.some((bp) => vClean.includes(String(bp).replace(/\s+/g, "").toUpperCase()));
+                return { ...v, enabled: shouldBeEnabled };
+              }),
+            };
+          }
+          return opt;
+        });
+        return { ...fs, options: nextOpts };
+      });
+
+      return next;
     });
   };
 
@@ -1496,17 +1554,34 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       .filter((p) => activePurityIds.has(parseInt(p.id)))
       .map((p) => (p.code || p.name || "").replace(/\s+/g, "").toUpperCase());
 
+    const benchmarkCodes = (benchmarkPurities || []).map((bp) => String(bp).replace(/\s+/g, "").toUpperCase());
+    const allAllowedPurityCodes = [...new Set([...activePurityCodes, ...benchmarkCodes])];
+
     const sanitizedOptions = (formState.options || [])
       .filter((opt) => opt.enabled)
       .map((opt) => {
         const oLower = (opt.name || "").toLowerCase();
         let vals = (opt.values || []).filter((v) => v.enabled && v.value?.trim());
 
-        // Strictly align Metal Purity options with the purities configured in Section 1 Matrix
-        if ((oLower.includes("purity") || oLower.includes("karat") || oLower.includes("metal")) && activePurityCodes.length > 0) {
-          vals = vals.filter((v) => {
-            const vRaw = (v.value || "").replace(/\s+/g, "").toUpperCase();
-            return activePurityCodes.some((ap) => vRaw.includes(ap) || ap.includes(vRaw.split("(")[0]));
+        // Strictly align Metal Purity options with the purities configured in Section 1 Matrix & Benchmark standards
+        if (oLower.includes("purity") || oLower.includes("karat") || oLower.includes("metal")) {
+          if (allAllowedPurityCodes.length > 0) {
+            vals = vals.filter((v) => {
+              const vRaw = (v.value || "").replace(/\s+/g, "").toUpperCase();
+              return allAllowedPurityCodes.some((ap) => vRaw.includes(ap) || ap.includes(vRaw.split("(")[0]));
+            });
+          }
+          benchmarkCodes.forEach((bCode) => {
+            const hasIt = vals.some((v) => (v.value || "").replace(/\s+/g, "").toUpperCase().includes(bCode));
+            if (!hasIt) {
+              const matchedTemplate = defaultOptionMasters[0]?.values?.find((v) => (v.value || "").replace(/\s+/g, "").toUpperCase().includes(bCode));
+              vals.push({
+                value: matchedTemplate?.value || (bCode.includes("925") ? "925 Silver (92.5% Hallmark)" : `${bCode} Gold`),
+                image: matchedTemplate?.image || "",
+                enabled: true,
+                price_delta: 0,
+              });
+            }
           });
         }
 
