@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
 import RegionModal from '@/components/RegionModal';
 
 export default function ForgotPasswordPage() {
@@ -14,7 +15,9 @@ export default function ForgotPasswordPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [resendTimer, setResendTimer] = useState(45);
+    const [infoMessage, setInfoMessage] = useState('');
+    const [resendTimer, setResendTimer] = useState(60);
+    const [isResending, setIsResending] = useState(false);
     const [isRegionOpen, setIsRegionOpen] = useState(false);
 
     const otpRefs = useRef([]);
@@ -23,7 +26,7 @@ export default function ForgotPasswordPage() {
     useEffect(() => {
         let interval;
         if (step === 2 && resendTimer > 0) {
-            interval = setInterval(() => setResendTimer(t => t - 1), 1000);
+            interval = setInterval(() => setResendTimer((t) => t - 1), 1000);
         }
         return () => clearInterval(interval);
     }, [step, resendTimer]);
@@ -67,54 +70,115 @@ export default function ForgotPasswordPage() {
     };
 
     // Step 1: Submit Email
-    const handleEmailSubmit = (e) => {
+    const handleEmailSubmit = async (e) => {
         e.preventDefault();
-        if (!email.trim()) {
+        setError('');
+        setInfoMessage('');
+
+        const cleanEmail = email.trim().toLowerCase();
+        if (!cleanEmail) {
             setError('Please enter your registered email address.');
             return;
         }
-        setError('');
+
+        // Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(cleanEmail)) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const res = await api.forgotPassword({ email: cleanEmail });
             setStep(2);
-            setResendTimer(45);
-        }, 600);
+            setResendTimer(res?.cooldown_seconds || 60);
+            setInfoMessage(res?.message || `A 6-digit verification code has been dispatched to ${cleanEmail}.`);
+        } catch (err) {
+            setError(err.message || 'Unable to dispatch reset code. Please check your email and try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Step 2: Verify OTP
-    const handleOtpSubmit = (e) => {
+    const handleOtpSubmit = async (e) => {
         e.preventDefault();
-        const code = otp.join('');
+        setError('');
+        setInfoMessage('');
+
+        const code = otp.join('').trim();
         if (code.length < 6) {
-            setError('Please enter all 6 digits of the code.');
+            setError('Please enter all 6 digits of the verification code.');
             return;
         }
-        setError('');
+
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            await api.verifyOtp({
+                email: email.trim().toLowerCase(),
+                otp: code,
+                purpose: 'password_reset',
+            });
             setStep(3);
-        }, 600);
+        } catch (err) {
+            setError(err.message || 'Invalid or expired verification code. Please request a new code.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Step 2: Resend OTP
+    const handleResendOtp = async () => {
+        if (resendTimer > 0 || isResending) return;
+        setError('');
+        setInfoMessage('');
+        setIsResending(true);
+
+        try {
+            const res = await api.resendOtp({
+                email: email.trim().toLowerCase(),
+                purpose: 'password_reset',
+            });
+            setResendTimer(res?.data?.cooldown_seconds || 60);
+            setInfoMessage(res?.message || 'A new verification code has been dispatched to your email.');
+        } catch (err) {
+            setError(err.message || 'Failed to resend code. Please try again shortly.');
+        } finally {
+            setIsResending(false);
+        }
     };
 
     // Step 3: Reset Password
-    const handlePasswordSubmit = (e) => {
+    const handlePasswordSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setInfoMessage('');
+
         if (newPassword.length < 8) {
             setError('Password must be at least 8 characters long.');
             return;
         }
         if (newPassword !== confirmPassword) {
-            setError('Passwords do not match.');
+            setError('Passwords do not match. Please re-enter.');
             return;
         }
-        setError('');
+
+        const code = otp.join('').trim();
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            await api.resetPassword({
+                email: email.trim().toLowerCase(),
+                otp: code,
+                password: newPassword,
+                password_confirmation: confirmPassword,
+            });
             setStep(4);
-        }, 600);
+        } catch (err) {
+            setError(err.message || 'Could not reset password. Please request a new code if expired.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -131,8 +195,9 @@ export default function ForgotPasswordPage() {
                     onClick={() => setIsRegionOpen(true)}
                 >
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                     </svg>
                 </button>
             </header>
@@ -142,54 +207,84 @@ export default function ForgotPasswordPage() {
             {/* Main Center Area */}
             <main className="auth-center">
                 <div className="auth-card">
-                    {/* Rose gold butterfly logo */}
+                    {/* Exact Rose Gold Butterfly Logo */}
                     <div className="auth-butterfly">
                         <img
-                            src="/images/logo-butterfly.png"
+                            src="/images/logo-butterfly-exact.png"
                             alt="Pintaara Butterfly"
                             style={{ width: '48px', height: '42px', objectFit: 'contain' }}
                         />
                     </div>
 
+                    {/* Messages */}
                     {error && <p className="auth-error">{error}</p>}
+                    {infoMessage && <p className="auth-info">{infoMessage}</p>}
 
-                    {/* ── STEP 1: ENTER EMAIL (Page 0004) ── */}
+                    {/* ── STEP 1: ENTER EMAIL ── */}
                     {step === 1 && (
                         <>
                             <h1 className="auth-title">FORGOT PASSWORD?</h1>
+                            <p className="auth-subtitle">
+                                Enter your registered email address to receive a 6-digit verification code.
+                            </p>
 
-                            <form onSubmit={handleEmailSubmit} className="auth-form">
+                            <form onSubmit={handleEmailSubmit} className="auth-form" noValidate>
                                 <div className="auth-field">
-                                    <label className="auth-label" htmlFor="forgot-email">ENTER EMAIL OR MOBILE NUMBER</label>
+                                    <label className="auth-label" htmlFor="forgot-email">EMAIL ADDRESS</label>
                                     <input
                                         id="forgot-email"
                                         className="auth-input"
-                                        type="text"
+                                        type="email"
+                                        name="email"
                                         required
-                                        placeholder="Enter your email or mobile number"
+                                        placeholder="Enter your registered email"
                                         value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        onChange={(e) => {
+                                            setEmail(e.target.value);
+                                            if (error) setError('');
+                                        }}
+                                        autoComplete="email"
                                     />
                                 </div>
 
                                 <button type="submit" className="auth-btn-primary" disabled={loading}>
-                                    {loading ? 'CONTINUING...' : 'CONTINUE'}
+                                    {loading ? 'SENDING CODE...' : 'CONTINUE'}
                                 </button>
+
+                                <div className="auth-back-row">
+                                    <Link href="/login" className="auth-secondary-link">
+                                        Back to Sign In
+                                    </Link>
+                                </div>
                             </form>
                         </>
                     )}
 
-                    {/* ── STEP 2: VERIFY OTP (Page 0005) ── */}
+                    {/* ── STEP 2: VERIFY OTP ── */}
                     {step === 2 && (
                         <>
-                            <h1 className="auth-title auth-title-with-sub">FORGOT PASSWORD?</h1>
+                            <h1 className="auth-title auth-title-with-sub">VERIFY IT&apos;S YOU</h1>
                             <p className="auth-subtitle">
-                                Enter the 6-digit code sent to your email / Mobile Number
+                                Enter the 6-digit code sent to <strong className="auth-email-highlight">{email}</strong>
                             </p>
+
+                            <div className="auth-change-email-row">
+                                <button
+                                    type="button"
+                                    className="auth-change-email-btn"
+                                    onClick={() => {
+                                        setStep(1);
+                                        setError('');
+                                        setInfoMessage('');
+                                    }}
+                                >
+                                    Wrong email? Change email
+                                </button>
+                            </div>
 
                             <form onSubmit={handleOtpSubmit} className="auth-form">
                                 <div className="auth-field">
-                                    <label className="auth-label">VERIFY IT'S YOU</label>
+                                    <label className="auth-label">6-DIGIT VERIFICATION CODE</label>
                                     <div className="auth-otp-grid">
                                         {otp.map((digit, idx) => (
                                             <input
@@ -201,7 +296,10 @@ export default function ForgotPasswordPage() {
                                                 size={1}
                                                 className="auth-otp-box"
                                                 value={digit}
-                                                onChange={(e) => handleOtpChange(idx, e.target.value)}
+                                                onChange={(e) => {
+                                                    handleOtpChange(idx, e.target.value);
+                                                    if (error) setError('');
+                                                }}
                                                 onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                                                 autoFocus={idx === 0}
                                                 style={{ minWidth: 0 }}
@@ -210,17 +308,37 @@ export default function ForgotPasswordPage() {
                                     </div>
                                 </div>
 
+                                <div className="auth-resend-row">
+                                    {resendTimer > 0 ? (
+                                        <span className="auth-resend-timer">
+                                            Resend code in {resendTimer}s
+                                        </span>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="auth-resend-btn"
+                                            onClick={handleResendOtp}
+                                            disabled={isResending}
+                                        >
+                                            {isResending ? 'RESENDING...' : 'RESEND CODE'}
+                                        </button>
+                                    )}
+                                </div>
+
                                 <button type="submit" className="auth-btn-primary" disabled={loading}>
-                                    {loading ? 'VERIFYING...' : 'VERIFY'}
+                                    {loading ? 'VERIFYING...' : 'VERIFY & CONTINUE'}
                                 </button>
                             </form>
                         </>
                     )}
 
-                    {/* ── STEP 3: RESET PASSWORD (Page 0006) ── */}
+                    {/* ── STEP 3: RESET PASSWORD ── */}
                     {step === 3 && (
                         <>
-                            <h1 className="auth-title">FORGOT PASSWORD?</h1>
+                            <h1 className="auth-title">CREATE NEW PASSWORD</h1>
+                            <p className="auth-subtitle">
+                                Your identity has been verified. Choose a new secure password.
+                            </p>
 
                             <form onSubmit={handlePasswordSubmit} className="auth-form">
                                 <div className="auth-field">
@@ -230,9 +348,13 @@ export default function ForgotPasswordPage() {
                                         className="auth-input"
                                         type="password"
                                         required
-                                        placeholder="New Password"
+                                        placeholder="At least 8 characters"
                                         value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        onChange={(e) => {
+                                            setNewPassword(e.target.value);
+                                            if (error) setError('');
+                                        }}
+                                        autoComplete="new-password"
                                     />
                                 </div>
 
@@ -243,30 +365,37 @@ export default function ForgotPasswordPage() {
                                         className="auth-input"
                                         type="password"
                                         required
-                                        placeholder="Re-enter New Password"
+                                        placeholder="Re-enter your new password"
                                         value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        onChange={(e) => {
+                                            setConfirmPassword(e.target.value);
+                                            if (error) setError('');
+                                        }}
+                                        autoComplete="new-password"
                                     />
                                 </div>
 
                                 <button type="submit" className="auth-btn-primary" disabled={loading}>
-                                    {loading ? 'CONTINUING...' : 'CONTINUE'}
+                                    {loading ? 'UPDATING PASSWORD...' : 'RESET PASSWORD'}
                                 </button>
                             </form>
                         </>
                     )}
 
-                    {/* ── STEP 4: SUCCESS (Page 0007) ── */}
+                    {/* ── STEP 4: SUCCESS ── */}
                     {step === 4 && (
                         <div className="auth-success-flow">
                             <div className="auth-check-icon">
-                                <svg width="44" height="34" viewBox="0 0 24 24" fill="none" stroke="#5C6642" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter">
-                                    <polyline points="20 6 9 17 4 12"/>
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2D5A27" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
                                 </svg>
                             </div>
                             <h1 className="auth-title auth-title-success">NEW PASSWORD CREATED</h1>
+                            <p className="auth-subtitle">
+                                Your password has been successfully updated. You may now sign in with your new credentials.
+                            </p>
 
-                            <Link href="/login" className="auth-btn-primary">
+                            <Link href="/login" className="auth-btn-primary" style={{ width: '100%', marginTop: '1.5rem' }}>
                                 SIGN IN
                             </Link>
                         </div>
@@ -275,6 +404,17 @@ export default function ForgotPasswordPage() {
             </main>
 
             <style jsx global>{`
+                /* Chrome & Safari Autofill Reset */
+                input:-webkit-autofill,
+                input:-webkit-autofill:hover, 
+                input:-webkit-autofill:focus,
+                input:-webkit-autofill:active {
+                    -webkit-box-shadow: 0 0 0 1000px #EFE8DE inset !important;
+                    -webkit-text-fill-color: #111111 !important;
+                    font-family: inherit !important;
+                    transition: background-color 5000s ease-in-out 0s;
+                }
+
                 html, body {
                     height: 100%;
                     margin: 0;
@@ -289,7 +429,7 @@ export default function ForgotPasswordPage() {
                     background-color: #DDD4C6;
                     display: flex;
                     flex-direction: column;
-                    font-family: var(--font-body, "Montserrat", -apple-system, sans-serif);
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                 }
                 .auth-header {
                     display: flex;
@@ -297,9 +437,10 @@ export default function ForgotPasswordPage() {
                     align-items: center;
                     padding: 1.15rem 3.5rem;
                     border-bottom: 1px solid rgba(40, 30, 20, 0.45);
+                    box-sizing: border-box;
                 }
                 .auth-logo {
-                    font-family: var(--font-logo, "Bodoni Moda", serif);
+                    font-family: "Cinzel", "Didot", "Bodoni MT", serif;
                     font-size: 1.35rem;
                     font-weight: 500;
                     letter-spacing: 0.24em;
@@ -307,41 +448,52 @@ export default function ForgotPasswordPage() {
                     text-decoration: none;
                 }
                 .auth-globe-btn {
-                    background: none; border: none; cursor: pointer;
-                    color: #2A2018; display: flex; align-items: center;
-                    padding: 0; transition: opacity 0.15s;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: #2A2018;
+                    display: flex;
+                    align-items: center;
+                    padding: 0;
+                    transition: opacity 0.15s;
                 }
-                .auth-globe-btn:hover { opacity: 0.65; }
+                .auth-globe-btn:hover {
+                    opacity: 0.65;
+                }
                 .auth-center {
                     flex: 1;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    padding: 1.5rem 1rem;
+                    padding: 2.5rem 2rem;
+                    box-sizing: border-box;
                 }
                 .auth-card {
                     width: 100%;
-                    max-width: 1200px;
+                    max-width: 1180px;
+                    background: rgba(244, 239, 231, 0.78);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    padding: 3.5rem 4rem;
+                    box-sizing: border-box;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    padding: 1.5rem 1rem 2.5rem 1rem;
-                    box-sizing: border-box;
                 }
                 .auth-butterfly {
-                    margin-bottom: 1.5rem;
+                    margin-bottom: 1.25rem;
                     display: flex;
                     justify-content: center;
                     align-items: center;
                 }
                 .auth-title {
-                    font-family: var(--font-body, "Montserrat", sans-serif);
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                     font-size: 1.65rem;
                     font-weight: 400;
                     letter-spacing: 0.14em;
                     color: #1A1A1A;
-                    margin: 0 0 2.2rem 0;
+                    margin: 0 0 0.6rem 0;
                     text-align: center;
                     text-transform: uppercase;
                 }
@@ -349,22 +501,62 @@ export default function ForgotPasswordPage() {
                     margin: 0 0 0.5rem 0;
                 }
                 .auth-title-success {
-                    margin: 1.2rem 0 0 0;
+                    margin: 1rem 0 0.5rem 0;
                 }
                 .auth-subtitle {
-                    font-family: var(--font-body, "Montserrat", sans-serif);
                     font-size: 0.88rem;
                     font-weight: 300;
                     color: #38322C;
-                    margin: 0 0 2.2rem 0;
+                    margin: 0 0 2rem 0;
                     text-align: center;
                     letter-spacing: 0.02em;
+                    max-width: 440px;
+                    line-height: 1.5;
+                }
+                .auth-email-highlight {
+                    font-weight: 600;
+                    color: #111;
+                }
+                .auth-change-email-row {
+                    margin: -1.2rem 0 1.5rem 0;
+                    text-align: center;
+                }
+                .auth-change-email-btn {
+                    background: none;
+                    border: none;
+                    font-size: 0.8rem;
+                    color: #8C6A48;
+                    text-decoration: underline;
+                    cursor: pointer;
+                    letter-spacing: 0.03em;
+                    padding: 0;
+                }
+                .auth-change-email-btn:hover {
+                    color: #111;
                 }
                 .auth-error {
-                    font-size: 0.8rem;
+                    font-size: 0.82rem;
                     color: #b02a1c;
-                    margin: 0 0 1.2rem 0;
+                    background: rgba(176, 42, 28, 0.08);
+                    border: 1px solid rgba(176, 42, 28, 0.25);
+                    padding: 0.6rem 1rem;
+                    margin: 0 0 1.4rem 0;
                     text-align: center;
+                    width: 100%;
+                    max-width: 380px;
+                    box-sizing: border-box;
+                }
+                .auth-info {
+                    font-size: 0.82rem;
+                    color: #2D5A27;
+                    background: rgba(45, 90, 39, 0.08);
+                    border: 1px solid rgba(45, 90, 39, 0.25);
+                    padding: 0.6rem 1rem;
+                    margin: 0 0 1.4rem 0;
+                    text-align: center;
+                    width: 100%;
+                    max-width: 380px;
+                    box-sizing: border-box;
                 }
                 .auth-form {
                     width: 100%;
@@ -379,7 +571,6 @@ export default function ForgotPasswordPage() {
                 }
                 .auth-label {
                     display: block;
-                    font-family: var(--font-body, "Montserrat", sans-serif);
                     font-size: 0.68rem;
                     font-weight: 500;
                     letter-spacing: 0.1em;
@@ -400,12 +591,11 @@ export default function ForgotPasswordPage() {
                     outline: none;
                     box-sizing: border-box;
                     border-radius: 0;
-                    font-family: var(--font-body, "Montserrat", sans-serif);
                     transition: border-color 0.15s, background-color 0.15s;
                 }
                 .auth-input:focus {
                     border-color: #000000;
-                    background: rgba(255, 255, 255, 0.15) !important;
+                    background: rgba(255, 255, 255, 0.25) !important;
                 }
                 .auth-input::placeholder {
                     color: #8A8177;
@@ -423,9 +613,9 @@ export default function ForgotPasswordPage() {
                     width: 100% !important;
                     min-width: 0 !important;
                     max-width: 100% !important;
-                    height: 46px !important;
+                    height: 48px !important;
                     text-align: center;
-                    font-size: 1.15rem;
+                    font-size: 1.25rem;
                     font-weight: 500;
                     border: 1px solid #1F1F1F !important;
                     background: transparent !important;
@@ -434,12 +624,39 @@ export default function ForgotPasswordPage() {
                     box-sizing: border-box;
                     border-radius: 0;
                     padding: 0;
-                    font-family: var(--font-body, "Montserrat", sans-serif);
                     transition: border-color 0.15s, background-color 0.15s;
                 }
                 .auth-otp-box:focus {
                     border-color: #000000 !important;
-                    background: rgba(255, 255, 255, 0.2) !important;
+                    background: rgba(255, 255, 255, 0.4) !important;
+                }
+                .auth-resend-row {
+                    display: flex;
+                    justify-content: flex-end;
+                    margin-top: 0.6rem;
+                }
+                .auth-resend-timer {
+                    font-size: 0.76rem;
+                    color: #7A726A;
+                    letter-spacing: 0.05em;
+                }
+                .auth-resend-btn {
+                    background: none;
+                    border: none;
+                    font-size: 0.76rem;
+                    letter-spacing: 0.08em;
+                    color: #1F1F1F;
+                    text-decoration: underline;
+                    cursor: pointer;
+                    padding: 0;
+                    font-weight: 500;
+                }
+                .auth-resend-btn:hover:not(:disabled) {
+                    color: #000;
+                }
+                .auth-resend-btn:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
                 }
                 .auth-btn-primary {
                     width: 100%;
@@ -452,14 +669,13 @@ export default function ForgotPasswordPage() {
                     letter-spacing: 0.16em;
                     text-transform: uppercase;
                     cursor: pointer;
-                    margin-top: 2.4rem;
+                    margin-top: 2rem;
                     margin-bottom: 0;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     box-sizing: border-box;
                     border-radius: 0;
-                    font-family: var(--font-body, "Montserrat", sans-serif);
                     transition: background-color 0.15s, border-color 0.15s;
                     text-decoration: none;
                 }
@@ -471,28 +687,49 @@ export default function ForgotPasswordPage() {
                     opacity: 0.6;
                     cursor: not-allowed;
                 }
+                .auth-back-row {
+                    margin-top: 1.5rem;
+                    text-align: center;
+                }
+                .auth-secondary-link {
+                    font-size: 0.78rem;
+                    letter-spacing: 0.08em;
+                    color: #554D45;
+                    text-decoration: none;
+                    transition: color 0.15s;
+                }
+                .auth-secondary-link:hover {
+                    color: #000;
+                    text-decoration: underline;
+                }
                 .auth-success-flow {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     width: 100%;
-                    max-width: 380px;
+                    max-width: 400px;
                     margin: 0 auto;
+                    text-align: center;
                 }
                 .auth-check-icon {
-                    margin-bottom: 0.8rem;
+                    width: 64px;
+                    height: 64px;
+                    border-radius: 50%;
+                    background: rgba(45, 90, 39, 0.12);
                     display: flex;
+                    align-items: center;
                     justify-content: center;
+                    margin-bottom: 1.25rem;
                 }
                 @media (max-width: 900px) {
                     .auth-card {
-                        background: rgba(240, 235, 227, 0.88);
-                        backdrop-filter: blur(8px);
-                        -webkit-backdrop-filter: blur(8px);
+                        background: rgba(244, 239, 231, 0.92);
                         padding: 2.5rem 1.5rem;
-                        max-width: 92%;
+                        max-width: 94%;
                     }
-                    .auth-header { padding: 1rem 1.5rem; }
+                    .auth-header {
+                        padding: 1rem 1.5rem;
+                    }
                 }
             `}</style>
         </div>

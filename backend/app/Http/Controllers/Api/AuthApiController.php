@@ -581,19 +581,27 @@ class AuthApiController extends Controller
 
         $user = User::where('email', $email)->first();
         if (!$user) {
-            // For security, do not leak whether email exists
             return response()->json([
-                'success' => true,
-                'message' => 'If this email is registered, a password reset code has been dispatched.',
-            ]);
+                'success' => false,
+                'message' => 'No registered account found with this email address.',
+            ], 404);
         }
 
         $otpRes = OtpService::sendOtp($email, 'password_reset', ['user_id' => $user->id]);
 
+        if (!$otpRes['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $otpRes['message'] ?? 'Please wait before requesting a new code.',
+                'cooldown_seconds' => $otpRes['cooldown_seconds'] ?? 60,
+            ], 429);
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'If this email is registered, a password reset code has been dispatched.',
+            'message' => 'A 6-digit verification code has been dispatched to your email.',
             'dev_otp' => $otpRes['dev_otp'] ?? null,
+            'cooldown_seconds' => $otpRes['cooldown_seconds'] ?? 60,
         ]);
     }
 
@@ -611,12 +619,27 @@ class AuthApiController extends Controller
         ]);
 
         $email = strtolower(trim($request->email));
-        $verifyRes = OtpService::verifyOtp($email, $request->otp, 'password_reset');
 
-        if (!$verifyRes['valid']) {
+        // Check if recently verified via verifyOtp (within 15 minutes) or verify now
+        $recentVerified = \App\Models\EmailOtp::where('email', $email)
+            ->where('purpose', 'password_reset')
+            ->whereNotNull('used_at')
+            ->where('used_at', '>=', now()->subMinutes(15))
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $valid = false;
+        if ($recentVerified && Hash::check($request->otp, $recentVerified->otp_hash)) {
+            $valid = true;
+        } else {
+            $verifyRes = OtpService::verifyOtp($email, $request->otp, 'password_reset');
+            $valid = $verifyRes['valid'] ?? false;
+        }
+
+        if (!$valid) {
             return response()->json([
                 'success' => false,
-                'message' => $verifyRes['message'],
+                'message' => 'Invalid or expired verification code. Please request a new code.',
             ], 422);
         }
 
@@ -626,6 +649,10 @@ class AuthApiController extends Controller
         }
 
         $user->update(['password' => Hash::make($request->password)]);
+
+        // Invalidate used OTPs for this email and purpose
+        \App\Models\EmailOtp::where('email', $email)->where('purpose', 'password_reset')->delete();
+
         AuditLog::log('password_reset_completed', 'User', $user->id);
 
         return response()->json([
