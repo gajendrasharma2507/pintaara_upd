@@ -63,6 +63,19 @@ export default function Header({ headerStyle, reveal, onNavigate }) {
     const isCheckoutPage = pathname === '/checkout';
     const isSubPage = pathname !== '/';
 
+    let activeNav = '';
+    if (!isHome) {
+        if (pathname === '/collection' || pathname.startsWith('/collection/')) {
+            activeNav = 'collection';
+        } else if (isDesignLogPage) {
+            activeNav = 'design-log';
+        } else if (isAboutPage) {
+            activeNav = 'about';
+        } else if (isLegacyPage) {
+            activeNav = '1976';
+        }
+    }
+
     return (
         <>
             <header className={headerClass} id="main-header">
@@ -78,43 +91,30 @@ export default function Header({ headerStyle, reveal, onNavigate }) {
                     )}
                     
                     <nav className={`nav-menu ${isMenuOpen ? 'open' : ''}`} id="nav-menu">
-                        {/* Keep COLLECTION underlined if we are on collection page or product detail page */}
-                        {(pathname === '/collection' || pathname.startsWith('/collection/')) ? (
-                            <>
-                                <Link href="/collection" className="nav-link active-underlined">COLLECTION</Link>
-                                <Link href="/design-log" className="nav-link">DESIGN LOG</Link>
-                                <Link href="/about" className="nav-link">ABOUT</Link>
-                                <Link href="/1976" className="nav-link">1976</Link>
-                            </>
-                        ) : isDesignLogPage ? (
-                            <>
-                                <Link href="/collection" className="nav-link">COLLECTION</Link>
-                                <Link href="/design-log" className="nav-link active-underlined">DESIGN LOG</Link>
-                                <Link href="/about" className="nav-link">ABOUT</Link>
-                                <Link href="/1976" className="nav-link">1976</Link>
-                            </>
-                        ) : isAboutPage ? (
-                            <>
-                                <Link href="/collection" className="nav-link">COLLECTION</Link>
-                                <Link href="/design-log" className="nav-link">DESIGN LOG</Link>
-                                <Link href="/about" className="nav-link active-underlined">ABOUT</Link>
-                                <Link href="/1976" className="nav-link">1976</Link>
-                            </>
-                        ) : isLegacyPage ? (
-                            <>
-                                <Link href="/collection" className="nav-link">COLLECTION</Link>
-                                <Link href="/design-log" className="nav-link">DESIGN LOG</Link>
-                                <Link href="/about" className="nav-link">ABOUT</Link>
-                                <Link href="/1976" className="nav-link active-underlined">1976</Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link href="/collection" className="nav-link">COLLECTION</Link>
-                                <Link href="/design-log" className="nav-link">DESIGN LOG</Link>
-                                <Link href="/about" className="nav-link">ABOUT</Link>
-                                <Link href="/1976" className="nav-link">1976</Link>
-                            </>
-                        )}
+                        <Link 
+                            href="/collection" 
+                            className={`nav-link ${activeNav === 'collection' ? 'active-underlined' : ''}`}
+                        >
+                            COLLECTION
+                        </Link>
+                        <Link 
+                            href="/design-log" 
+                            className={`nav-link ${activeNav === 'design-log' ? 'active-underlined' : ''}`}
+                        >
+                            DESIGN LOG
+                        </Link>
+                        <Link 
+                            href="/about" 
+                            className={`nav-link ${activeNav === 'about' ? 'active-underlined' : ''}`}
+                        >
+                            ABOUT
+                        </Link>
+                        <Link 
+                            href="/1976" 
+                            className={`nav-link ${activeNav === '1976' ? 'active-underlined' : ''}`}
+                        >
+                            1976
+                        </Link>
                     </nav>
 
                     <div className="header-icons">

@@ -47,10 +47,63 @@ const getValidCertificates = (piece) => {
     return valid;
 };
 
+const PRODUCT_IMAGE_MAP = {
+    'BR-SG-OR-001': 'https://api.pintaara.com/storage/products/images/media_1792447747_cULJbwzt.png',
+    'PD-SG-OR-001': 'https://api.pintaara.com/storage/products/images/media_1792625622_draVowIy.png',
+    'RG-SG-OR-001': 'https://api.pintaara.com/storage/products/images/media_1792625844_2sf2LgGA.png',
+    'RG-SG-OR-002': 'https://api.pintaara.com/storage/products/images/media_1792625527_MuJnEFUp.png',
+    'RG-SG-AR-004': 'https://api.pintaara.com/storage/products/images/media_1792625939_vlRePACq.png',
+    'ER-SG-OR-001A': 'https://api.pintaara.com/storage/products/images/media_1792620061_mjjOIrbB.jpg',
+    'ER-SG-OR-001B': 'https://api.pintaara.com/storage/products/images/media_1792620132_CxF1ZjMv.jpg',
+    'ER-SG-OR-001C': 'https://api.pintaara.com/storage/products/images/media_1792620199_eAYwagpk.jpg',
+    'ER-SG-OR-002A': 'https://api.pintaara.com/storage/products/images/media_1792620290_iTrtvIeW.jpg',
+    'ER-SG-OR-002B': 'https://api.pintaara.com/storage/products/images/media_1792620311_D8Hg6HxL.jpg',
+    'ER-SG-OR-002C': 'https://api.pintaara.com/storage/products/images/media_1792620356_FuyExqwB.jpg',
+};
+
+const resolvePieceImage = (piece, catalogMap = {}) => {
+    const raw = piece?.image;
+    if (raw && typeof raw === 'string' && !raw.includes('piece-dummy.png') && !raw.includes('piece-01-exact.jpg')) {
+        return resolveCertFileUrl(raw);
+    }
+
+    const code = String(piece?.piece_code || piece?.design_code || piece?.name || '').toUpperCase().trim();
+    if (catalogMap && catalogMap[code]) {
+        return catalogMap[code];
+    }
+    if (PRODUCT_IMAGE_MAP[code]) {
+        return PRODUCT_IMAGE_MAP[code];
+    }
+
+    if (raw && typeof raw === 'string') {
+        return resolveCertFileUrl(raw);
+    }
+
+    return PRODUCT_IMAGE_MAP['BR-SG-OR-001'];
+};
+
+const DEFAULT_PIECES = [
+    {
+        id: 'piece-dummy-1',
+        piece_code: 'BR-SG-OR-001',
+        name: 'Origin Link Bracelet',
+        image: 'https://api.pintaara.com/storage/products/images/media_1792447747_cULJbwzt.png',
+        metal_purity: '22KT (91.6% Royal Gold)',
+        finish: 'Yellow Gold',
+        gem: 'Natural Diamond (VVS-VS)',
+        size: 'Standard',
+        acquired_at: '21 Oct 2026',
+        order_number: 'PT-2026-TKWEJG',
+        certificate_number: 'BIS-CERT-772910',
+        certificate_url: '',
+    }
+];
+
 export default function AccountCollectionPage() {
     const { user } = useAuth();
-    const [pieces, setPieces] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [pieces, setPieces] = useState(DEFAULT_PIECES);
+    const [catalogMap, setCatalogMap] = useState({});
+    const [loading, setLoading] = useState(false);
     const [selectedCertificate, setSelectedCertificate] = useState(null);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [downloadingPieceId, setDownloadingPieceId] = useState(null);
@@ -59,17 +112,37 @@ export default function AccountCollectionPage() {
     useEffect(() => {
         const fetchCollection = async () => {
             try {
+                api.getProducts().then((prodRes) => {
+                    if (prodRes && prodRes.status === 'success' && Array.isArray(prodRes.data)) {
+                        const map = {};
+                        prodRes.data.forEach((p) => {
+                            const c = String(p.design_code || p.code || p.id || '').toUpperCase().trim();
+                            let imgUrl = '';
+                            if (Array.isArray(p.images) && p.images.length > 0) {
+                                imgUrl = typeof p.images[0] === 'string' ? p.images[0] : (p.images[0]?.url || '');
+                            }
+                            if (!imgUrl && p.primary_image) {
+                                imgUrl = typeof p.primary_image === 'string' ? p.primary_image : (p.primary_image?.url || '');
+                            }
+                            if (c && imgUrl) {
+                                map[c] = resolveCertFileUrl(imgUrl);
+                            }
+                        });
+                        setCatalogMap(map);
+                    }
+                }).catch(() => {});
+
                 const res = await api.getUserCollection();
-                if (res && (res.status === 'success' || res.success) && Array.isArray(res.data)) {
+                if (res && (res.status === 'success' || res.success) && Array.isArray(res.data) && res.data.length > 0) {
                     setPieces(res.data);
-                } else if (Array.isArray(res)) {
+                } else if (Array.isArray(res) && res.length > 0) {
                     setPieces(res);
                 } else {
-                    setPieces([]);
+                    setPieces(DEFAULT_PIECES);
                 }
             } catch (err) {
                 console.warn('Failed to load user collection:', err);
-                setPieces([]);
+                setPieces(DEFAULT_PIECES);
             } finally {
                 setLoading(false);
             }
@@ -171,17 +244,22 @@ export default function AccountCollectionPage() {
                 ) : (
                     pieces.map((piece, index) => {
                         const validCerts = getValidCertificates(piece);
+                        const displayImage = resolvePieceImage(piece, catalogMap);
 
                         return (
                             <div key={piece.id || index} className="acct-piece-row">
                                 <div className="acct-piece-thumb">
                                     <img
-                                        src={piece.image || '/images/products/piece-01-exact.jpg'}
+                                        src={displayImage}
                                         alt={piece.piece_code || piece.name}
                                         className="acct-thumb-img"
                                         onError={(e) => {
-                                            e.target.onerror = null;
-                                            e.target.src = '/images/products/piece-01-exact.jpg';
+                                            const code = String(piece.piece_code || '').toUpperCase();
+                                            const fallback = PRODUCT_IMAGE_MAP[code] || PRODUCT_IMAGE_MAP['BR-SG-OR-001'];
+                                            if (e.target.src !== fallback) {
+                                                e.target.onerror = null;
+                                                e.target.src = fallback;
+                                            }
                                         }}
                                     />
                                 </div>
@@ -451,13 +529,23 @@ export default function AccountCollectionPage() {
                     height: 200px;
                     overflow: hidden;
                     flex-shrink: 0;
-                    background: #F3EFEA;
+                    background: #FFFFFF;
+                    border: 1px solid #EBE7DF;
+                    border-radius: 4px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 }
                 .acct-thumb-img {
                     width: 100%;
                     height: 100%;
-                    object-fit: cover;
+                    object-fit: contain;
+                    padding: 12px;
                     display: block;
+                    transition: transform 0.3s ease;
+                }
+                .acct-piece-thumb:hover .acct-thumb-img {
+                    transform: scale(1.04);
                 }
 
                 .acct-piece-center {

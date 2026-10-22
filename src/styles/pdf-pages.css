@@ -90,6 +90,15 @@
         opacity: 0.9;
     }
 
+    /* Explicitly prevent any underline / ::after on slide header */
+    html body .slider-root-wrapper .main-header .nav-link::after,
+    html body .slider-root-wrapper .main-header a.nav-link::after,
+    html body .slider-root-wrapper .main-header .nav-link.active-underlined::after,
+    html body .slider-root-wrapper .main-header a.nav-link.active-underlined::after {
+        display: none !important;
+        content: none !important;
+    }
+
     /* ---- Shared type helpers ------------------------------------ */
     html body .collection-page-root .collection-subtitle,
     html body .collection-page-root .how-intro-left .collection-subtitle {
@@ -622,19 +631,7 @@
     }
 
     html body .atelier-page-root .atelier-finish-bar-label {
-        font-family: var(--font-body) !important;
-        font-size: calc(20 * var(--p)) !important;
-        font-weight: 400 !important;
-        letter-spacing: 0 !important;
-        color: #3C3732 !important;
-        text-shadow: none !important;
-        background: none !important;
-        padding: 0 !important;
-        opacity: 1 !important;
-    }
-
-    html body .atelier-page-root .atelier-finish-bar-label.is-light {
-        color: #FFFFFF !important;
+        display: none !important;
     }
 
     /* Size select (302x36) with gem icons alongside at x 1468 */
@@ -678,7 +675,7 @@
         margin: 0 !important;
     }
 
-    html body .atelier-page-root .atelier-size-gem-row + .atelier-control-group {
+    html body .atelier-page-root .atelier-size-gem-row+.atelier-control-group {
         margin-top: calc(2 * var(--p)) !important;
     }
 
@@ -838,8 +835,7 @@
     html body .bag-page-root .cart-table-row {
         display: grid !important;
         grid-template-columns:
-            calc(325 * var(--p)) calc(444 * var(--p)) calc(87 * var(--p)) calc(197 * var(--p))
-            calc(169 * var(--p)) calc(195 * var(--p)) calc(86 * var(--p)) calc(92 * var(--p)) calc(25 * var(--p))  !important;
+            calc(325 * var(--p)) calc(444 * var(--p)) calc(87 * var(--p)) calc(197 * var(--p)) calc(169 * var(--p)) calc(195 * var(--p)) calc(86 * var(--p)) calc(92 * var(--p)) calc(25 * var(--p)) !important;
         gap: 0 !important;
         width: auto !important;
         max-width: none !important;
@@ -853,12 +849,29 @@
         align-items: end !important;
     }
 
-    html body .bag-page-root .col-item { grid-column: 1 !important; }
-    html body .bag-page-root .col-details { grid-column: 2 !important; }
-    html body .bag-page-root .col-price { grid-column: 3 !important; }
-    html body .bag-page-root .col-qty { grid-column: 5 !important; }
-    html body .bag-page-root .col-total { grid-column: 7 !important; }
-    html body .bag-page-root .col-action { grid-column: 9 !important; }
+    html body .bag-page-root .col-item {
+        grid-column: 1 !important;
+    }
+
+    html body .bag-page-root .col-details {
+        grid-column: 2 !important;
+    }
+
+    html body .bag-page-root .col-price {
+        grid-column: 3 !important;
+    }
+
+    html body .bag-page-root .col-qty {
+        grid-column: 5 !important;
+    }
+
+    html body .bag-page-root .col-total {
+        grid-column: 7 !important;
+    }
+
+    html body .bag-page-root .col-action {
+        grid-column: 9 !important;
+    }
 
     html body .bag-page-root .th-col,
     html body .bag-page-root .td-col {
@@ -1489,7 +1502,7 @@
         margin: calc(7 * var(--p)) 0 0 calc(-5 * var(--p)) !important;
     }
 
-    html body .dl-subpage-root .dl-rule-short + .dl-label-sm {
+    html body .dl-subpage-root .dl-rule-short+.dl-label-sm {
         font-size: calc(20 * var(--p)) !important;
         line-height: 1.35 !important;
         margin-top: calc(12 * var(--p)) !important;
@@ -1734,7 +1747,9 @@
         transform: none !important;
     }
 
+
     html body .about-page .about-top-label {
+        --p: calc(100cqw / 1920);
         position: absolute !important;
         left: calc(154 * var(--p)) !important;
         top: calc(163 * var(--p)) !important;
@@ -2061,11 +2076,11 @@
         text-align: left !important;
     }
 
-    html body .about-normal-page-root .phil-section-headline + .phil-body-paragraphs {
+    html body .about-normal-page-root .phil-section-headline+.phil-body-paragraphs {
         margin-top: calc(4 * var(--p)) !important;
     }
 
-    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(2) .phil-section-headline + .phil-body-paragraphs {
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(2) .phil-section-headline+.phil-body-paragraphs {
         margin-top: calc(5 * var(--p)) !important;
     }
 
@@ -2467,7 +2482,7 @@
     html body .legacy-page-root .legacy-timeline-section {
         position: relative !important;
         display: block !important;
-        height: calc(1820 * var(--p)) !important;
+        height: calc(1590 * var(--p)) !important;
         min-height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -2477,7 +2492,7 @@
     html body .legacy-page-root .timeline-center-line {
         position: absolute !important;
         left: calc(960 * var(--p)) !important;
-        top: calc(303 * var(--p)) !important;
+        top: calc(73 * var(--p)) !important;
         bottom: 0 !important;
         width: calc(4 * var(--p)) !important;
         height: auto !important;
@@ -2563,12 +2578,12 @@
     html body .legacy-page-root .timeline-item:nth-of-type(1) .timeline-text-col {
         left: calc(392 * var(--p)) !important;
         width: calc(540 * var(--p)) !important;
-        top: calc(348 * var(--p)) !important;
+        top: calc(118 * var(--p)) !important;
     }
 
     html body .legacy-page-root .timeline-item:nth-of-type(1) .timeline-media-col {
         left: calc(997 * var(--p)) !important;
-        top: calc(343 * var(--p)) !important;
+        top: calc(113 * var(--p)) !important;
         width: calc(777 * var(--p)) !important;
         height: calc(438 * var(--p)) !important;
     }
@@ -2585,7 +2600,7 @@
     /* Item 2 — 50+ YEARS / OF CRAFT & TRUST (text from x 1001) */
     html body .legacy-page-root .timeline-item:nth-of-type(2) .timeline-media-col {
         left: calc(157 * var(--p)) !important;
-        top: calc(826 * var(--p)) !important;
+        top: calc(596 * var(--p)) !important;
         width: calc(777 * var(--p)) !important;
         height: calc(438 * var(--p)) !important;
     }
@@ -2607,19 +2622,19 @@
     html body .legacy-page-root .timeline-item:nth-of-type(2) .timeline-text-col {
         left: calc(1001 * var(--p)) !important;
         width: calc(560 * var(--p)) !important;
-        top: calc(831 * var(--p)) !important;
+        top: calc(601 * var(--p)) !important;
     }
 
     /* Item 3 — TODAY / 2025 */
     html body .legacy-page-root .timeline-item:nth-of-type(3) .timeline-text-col {
         left: calc(387 * var(--p)) !important;
-        top: calc(1305 * var(--p)) !important;
+        top: calc(1075 * var(--p)) !important;
     }
 
     /* 777x438 frame showing part of the wide 2.5:1 artwork */
     html body .legacy-page-root .timeline-item:nth-of-type(3) .timeline-media-col {
         left: calc(997 * var(--p)) !important;
-        top: calc(1300 * var(--p)) !important;
+        top: calc(1070 * var(--p)) !important;
         width: calc(777 * var(--p)) !important;
         height: calc(438 * var(--p)) !important;
     }
@@ -2802,7 +2817,7 @@
     }
 
     /* footer sits over the bottom of the banner image (rule at y 981) */
-    html body .legacy-page-root .legacy-future-banner > .collection-bottom-bar {
+    html body .legacy-page-root .legacy-future-banner>.collection-bottom-bar {
         position: absolute !important;
         left: 0 !important;
         right: 0 !important;
@@ -3363,7 +3378,7 @@
     padding: 4px 8px;
 }
 
-.confirmed-meta-col + .confirmed-meta-col {
+.confirmed-meta-col+.confirmed-meta-col {
     border-left: 0.5px solid #000;
 }
 
@@ -3506,7 +3521,7 @@
         padding: calc(36 * var(--p)) 0 0 calc(77 * var(--p));
     }
 
-    html body .confirmed-page-root .confirmed-bottom-col + .confirmed-bottom-col {
+    html body .confirmed-page-root .confirmed-bottom-col+.confirmed-bottom-col {
         padding-left: calc(318 * var(--p));
         flex-direction: column;
         gap: calc(10 * var(--p));

@@ -1998,7 +1998,7 @@ h6 {
     background: radial-gradient(ellipse at center, #D5AA7B 0%, #805D3A 50%, #503720 100%);
     background-attachment: fixed;
     color: #F8F3EE;
-    padding: 6rem 0 7rem;
+    padding: 2.5rem 0 6rem;
     overflow: hidden;
 }
 
@@ -2017,7 +2017,7 @@ h6 {
 /* Clock badge on top of timeline */
 .timeline-clock-badge {
     position: absolute;
-    top: 3.5rem;
+    top: 1.5rem;
     left: 50%;
     transform: translateX(-50%);
     width: 38px;
@@ -7276,7 +7276,7 @@ h6 {
 .legacy-timeline-section {
     position: relative !important;
     width: 100% !important;
-    padding-top: clamp(40px, 6vh, 60px) !important;
+    padding-top: clamp(16px, 2.5vh, 28px) !important;
     padding-bottom: clamp(40px, 6vh, 60px) !important;
     background-color: #3b2316 !important;
 }
@@ -7293,7 +7293,7 @@ h6 {
 
 .timeline-clock-badge {
     position: absolute !important;
-    top: 40px !important;
+    top: 16px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     width: 36px !important;

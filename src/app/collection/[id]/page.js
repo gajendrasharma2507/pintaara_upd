@@ -1284,57 +1284,69 @@ export default function DynamicCollectionPage({ params }) {
                     )}
 
                     {/* FINISH OPTION — only render if configured for this product */}
-                    {availableFinishes && availableFinishes.length > 0 && (
-                        <div className="atelier-control-group">
-                            <div className="atelier-spec-label">
-                                FINISH OPTIONS
-                            </div>
-                            <div className="atelier-finish-row">
-                                {availableFinishes.map((fVal, idx) => {
-                                    const valStr = typeof fVal === 'string' ? fVal : fVal.value;
-                                    const valLower = valStr.toLowerCase();
-                                    const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
-                                    const matchedBar = finishBarsData.find((b) => b.code === code || b.name.toLowerCase() === valLower) || {
-                                        name: valStr,
-                                        code: code,
-                                        label: valStr.split(' ')[0].toUpperCase(),
-                                        style: fVal.hex_color ? { background: fVal.hex_color } : { background: '#D4AF37' }
-                                    };
-                                    const isSelected = selectedFinishCode === code || selectedFinishCode === valStr;
-                                    return (
-                                        <button
-                                            key={fVal.id || code}
-                                            type="button"
-                                            aria-label={matchedBar.name || valStr}
-                                            className={`atelier-finish-bar ${isSelected ? 'active' : ''}`}
-                                            style={matchedBar.style}
-                                            onClick={() => {
-                                                setSelectedFinishCode(code);
-                                                const grpName = finishGroup?.name || 'Finish Options';
-                                                handleSelectOption(grpName, { value: valStr, price_delta: 0, image: fVal.image });
-                                                if (fVal.image) {
-                                                    const imgIdx = thumbnails.findIndex(t => t.src === fVal.image);
-                                                    if (imgIdx !== -1) {
-                                                        setActiveImgIndex(imgIdx);
-                                                        return;
+                    {availableFinishes && availableFinishes.length > 0 && (() => {
+                        const activeFinishObj = availableFinishes.find((fVal, idx) => {
+                            const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                            const valLower = String(valStr || '').toLowerCase();
+                            const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
+                            return selectedFinishCode === code || selectedFinishCode === valStr;
+                        });
+                        const activeValStr = activeFinishObj ? (typeof activeFinishObj === 'string' ? activeFinishObj : activeFinishObj.value) : '';
+                        const matchedActiveBar = finishBarsData.find(b => b.code === selectedFinishCode || (activeValStr && b.name.toLowerCase() === activeValStr.toLowerCase()));
+                        const selectedFinishDisplayName = matchedActiveBar?.name || activeValStr || (selectedFinishCode === 'YG' ? 'Yellow Gold' : selectedFinishCode === 'WG' ? 'White Gold' : selectedFinishCode === 'RG' ? 'Rose Gold' : selectedFinishCode === 'BLK' ? 'Black Ruthenium' : '');
+
+                        return (
+                            <div className="atelier-control-group">
+                                <div className="atelier-spec-label">
+                                    FINISH OPTIONS
+                                </div>
+                                <div className="atelier-finish-row">
+                                    {availableFinishes.map((fVal, idx) => {
+                                        const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                                        const valLower = String(valStr || '').toLowerCase();
+                                        const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
+                                        const matchedBar = finishBarsData.find((b) => b.code === code || b.name.toLowerCase() === valLower) || {
+                                            name: valStr,
+                                            code: code,
+                                            label: String(valStr || '').split(' ')[0].toUpperCase(),
+                                            style: fVal.hex_color ? { background: fVal.hex_color } : { background: '#D4AF37' }
+                                        };
+                                        const isSelected = selectedFinishCode === code || selectedFinishCode === valStr;
+                                        return (
+                                            <button
+                                                key={fVal.id || code}
+                                                type="button"
+                                                title={matchedBar.name || valStr}
+                                                aria-label={matchedBar.name || valStr}
+                                                className={`atelier-finish-bar ${isSelected ? 'active' : ''}`}
+                                                style={matchedBar.style}
+                                                onClick={() => {
+                                                    setSelectedFinishCode(code);
+                                                    const grpName = finishGroup?.name || 'Finish Options';
+                                                    handleSelectOption(grpName, { value: valStr, price_delta: 0, image: fVal.image });
+                                                    if (fVal.image) {
+                                                        const imgIdx = thumbnails.findIndex(t => t.src === fVal.image);
+                                                        if (imgIdx !== -1) {
+                                                            setActiveImgIndex(imgIdx);
+                                                            return;
+                                                        }
                                                     }
-                                                }
-                                                if (code === 'YG' || valLower.includes('yellow')) setActiveImgIndex(0);
-                                                else if (code === 'WG' || valLower.includes('white')) setActiveImgIndex(1);
-                                                else if (code === 'RG' || valLower.includes('rose')) setActiveImgIndex(2);
-                                            }}
-                                        >
-                                            {matchedBar.label && (
-                                                <span className={`atelier-finish-bar-label${matchedBar.labelLight ? ' is-light' : ''}`}>
-                                                    {matchedBar.label}
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
+                                                    if (code === 'YG' || valLower.includes('yellow')) setActiveImgIndex(0);
+                                                    else if (code === 'WG' || valLower.includes('white')) setActiveImgIndex(1);
+                                                    else if (code === 'RG' || valLower.includes('rose')) setActiveImgIndex(2);
+                                                }}
+                                            >
+                                                <span
+                                                    className="atelier-finish-bar-label"
+                                                    style={{ display: isSelected ? 'block' : 'none', color: matchedBar.labelLight ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.75)' }}
+                                                >{matchedBar.label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     {/* SIZE and/or GEM: Only render if at least one is enabled */}
                     {(hasSize || hasGem) && (
@@ -1922,10 +1934,14 @@ export default function DynamicCollectionPage({ params }) {
                     box-shadow: 0 1px 4px rgba(0,0,0,0.25);
                 }
                 .atelier-finish-bar-label {
-                    font-size: 0.65rem;
+                    font-size: 8px;
                     font-weight: 700;
                     letter-spacing: 0.08em;
-                    color: #4A4A4A;
+                    text-shadow: 0 1px 1px rgba(255,255,255,0.4);
+                    pointer-events: none;
+                    user-select: none;
+                    line-height: 1;
+                    text-align: center;
                 }
 
                 /* SIZE + GEM: two equal columns side by side */

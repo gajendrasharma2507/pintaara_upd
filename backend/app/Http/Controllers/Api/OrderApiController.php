@@ -594,7 +594,7 @@ class OrderApiController extends Controller
                   ->orWhereRaw('LOWER(TRIM(customer_email)) = ?', [strtolower(trim($user->email))]);
             })
             ->whereNotIn('status', ['cancelled'])
-            ->with(['items.product.primaryImage'])
+            ->with(['items.product.primaryImage', 'items.product.images'])
             ->latest()
             ->get();
 
@@ -603,7 +603,10 @@ class OrderApiController extends Controller
         foreach ($orders as $order) {
             foreach ($order->items as $item) {
                 $product = $item->product;
-                $imageUrl = $product?->primaryImage?->image_url ?: '/images/products/piece-01-exact.jpg';
+                $imageUrl = $product?->primaryImage?->url
+                    ?: ($product?->images?->first()?->url
+                    ?: ($product?->primaryImage?->image_url
+                    ?: ($item->image ?: null)));
                 
                 $itemCerts = $item->certificates;
                 if (!is_array($itemCerts) || empty($itemCerts)) {

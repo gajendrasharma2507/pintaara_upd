@@ -222,6 +222,12 @@
     justify-self: center;
 }
 
+.slider-root-wrapper .main-header .nav-link::after,
+.slider-root-wrapper .main-header .nav-link.active-underlined::after {
+    display: none !important;
+    content: none !important;
+}
+
 .slider-root-wrapper .main-header .header-icons {
     justify-self: end;
 }
