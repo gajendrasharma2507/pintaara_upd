@@ -13,10 +13,12 @@ class ProductOptionValue extends Model
         'product_option_id',
         'value',
         'image',
+        'price_delta',
         'sort_order',
     ];
 
     protected $casts = [
+        'price_delta' => 'float',
         'sort_order' => 'integer',
     ];
 

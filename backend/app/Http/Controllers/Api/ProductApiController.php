@@ -131,18 +131,36 @@ class ProductApiController extends Controller
                 'release_date' => $product->release_date,
                 'images' => $product->images,
                 'base_pricing' => $basePricing,
-                'options' => $product->options->map(fn($o) => [
-                    'id' => $o->id,
-                    'name' => $o->name,
-                    'values' => $o->values->map(fn($v) => [
-                        'id' => $v->id,
-                        'value' => $v->value,
-                        'code' => $v->code ?? null,
-                        'image' => $v->image,
-                        'price_delta' => (float) ($v->price_delta ?? 0),
-                        'hex_color' => $v->hex_color ?? null,
-                    ]),
-                ]),
+                'options' => $product->options->map(function ($o) use ($masters) {
+                    $isGem = str_contains(strtolower($o->name), 'gem') || str_contains(strtolower($o->name), 'stone');
+                    $gems = $masters['gems'] ?? collect();
+                    return [
+                        'id' => $o->id,
+                        'name' => $o->name,
+                        'values' => $o->values->map(function ($v) use ($isGem, $gems) {
+                            $delta = (float) ($v->price_delta ?? 0);
+                            if ($delta == 0.0 && $isGem) {
+                                $vLower = strtolower(trim($v->value));
+                                if (!in_array($vLower, ['none', 'no stone', 'solid gold', 'no stone / solid gold', 'no stone/solid gold', ''])) {
+                                    $matched = $gems->first(function ($g) use ($v) {
+                                        return stripos($v->value, $g->stone_type) !== false || stripos($g->stone_type, $v->value) !== false;
+                                    });
+                                    if ($matched) {
+                                        $delta = (float) $matched->default_stone_charge;
+                                    }
+                                }
+                            }
+                            return [
+                                'id' => $v->id,
+                                'value' => $v->value,
+                                'code' => $v->code ?? null,
+                                'image' => $v->image,
+                                'price_delta' => $delta,
+                                'hex_color' => $v->hex_color ?? null,
+                            ];
+                        }),
+                    ];
+                }),
                 'variants' => $variantData,
                 'design_log' => $product->designLog,
                 'master_options' => $masters,

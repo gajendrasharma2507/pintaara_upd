@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductOption;
 use App\Models\ProductOptionValue;
+use App\Models\GemOption;
 use App\Services\JewelryPricingService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -90,11 +91,11 @@ class AdminProductApiController extends Controller
                 'icon' => '💎',
                 'default_enabled' => true,
                 'values' => [
-                    ['value' => 'Natural Diamond (VVS-VS)', 'image' => 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=200&auto=format&fit=crop', 'enabled' => true],
-                    ['value' => 'Zambian Emerald', 'image' => 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?q=80&w=200&auto=format&fit=crop', 'enabled' => false],
-                    ['value' => 'Ceylon Blue Sapphire', 'image' => 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop', 'enabled' => false],
-                    ['value' => 'Burmese Ruby', 'image' => 'https://images.unsplash.com/photo-1611591475155-42a92b23a9b1?q=80&w=200&auto=format&fit=crop', 'enabled' => false],
-                    ['value' => 'No Stone / Solid Gold', 'image' => '', 'enabled' => true],
+                    ['value' => 'Natural Diamond (VVS-VS)', 'image' => 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=200&auto=format&fit=crop', 'price_delta' => 45000, 'enabled' => true],
+                    ['value' => 'Zambian Emerald', 'image' => 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?q=80&w=200&auto=format&fit=crop', 'price_delta' => 32000, 'enabled' => false],
+                    ['value' => 'Ceylon Blue Sapphire', 'image' => 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop', 'price_delta' => 30000, 'enabled' => false],
+                    ['value' => 'Burmese Ruby', 'image' => 'https://images.unsplash.com/photo-1611591475155-42a92b23a9b1?q=80&w=200&auto=format&fit=crop', 'price_delta' => 28000, 'enabled' => false],
+                    ['value' => 'No Stone / Solid Gold', 'image' => '', 'price_delta' => 0, 'enabled' => true],
                 ],
             ],
             [
@@ -220,7 +221,7 @@ class AdminProductApiController extends Controller
                 foreach ($opt['values'] as $val) {
                     $vText = '';
                     $vImg = null;
-                    $isEnabled = true;
+                    $vDelta = 0.0;
 
                     if (is_array($val)) {
                         if (isset($val['enabled']) && !$val['enabled']) {
@@ -228,6 +229,7 @@ class AdminProductApiController extends Controller
                         }
                         $vText = $val['value'] ?? '';
                         $vImg = $val['image'] ?? null;
+                        $vDelta = isset($val['price_delta']) && $val['price_delta'] !== '' ? (float) $val['price_delta'] : 0.0;
                     } else {
                         $vText = (string) $val;
                     }
@@ -237,6 +239,7 @@ class AdminProductApiController extends Controller
                             'product_option_id' => $productOption->id,
                             'value' => trim($vText),
                             'image' => $vImg ? trim($vImg) : null,
+                            'price_delta' => $vDelta,
                             'sort_order' => $valOrder++,
                         ]);
                     }
@@ -590,17 +593,37 @@ class AdminProductApiController extends Controller
                 'model_3d_url' => $product->model_3d_url,
                 'images' => $product->images->pluck('url')->toArray(),
                 'calculated_price' => $pricing,
-                'options' => $product->options->map(fn($o) => [
-                    'id' => $o->id,
-                    'name' => $o->name,
-                    'enabled' => true,
-                    'values' => $o->values->map(fn($v) => [
-                        'id' => $v->id,
-                        'value' => $v->value,
-                        'image' => $v->image,
+                'options' => $product->options->map(function ($o) {
+                    $isGem = str_contains(strtolower($o->name), 'gem') || str_contains(strtolower($o->name), 'stone');
+                    $gemOptions = $isGem ? GemOption::all() : collect();
+
+                    return [
+                        'id' => $o->id,
+                        'name' => $o->name,
                         'enabled' => true,
-                    ]),
-                ]),
+                        'values' => $o->values->map(function ($v) use ($isGem, $gemOptions) {
+                            $delta = (float) ($v->price_delta ?? 0.0);
+                            if ($delta == 0.0 && $isGem) {
+                                $vLower = strtolower(trim($v->value));
+                                if (!in_array($vLower, ['none', 'no stone', 'solid gold', 'no stone / solid gold', 'no stone/solid gold', ''])) {
+                                    $matched = $gemOptions->first(function ($g) use ($v) {
+                                        return stripos($v->value, $g->stone_type) !== false || stripos($g->stone_type, $v->value) !== false;
+                                    });
+                                    if ($matched) {
+                                        $delta = (float) $matched->default_stone_charge;
+                                    }
+                                }
+                            }
+                            return [
+                                'id' => $v->id,
+                                'value' => $v->value,
+                                'image' => $v->image,
+                                'price_delta' => $delta,
+                                'enabled' => true,
+                            ];
+                        }),
+                    ];
+                }),
                 'created_at' => $product->created_at?->toIso8601String(),
                 'design_log' => $product->designLog,
             ],

@@ -80,10 +80,10 @@ const defaultOptionMasters = [
     description: "Natural diamonds and precious gemstone accents",
     default_enabled: true,
     values: [
-      { value: "Natural Diamond (VVS-VS)", image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=200&auto=format&fit=crop", price_delta: 25000, enabled: true },
-      { value: "Zambian Emerald", image: "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?q=80&w=200&auto=format&fit=crop", price_delta: 2000, enabled: true },
-      { value: "Ceylon Blue Sapphire", image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop", price_delta: 3500, enabled: true },
-      { value: "Burmese Ruby", image: "https://images.unsplash.com/photo-1611591475155-42a92b23a9b1?q=80&w=200&auto=format&fit=crop", price_delta: 4000, enabled: true },
+      { value: "Natural Diamond (VVS-VS)", image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=200&auto=format&fit=crop", price_delta: 45000, enabled: true },
+      { value: "Zambian Emerald", image: "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?q=80&w=200&auto=format&fit=crop", price_delta: 32000, enabled: true },
+      { value: "Ceylon Blue Sapphire", image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop", price_delta: 30000, enabled: true },
+      { value: "Burmese Ruby", image: "https://images.unsplash.com/photo-1611591475155-42a92b23a9b1?q=80&w=200&auto=format&fit=crop", price_delta: 28000, enabled: true },
       { value: "No Stone / Solid Gold", image: "", price_delta: 0, enabled: true },
     ],
   },
@@ -435,18 +435,41 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
     fetchProductData();
   }, [isEdit, productId, existingProduct]);
+  const getStoneDefaultDelta = (stoneName) => {
+    const s = (stoneName || "").toLowerCase();
+    if (s.includes("sapphire")) return 30000;
+    if (s.includes("diamond") || s.includes("vvs")) return 45000;
+    if (s.includes("emerald")) return 32000;
+    if (s.includes("ruby")) return 28000;
+    return 0;
+  };
 
   const populateForm = (prod) => {
     const existingOptions = prod.options && Array.isArray(prod.options) ? prod.options : [];
 
     const mergedOptions = masterTemplates.map((m) => {
-      const existing = existingOptions.find((o) => o.name === m.name);
+      const mNameLower = (m.name || "").toLowerCase();
+      const existing = existingOptions.find((o) => {
+        const oNameLower = (o.name || "").toLowerCase();
+        if (oNameLower === mNameLower) return true;
+        if (mNameLower.includes("gem") && (oNameLower.includes("gem") || oNameLower.includes("stone"))) return true;
+        if (mNameLower.includes("finish") && oNameLower.includes("finish")) return true;
+        if (mNameLower.includes("size") && oNameLower.includes("size")) return true;
+        if (mNameLower.includes("chain") && oNameLower.includes("chain")) return true;
+        return false;
+      });
+
       if (existing) {
         const templateValues = m.values.map((val) => {
           const ev = (existing.values || []).find((v) => (typeof v === "object" ? v.value : v) === val.value);
+          const evDelta = typeof ev === "object" && ev.price_delta !== undefined && ev.price_delta !== null
+            ? ev.price_delta
+            : (val.price_delta !== undefined && val.price_delta !== null && val.price_delta !== 0 ? val.price_delta : getStoneDefaultDelta(val.value));
+
           return {
             ...val,
             enabled: ev ? (typeof ev === "object" ? ev.enabled !== false : true) : false,
+            price_delta: evDelta,
           };
         });
         const extraValues = (existing.values || [])
@@ -458,7 +481,9 @@ export default function ProductForm({ isEdit = false, productId = null, existing
             value: typeof ev === "object" ? ev.value : ev,
             image: typeof ev === "object" ? ev.image || "" : "",
             enabled: typeof ev === "object" ? ev.enabled !== false : true,
-            price_delta: typeof ev === "object" ? ev.price_delta || 0 : 0,
+            price_delta: typeof ev === "object" && ev.price_delta !== undefined && ev.price_delta !== null
+              ? ev.price_delta
+              : getStoneDefaultDelta(typeof ev === "object" ? ev.value : ev),
           }));
 
         return {
@@ -472,12 +497,15 @@ export default function ProductForm({ isEdit = false, productId = null, existing
         name: m.name,
         description: m.description,
         enabled: m.default_enabled,
-        values: m.values.map((v) => ({ ...v })),
+        values: m.values.map((v) => ({
+          ...v,
+          price_delta: v.price_delta !== undefined && v.price_delta !== null && v.price_delta !== 0 ? v.price_delta : getStoneDefaultDelta(v.value),
+        })),
       };
     });
 
     const customMasters = existingOptions
-      .filter((eo) => !masterTemplates.some((m) => m.name === eo.name))
+      .filter((eo) => !masterTemplates.some((m) => m.name.toLowerCase() === eo.name.toLowerCase()))
       .map((eo) => ({
         name: eo.name,
         description: "Custom Product Attribute",
@@ -486,7 +514,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           value: typeof v === "object" ? v.value : v,
           image: typeof v === "object" ? v.image || "" : "",
           enabled: typeof v === "object" ? v.enabled !== false : true,
-          price_delta: typeof v === "object" ? v.price_delta || 0 : 0,
+          price_delta: typeof v === "object" ? (v.price_delta !== undefined ? v.price_delta : getStoneDefaultDelta(v.value)) : getStoneDefaultDelta(v),
         })),
       }));
 
@@ -2338,16 +2366,57 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                     />
                   </div>
 
-                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1px solid var(--admin-border)" }}>
-                    <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)", display: "block", marginBottom: "4px" }}>
-                      Gemstone Flat (+₹)
-                    </label>
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1.5px solid #8B5CF6" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                      <label style={{ fontSize: "11px", fontWeight: 700, color: "#8B5CF6" }}>
+                        Precious Gemstone (+₹)
+                      </label>
+                      {simGemPrice > 0 && (
+                        <span style={{ fontSize: "11px", fontWeight: 800, color: "#8B5CF6", fontFamily: "monospace" }}>
+                          +₹{simGemPrice.toLocaleString("en-IN")}
+                        </span>
+                      )}
+                    </div>
+                    <select
+                      className="admin-select"
+                      style={{
+                        width: "100%",
+                        padding: "3px 6px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        marginBottom: "4px",
+                        borderRadius: "4px",
+                        border: "1px solid var(--admin-border)",
+                        background: "var(--admin-surface)",
+                        color: "var(--admin-text-primary)",
+                      }}
+                      value={simGemPrice}
+                      onChange={(e) => setSimGemPrice(parseFloat(e.target.value) || 0)}
+                    >
+                      <option value="0">No Stone / Solid Gold (+₹0)</option>
+                      <option value="30000">💎 Ceylon Blue Sapphire (+₹30,000)</option>
+                      <option value="45000">💎 Natural Diamond (VVS-VS) (+₹45,000)</option>
+                      <option value="32000">💎 Zambian Emerald (+₹32,000)</option>
+                      <option value="28000">💎 Burmese Ruby (+₹28,000)</option>
+                    </select>
                     <input
                       type="number"
                       step="100"
                       value={simGemPrice}
                       onChange={(e) => setSimGemPrice(parseFloat(e.target.value) || 0)}
-                      style={{ width: "100%", padding: "4px 6px", fontSize: "13px", fontWeight: 700, fontFamily: "monospace", borderRadius: "4px", border: "1px solid var(--admin-border)", background: "transparent", color: "var(--admin-text-primary)" }}
+                      title="Custom flat gemstone charge in ₹"
+                      placeholder="0"
+                      style={{
+                        width: "100%",
+                        padding: "3px 6px",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        fontFamily: "monospace",
+                        borderRadius: "4px",
+                        border: "1px solid var(--admin-border)",
+                        background: "transparent",
+                        color: "var(--admin-text-primary)",
+                      }}
                     />
                   </div>
 
@@ -2918,10 +2987,15 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                           </span>
                           <input
                             type="number"
-                            value={val.price_delta !== undefined ? val.price_delta : 0}
+                            value={(() => {
+                              if (val.price_delta !== undefined && val.price_delta !== null && val.price_delta !== "") {
+                                return val.price_delta;
+                              }
+                              return getStoneDefaultDelta(val.value);
+                            })()}
                             onChange={(e) => handleUpdateOptionPriceDelta("gem", idx, e.target.value)}
                             title="Extra price added to total price"
-                            placeholder="0"
+                            placeholder={String(getStoneDefaultDelta(val.value))}
                             style={{
                               width: "75px",
                               padding: "2px 6px",
