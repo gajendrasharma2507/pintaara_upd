@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+import Header from '@/components/Header';
 import RegionModal from '@/components/RegionModal';
 
 export default function AccountLayout({ children }) {
@@ -46,39 +47,8 @@ export default function AccountLayout({ children }) {
 
     return (
         <div className="acct-root">
-            {/* ── HEADER ── */}
-            <header className="acct-header">
-                <div className="acct-header-inner">
-                    <Link href="/" className="acct-logo">PINTAARA</Link>
-                    <nav className="acct-nav-links">
-                        <Link href="/collection" className="acct-nav-item">COLLECTION</Link>
-                        <Link href="/design-log" className="acct-nav-item">DESIGN LOG</Link>
-                        <Link href="/about" className="acct-nav-item">ABOUT</Link>
-                        <Link href="/1976" className="acct-nav-item">1976</Link>
-                    </nav>
-                    <div className="acct-header-actions">
-                        <button type="button" className="acct-icon-btn" aria-label="Region" onClick={() => setIsRegionOpen(true)}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                            </svg>
-                        </button>
-                        <Link href="/account" className="acct-icon-btn" aria-label="Profile">
-                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                            </svg>
-                        </Link>
-                        <Link href="/bag" className="acct-icon-btn acct-cart-btn" aria-label="Bag">
-                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                                <line x1="3" y1="6" x2="21" y2="6"/>
-                                <path d="M16 10a4 4 0 0 1-8 0"/>
-                            </svg>
-                            {cartCount > 0 && <span className="acct-cart-badge">{cartCount}</span>}
-                        </Link>
-                    </div>
-                </div>
-            </header>
+            {/* ── UNIFIED BRAND MAIN HEADER ── */}
+            <Header headerStyle="dark" />
 
             <RegionModal isOpen={isRegionOpen} onClose={() => setIsRegionOpen(false)} />
 
@@ -141,58 +111,8 @@ export default function AccountLayout({ children }) {
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                     display: flex;
                     flex-direction: column;
-                }
-
-                /* HEADER */
-                .acct-header {
-                    width: 100%;
-                    border-bottom: 1px solid #1A1A1A;
-                    background-color: #F8EFE6;
-                    flex-shrink: 0;
-                    z-index: 100;
-                }
-                .acct-header-inner {
-                    max-width: 1440px;
-                    margin: 0 auto;
-                    padding: 1.2rem 3rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                }
-                .acct-logo {
-                    font-family: "Cinzel", "Didot", "Bodoni MT", serif;
-                    font-size: 1.45rem;
-                    font-weight: 500;
-                    letter-spacing: 0.16em;
-                    color: #A07855;
-                    text-decoration: none;
-                }
-                .acct-nav-links { display: flex; gap: 3.5rem; }
-                .acct-nav-item {
-                    font-size: 0.8rem;
-                    font-weight: 400;
-                    letter-spacing: 0.14em;
-                    color: #1A1A1A;
-                    text-decoration: none;
-                    text-transform: uppercase;
-                    transition: opacity 0.15s ease;
-                }
-                .acct-nav-item:hover { opacity: 0.65; }
-                .acct-header-actions { display: flex; align-items: center; gap: 1.75rem; }
-                .acct-icon-btn {
-                    background: none; border: none; cursor: pointer;
-                    color: #1A1A1A; display: flex; align-items: center;
-                    justify-content: center; text-decoration: none;
-                    position: relative; transition: opacity 0.15s ease;
-                }
-                .acct-icon-btn:hover { opacity: 0.65; }
-                .acct-cart-btn { position: relative; }
-                .acct-cart-badge {
-                    position: absolute; top: -6px; right: -7px;
-                    background: #1A1A1A; color: #F8EFE6;
-                    font-size: 0.6rem; font-weight: 700; border-radius: 50%;
-                    width: 15px; height: 15px; display: flex;
-                    align-items: center; justify-content: center;
+                    container-type: inline-size;
+                    --p: calc(100cqw / 1920);
                 }
 
                 /* BODY LAYOUT */
@@ -201,7 +121,7 @@ export default function AccountLayout({ children }) {
                     max-width: 1440px;
                     margin: 0 auto;
                     width: 100%;
-                    padding: 3rem 3rem 4rem 3rem;
+                    padding: calc(var(--header-height, 80px) + 2.5rem) 3rem 4rem 3rem;
                     display: grid;
                     grid-template-columns: 250px 1fr;
                     gap: 5rem;
@@ -456,7 +376,7 @@ export default function AccountLayout({ children }) {
                 @media (max-width: 900px) {
                     .acct-body {
                         grid-template-columns: 1fr;
-                        padding: 2rem 1.25rem;
+                        padding: calc(var(--header-height, 70px) + 1.25rem) 1.25rem 2rem 1.25rem;
                         gap: 2rem;
                     }
                     .acct-nav-links { display: none; }
