@@ -51,6 +51,30 @@ const resolveProductImage = (product, imageUrl) => {
 
 // 57-Facet Brilliant Cut Gemstone Component (supports custom uploaded image or SVG facet fallback)
 function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, title }) {
+    if (type === 'none') {
+        return (
+            <button
+                type="button"
+                onClick={onClick}
+                title={title || 'No Stone / Solid Gold'}
+                aria-label={title || 'No Stone / Solid Gold'}
+                className={`atelier-gem-btn ${isSelected ? 'active' : ''}`}
+            >
+                <svg width="25" height="25" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="14" fill="url(#solid-gold-grad)" stroke="#B8860B" strokeWidth="1.2" />
+                    <circle cx="16" cy="16" r="7" fill="#FFFFFF" stroke="#B8860B" strokeWidth="0.8" />
+                    <defs>
+                        <linearGradient id="solid-gold-grad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#FFF3B0" />
+                            <stop offset="50%" stopColor="#D4AF37" />
+                            <stop offset="100%" stopColor="#AA7C11" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </button>
+        );
+    }
+
     if (imageUrl) {
         return (
             <button
@@ -72,6 +96,7 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
     const isDiamond = type === 'diamond';
     const isEmerald = type === 'emerald';
     const isSapphire = type === 'sapphire';
+    const isRuby = type === 'ruby';
 
     return (
         <button
@@ -128,6 +153,21 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
                             </linearGradient>
                         </>
                     )}
+                    {isRuby && (
+                        <>
+                            <radialGradient id={`rub-glow-${type}`} cx="35%" cy="35%" r="65%">
+                                <stop offset="0%" stopColor="#FDA4AF" />
+                                <stop offset="35%" stopColor="#F43F5E" />
+                                <stop offset="70%" stopColor="#BE123C" />
+                                <stop offset="100%" stopColor="#4C0519" />
+                            </radialGradient>
+                            <linearGradient id={`rub-hi-${type}`} x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor="#FFE4E6" />
+                                <stop offset="60%" stopColor="#E11D48" />
+                                <stop offset="100%" stopColor="#881337" />
+                            </linearGradient>
+                        </>
+                    )}
                 </defs>
 
                 {/* Base Girdle Circle */}
@@ -135,32 +175,32 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
                     cx="16"
                     cy="16"
                     r="15"
-                    fill={isDiamond ? `url(#dia-glow-${type})` : isEmerald ? `url(#emr-glow-${type})` : `url(#sap-glow-${type})`}
-                    stroke={isDiamond ? "#64748B" : isEmerald ? "#065F46" : "#1E3A8A"}
+                    fill={isDiamond ? `url(#dia-glow-${type})` : isEmerald ? `url(#emr-glow-${type})` : isSapphire ? `url(#sap-glow-${type})` : `url(#rub-glow-${type})`}
+                    stroke={isDiamond ? "#64748B" : isEmerald ? "#065F46" : isSapphire ? "#1E3A8A" : "#881337"}
                     strokeWidth="0.8"
                 />
 
                 {/* Facet Geometry */}
-                <polygon points="16,1 11,6 21,6" fill={isDiamond ? "#F8FAFC" : isEmerald ? "#4ADE80" : "#60A5FA"} opacity="0.9" />
-                <polygon points="31,16 26,11 26,21" fill={isDiamond ? "#E2E8F0" : isEmerald ? "#22C55E" : "#3B82F6"} opacity="0.85" />
-                <polygon points="16,31 21,26 11,26" fill={isDiamond ? "#94A3B8" : isEmerald ? "#15803D" : "#1D4ED8"} opacity="0.9" />
-                <polygon points="1,16 6,21 6,11" fill={isDiamond ? "#CBD5E1" : isEmerald ? "#16A34A" : "#2563EB"} opacity="0.85" />
+                <polygon points="16,1 11,6 21,6" fill={isDiamond ? "#F8FAFC" : isEmerald ? "#4ADE80" : isSapphire ? "#60A5FA" : "#FB7185"} opacity="0.9" />
+                <polygon points="31,16 26,11 26,21" fill={isDiamond ? "#E2E8F0" : isEmerald ? "#22C55E" : isSapphire ? "#3B82F6" : "#F43F5E"} opacity="0.85" />
+                <polygon points="16,31 21,26 11,26" fill={isDiamond ? "#94A3B8" : isEmerald ? "#15803D" : isSapphire ? "#1D4ED8" : "#9F1239"} opacity="0.9" />
+                <polygon points="1,16 6,21 6,11" fill={isDiamond ? "#CBD5E1" : isEmerald ? "#16A34A" : isSapphire ? "#2563EB" : "#E11D48"} opacity="0.85" />
 
-                <polygon points="26.6,5.4 21,6 26,11" fill={isDiamond ? "#F1F5F9" : isEmerald ? "#34D399" : "#3B82F6"} opacity="0.8" />
-                <polygon points="26.6,26.6 26,21 21,26" fill={isDiamond ? "#64748B" : isEmerald ? "#065F46" : "#1E3A8A"} opacity="0.95" />
-                <polygon points="5.4,26.6 11,26 6,21" fill={isDiamond ? "#94A3B8" : isEmerald ? "#047857" : "#1E40AF"} opacity="0.85" />
-                <polygon points="5.4,5.4 6,11 11,6" fill={isDiamond ? "#FFFFFF" : isEmerald ? "#86EFAC" : "#93C5FD"} opacity="0.9" />
+                <polygon points="26.6,5.4 21,6 26,11" fill={isDiamond ? "#F1F5F9" : isEmerald ? "#34D399" : isSapphire ? "#3B82F6" : "#FDA4AF"} opacity="0.8" />
+                <polygon points="26.6,26.6 26,21 21,26" fill={isDiamond ? "#64748B" : isEmerald ? "#065F46" : isSapphire ? "#1E3A8A" : "#881337"} opacity="0.95" />
+                <polygon points="5.4,26.6 11,26 6,21" fill={isDiamond ? "#94A3B8" : isEmerald ? "#047857" : isSapphire ? "#1E40AF" : "#9F1239"} opacity="0.85" />
+                <polygon points="5.4,5.4 6,11 11,6" fill={isDiamond ? "#FFFFFF" : isEmerald ? "#86EFAC" : isSapphire ? "#93C5FD" : "#FFE4E6"} opacity="0.9" />
 
-                <polygon points="16,6 19.5,10.5 16,12.5 12.5,10.5" fill={isDiamond ? "#FFFFFF" : isEmerald ? "#86EFAC" : "#93C5FD"} opacity="0.95" />
-                <polygon points="26,16 21.5,19.5 19.5,16 21.5,12.5" fill={isDiamond ? "#CBD5E1" : isEmerald ? "#10B981" : "#2563EB"} opacity="0.85" />
-                <polygon points="16,26 12.5,21.5 16,19.5 19.5,21.5" fill={isDiamond ? "#64748B" : isEmerald ? "#064E3B" : "#172554"} opacity="0.95" />
-                <polygon points="6,16 10.5,12.5 12.5,16 10.5,19.5" fill={isDiamond ? "#E2E8F0" : isEmerald ? "#34D399" : "#3B82F6"} opacity="0.85" />
+                <polygon points="16,6 19.5,10.5 16,12.5 12.5,10.5" fill={isDiamond ? "#FFFFFF" : isEmerald ? "#86EFAC" : isSapphire ? "#93C5FD" : "#FFF1F2"} opacity="0.95" />
+                <polygon points="26,16 21.5,19.5 19.5,16 21.5,12.5" fill={isDiamond ? "#CBD5E1" : isEmerald ? "#10B981" : isSapphire ? "#2563EB" : "#E11D48"} opacity="0.85" />
+                <polygon points="16,26 12.5,21.5 16,19.5 19.5,21.5" fill={isDiamond ? "#64748B" : isEmerald ? "#064E3B" : isSapphire ? "#172554" : "#881337"} opacity="0.95" />
+                <polygon points="6,16 10.5,12.5 12.5,16 10.5,19.5" fill={isDiamond ? "#E2E8F0" : isEmerald ? "#34D399" : isSapphire ? "#3B82F6" : "#FB7185"} opacity="0.85" />
 
                 {/* Center Octagonal Table */}
                 <polygon
                     points="12.5,10.5 19.5,10.5 22.5,13.5 22.5,18.5 19.5,21.5 12.5,21.5 9.5,18.5 9.5,13.5"
-                    fill={isDiamond ? `url(#dia-hi-${type})` : isEmerald ? `url(#emr-hi-${type})` : `url(#sap-hi-${type})`}
-                    stroke={isDiamond ? "#475569" : isEmerald ? "#064E3B" : "#172554"}
+                    fill={isDiamond ? `url(#dia-hi-${type})` : isEmerald ? `url(#emr-hi-${type})` : isSapphire ? `url(#sap-hi-${type})` : `url(#rub-hi-${type})`}
+                    stroke={isDiamond ? "#475569" : isEmerald ? "#064E3B" : isSapphire ? "#172554" : "#881337"}
                     strokeWidth="0.5"
                 />
 
@@ -751,7 +791,7 @@ export default function DynamicCollectionPage({ params }) {
                         making_charge_percent: productDetail.making_charge_percent,
                         wastage_percent: Number(productDetail.wastage_percent) || 0,
                         gem: gemName,
-                        stone_charge: flatGemPrice,
+                        stone_charge: flatGemPrice > 0 ? flatGemPrice : null,
                     }),
                 });
                 const data = response?.data;
@@ -1232,14 +1272,18 @@ export default function DynamicCollectionPage({ params }) {
                                         {gemGroup.values.map((gem, idx) => {
                                             const valLower = (gem.value || '').toLowerCase();
                                             const codeLower = (gem.code || '').toLowerCase();
-                                            const typeStr = codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
-                                                : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
-                                                    : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
-                                                        : codeLower.includes('rub') || valLower.includes('rub') ? 'ruby'
-                                                            : 'diamond';
+                                            const isNoStone = valLower.includes('no stone') || valLower.includes('solid gold') || valLower.includes('none');
 
-                                            const currentVal = selectedOptions['GEM / STONE OPTIONS']?.value;
-                                            const isSelected = currentVal ? currentVal === gem.value : selectedGem === typeStr || (idx === 0 && !selectedGem);
+                                            const typeStr = isNoStone ? 'none'
+                                                : codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
+                                                    : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
+                                                        : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
+                                                            : codeLower.includes('rub') || valLower.includes('rub') ? 'ruby'
+                                                                : 'diamond';
+
+                                            const grpName = gemGroup?.name || 'Gem & Stone Options';
+                                            const currentVal = selectedOptions[grpName]?.value || selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value;
+                                            const isSelected = currentVal ? currentVal === gem.value : (idx === 0);
 
                                             const rawDelta = parseFloat(gem.price_delta) || 0;
                                             const delta = Math.abs(rawDelta);
@@ -1249,12 +1293,11 @@ export default function DynamicCollectionPage({ params }) {
                                                 <FacetedGemstone
                                                     key={gem.id || gem.code || gem.value || idx}
                                                     type={typeStr}
-                                                    imageUrl={gem.image || `/images/gems/${typeStr}.png`}
+                                                    imageUrl={isNoStone ? null : (gem.image || `/images/gems/${typeStr}.png`)}
                                                     title={gemTitle}
                                                     isSelected={isSelected}
                                                     onClick={() => {
                                                         setSelectedGem(typeStr);
-                                                        const grpName = gemGroup?.name || 'Gem & Stone Options';
                                                         handleSelectOption(grpName, { value: gem.value, price_delta: delta, image: gem.image });
                                                     }}
                                                 />
@@ -1834,8 +1877,8 @@ export default function DynamicCollectionPage({ params }) {
                 }
                 .atelier-gem-btn:hover { transform: scale(1.1); }
                 .atelier-gem-btn.active {
-                    transform: scale(1.15);
-                    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+                    transform: scale(1.18);
+                    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 3.5px #1A1A1A;
                 }
                 .atelier-gem-btn img {
                     width: 100%;

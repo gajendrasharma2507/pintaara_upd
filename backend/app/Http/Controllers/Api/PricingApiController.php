@@ -64,18 +64,21 @@ class PricingApiController extends Controller
             }
         }
 
-        // Resolve Stone Charge
+        // Resolve Stone Charge from explicit delta or linked database GemOption table
         $stoneCharge = 0.0;
-        if ($request->has('stone_charge') && $request->stone_charge !== null) {
+        if ($request->filled('stone_charge') && (float) $request->stone_charge > 0) {
             $stoneCharge = (float) $request->stone_charge;
         } elseif ($request->filled('gem')) {
-            $gemLower = strtolower(trim($request->gem));
+            $gemStr = trim($request->gem);
+            $gemLower = strtolower($gemStr);
             if (!in_array($gemLower, ['none', 'no stone', 'solid gold', 'no stone / solid gold', 'no stone/solid gold', ''])) {
-                $gem = GemOption::where('stone_type', 'LIKE', "%{$request->gem}%")->first();
+                $gem = GemOption::where('stone_type', 'LIKE', "%{$gemStr}%")
+                    ->orWhereRaw('? LIKE CONCAT("%", stone_type, "%")', [$gemStr])
+                    ->first();
                 if ($gem) {
                     $stoneCharge = (float) $gem->default_stone_charge;
                 } else {
-                    $stone = \App\Models\Stone::where('name', 'LIKE', "%{$request->gem}%")->first();
+                    $stone = \App\Models\Stone::where('name', 'LIKE', "%{$gemStr}%")->first();
                     if ($stone) {
                         $stoneCharge = (float) $stone->price_delta;
                     }
