@@ -1732,6 +1732,9 @@
     }
 
     html body .about-page .about-top-label {
+        /* same width-based scale as the header and /collection, so the
+           page label sits exactly where the COLLECTION label does */
+        --p: calc(100cqw / 1920);
         position: absolute !important;
         left: calc(154 * var(--p)) !important;
         top: calc(163 * var(--p)) !important;
