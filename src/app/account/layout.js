@@ -91,13 +91,10 @@ export default function AccountLayout({ children }) {
             </div>
 
             {/* ── FOOTER ── */}
-            <div className="acct-footer-wrapper">
-                <div className="acct-divider-line" />
-                <footer className="acct-footer">
-                    <Link href="/" className="acct-footer-brand">PINTAARA™</Link>
-                    <span className="acct-footer-copy">© ALL RIGHTS RESERVED.</span>
-                </footer>
-            </div>
+            <footer className="collection-bottom-bar">
+                <span className="bottom-brand">PINTAARA™</span>
+                <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
+            </footer>
 
             <style jsx global>{`
                 html, body {
@@ -200,35 +197,10 @@ export default function AccountLayout({ children }) {
                 .acct-main { min-width: 0; }
 
                 /* FOOTER */
-                .acct-footer-wrapper {
+                .acct-root .collection-bottom-bar {
+                    margin-top: auto;
+                    width: auto;
                     flex-shrink: 0;
-                    width: 100%;
-                    background-color: #F8EFE6;
-                }
-                .acct-divider-line { width: 100%; height: 1px; background-color: #1A1A1A; }
-                .acct-footer {
-                    max-width: 1440px;
-                    margin: 0 auto;
-                    width: 100%;
-                    padding: 1.25rem 3rem;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    font-size: 0.75rem;
-                    letter-spacing: 0.08em;
-                    color: #1A1A1A;
-                    box-sizing: border-box;
-                }
-                .acct-footer-brand {
-                    font-weight: 600;
-                    color: #1A1A1A;
-                    text-decoration: none;
-                    letter-spacing: 0.08em;
-                }
-                .acct-footer-copy {
-                    font-weight: 400;
-                    color: #1A1A1A;
-                    letter-spacing: 0.08em;
                 }
 
                 /* MODAL OVERLAY */
