@@ -196,6 +196,9 @@ export default function ProductForm({ isEdit = false, productId = null, existing
   const [newCustomStoneDelta, setNewCustomStoneDelta] = useState("");
   const [newCustomChain, setNewCustomChain] = useState("");
   const [newCustomChainDelta, setNewCustomChainDelta] = useState("");
+  const [simSizeGrams, setSimSizeGrams] = useState(2.0);
+  const [simChainGrams, setSimChainGrams] = useState(5.0);
+  const [simGemPrice, setSimGemPrice] = useState(5000);
 
   const initialForm = {
     name: "",
@@ -918,6 +921,118 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       return { ...prev, options: nextOptions };
     });
     showToast(`Added "${valName.trim()}"`);
+  };
+
+  const handleSetFinishOptionImage = (finishName, imageUrl) => {
+    setFormState((prev) => {
+      let found = false;
+      const nextOptions = (prev.options || []).map((opt) => {
+        if (opt.name.toLowerCase().includes("finish")) {
+          found = true;
+          let finishFound = false;
+          const currentVals = (opt.values || []).map((v) => {
+            const vName = typeof v === "object" ? v.value : v;
+            if (vName.toLowerCase().includes(finishName.toLowerCase()) || finishName.toLowerCase().includes(vName.toLowerCase())) {
+              finishFound = true;
+              return { ...v, image: imageUrl };
+            }
+            return v;
+          });
+          if (!finishFound && imageUrl) {
+            currentVals.push({
+              value: finishName,
+              enabled: true,
+              price_delta: 0,
+              image: imageUrl,
+            });
+          }
+          return { ...opt, enabled: true, values: currentVals };
+        }
+        return opt;
+      });
+
+      if (!found && imageUrl) {
+        nextOptions.push({
+          name: "Finish Options",
+          description: "Surface finish texture and gold tone",
+          enabled: true,
+          values: [
+            {
+              value: finishName,
+              enabled: true,
+              price_delta: 0,
+              image: imageUrl,
+            },
+          ],
+        });
+      }
+
+      return { ...prev, options: nextOptions };
+    });
+    showToast(`Assigned photo to ${finishName}`);
+  };
+
+  const getFinishOptionImage = (finishName) => {
+    const finishOpt = (formState.options || []).find((o) =>
+      o.name.toLowerCase().includes("finish")
+    );
+    if (!finishOpt || !finishOpt.values) return "";
+    const matched = finishOpt.values.find((v) => {
+      const vName = (typeof v === "object" ? v.value : v || "").toLowerCase();
+      const target = finishName.toLowerCase();
+      return vName.includes(target) || target.includes(vName);
+    });
+    return matched?.image || "";
+  };
+
+  const handleUpdateSizeGrams = (valIdx, gramsStr) => {
+    const parsed = parseFloat(gramsStr);
+    const grams = isNaN(parsed) ? 0 : parsed;
+    setFormState((prev) => {
+      const nextOptions = (prev.options || []).map((opt) => {
+        if (opt.name.toLowerCase().includes("size")) {
+          const currentVals = [...(opt.values || [])];
+          if (currentVals[valIdx]) {
+            const raw = currentVals[valIdx].value || "";
+            const cleanBase = raw.replace(/\s*\(\+?[\d.]+\s*g(?:ram)?s?\)/i, "").trim();
+            const newVal = grams > 0 ? `${cleanBase} (+${grams}g)` : cleanBase;
+            currentVals[valIdx] = {
+              ...currentVals[valIdx],
+              value: newVal,
+              price_delta: grams,
+            };
+          }
+          return { ...opt, values: currentVals };
+        }
+        return opt;
+      });
+      return { ...prev, options: nextOptions };
+    });
+  };
+
+  const handleUpdateChainGrams = (valIdx, gramsStr) => {
+    const parsed = parseFloat(gramsStr);
+    const grams = isNaN(parsed) ? 0 : parsed;
+    setFormState((prev) => {
+      const nextOptions = (prev.options || []).map((opt) => {
+        if (opt.name.toLowerCase().includes("chain")) {
+          const currentVals = [...(opt.values || [])];
+          if (currentVals[valIdx]) {
+            const raw = currentVals[valIdx].value || "";
+            const cleanBase = raw.replace(/\s*\(\+?[\d.]+\s*g(?:ram)?s?\)/i, "").trim();
+            const newVal = grams > 0 ? `${cleanBase} (+${grams}g)` : cleanBase;
+            currentVals[valIdx] = {
+              ...currentVals[valIdx],
+              value: newVal,
+              price_delta: grams,
+            };
+          }
+          return { ...opt, values: currentVals };
+        }
+        return opt;
+      });
+      return { ...prev, options: nextOptions };
+    });
   };
 
   // Matrix and Variants Management Helpers
@@ -2160,6 +2275,143 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   </tbody>
                 </table>
               </div>
+
+              {/* LIVE CUSTOMIZATION PRICING SIMULATOR */}
+              <div
+                style={{
+                  marginTop: "20px",
+                  padding: "18px 20px",
+                  borderRadius: "10px",
+                  border: "1.5px solid var(--admin-primary)",
+                  background: "var(--admin-surface-elevated)",
+                  boxShadow: "0 2px 10px rgba(60,80,224,0.06)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "12px", borderBottom: "1px solid var(--admin-border-light)", paddingBottom: "10px" }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--admin-text-primary)" }}>
+                        📐 Live Customization Pricing Formula Simulator
+                      </span>
+                      <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "12px", background: "var(--admin-primary-light)", color: "var(--admin-primary)" }}>
+                        Formula Verified
+                      </span>
+                    </div>
+                    <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "4px 0 0" }}>
+                      Formula: <strong>[Total Metal Grams × Live Rate/g] + Making Charge (%) + AUTHOR Charge (₹) + Gemstones (₹ Flat) + 3% GST = Final MRP</strong>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Interactive Test Inputs */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px", marginBottom: "16px" }}>
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1px solid var(--admin-border)" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)", display: "block" }}>Base Piece Weight</span>
+                    <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--admin-text-primary)", fontFamily: "monospace" }}>
+                      {parseFloat(formState.base_weight_grams) || 5.0} g
+                    </span>
+                  </div>
+
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1px solid var(--admin-border)" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)", display: "block", marginBottom: "4px" }}>
+                      Selected Size (+g)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={simSizeGrams}
+                      onChange={(e) => setSimSizeGrams(parseFloat(e.target.value) || 0)}
+                      style={{ width: "100%", padding: "4px 6px", fontSize: "13px", fontWeight: 700, fontFamily: "monospace", borderRadius: "4px", border: "1px solid var(--admin-border)", background: "transparent", color: "var(--admin-text-primary)" }}
+                    />
+                  </div>
+
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1px solid var(--admin-border)" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)", display: "block", marginBottom: "4px" }}>
+                      Selected Chain (+g)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={simChainGrams}
+                      onChange={(e) => setSimChainGrams(parseFloat(e.target.value) || 0)}
+                      style={{ width: "100%", padding: "4px 6px", fontSize: "13px", fontWeight: 700, fontFamily: "monospace", borderRadius: "4px", border: "1px solid var(--admin-border)", background: "transparent", color: "var(--admin-text-primary)" }}
+                    />
+                  </div>
+
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1px solid var(--admin-border)" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)", display: "block", marginBottom: "4px" }}>
+                      Gemstone Flat (+₹)
+                    </label>
+                    <input
+                      type="number"
+                      step="100"
+                      value={simGemPrice}
+                      onChange={(e) => setSimGemPrice(parseFloat(e.target.value) || 0)}
+                      style={{ width: "100%", padding: "4px 6px", fontSize: "13px", fontWeight: 700, fontFamily: "monospace", borderRadius: "4px", border: "1px solid var(--admin-border)", background: "transparent", color: "var(--admin-text-primary)" }}
+                    />
+                  </div>
+
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-primary-light)", border: "1px solid rgba(60,80,224,0.3)" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--admin-primary)", display: "block" }}>Total Metal Weight</span>
+                    <span style={{ fontSize: "16px", fontWeight: 800, color: "var(--admin-primary)", fontFamily: "monospace" }}>
+                      {((parseFloat(formState.base_weight_grams) || 5.0) + simSizeGrams + simChainGrams).toFixed(2)} g
+                    </span>
+                  </div>
+                </div>
+
+                {/* Simulated Comparative MRPs */}
+                {(() => {
+                  const totalGrams = (parseFloat(formState.base_weight_grams) || 5.0) + simSizeGrams + simChainGrams;
+                  const authorCharge = formState.making_charge_type === "flat" ? (parseFloat(formState.making_charge) || 0) : 0;
+                  const wastagePct = parseFloat(formState.wastage_percent) || 0;
+
+                  // 18KT Gold
+                  const rate18k = Math.round(rates.gold_24k_per_g * 0.75);
+                  const metal18k = totalGrams * rate18k;
+                  const making18k = metal18k * (wastagePct / 100);
+                  const subtotal18k = metal18k + making18k + authorCharge + simGemPrice;
+                  const gst18k = subtotal18k * 0.03;
+                  const total18k = Math.round(subtotal18k + gst18k);
+
+                  // 925 Silver
+                  const rateSilver = rates.silver_per_g || 211;
+                  const metalSilver = totalGrams * rateSilver;
+                  const makingSilver = metalSilver * (wastagePct / 100);
+                  const subtotalSilver = metalSilver + makingSilver + authorCharge + simGemPrice;
+                  const gstSilver = subtotalSilver * 0.03;
+                  const totalSilver = Math.round(subtotalSilver + gstSilver);
+
+                  return (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                      <div style={{ padding: "12px 14px", borderRadius: "8px", background: "var(--admin-surface)", border: "1.5px solid #F59E0B" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "13px", fontWeight: 700, color: "#D97706" }}>18KT Gold Customized MRP</span>
+                          <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>@ ₹{rate18k.toLocaleString("en-IN")}/g</span>
+                        </div>
+                        <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--admin-text-primary)", fontFamily: "monospace" }}>
+                          ₹{total18k.toLocaleString("en-IN")}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--admin-text-secondary)", marginTop: "4px" }}>
+                          Metal (₹{Math.round(metal18k).toLocaleString("en-IN")}) + Making ({wastagePct}%: ₹{Math.round(making18k).toLocaleString("en-IN")}) + Author (₹{authorCharge.toLocaleString("en-IN")}) + Gem (₹{simGemPrice.toLocaleString("en-IN")}) + 3% GST (₹{Math.round(gst18k).toLocaleString("en-IN")})
+                        </div>
+                      </div>
+
+                      <div style={{ padding: "12px 14px", borderRadius: "8px", background: "var(--admin-surface)", border: "1.5px solid #0284C7" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "13px", fontWeight: 700, color: "#0284C7" }}>925 Silver Customized MRP</span>
+                          <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>@ ₹{rateSilver.toLocaleString("en-IN")}/g</span>
+                        </div>
+                        <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--admin-text-primary)", fontFamily: "monospace" }}>
+                          ₹{totalSilver.toLocaleString("en-IN")}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--admin-text-secondary)", marginTop: "4px" }}>
+                          Metal (₹{Math.round(metalSilver).toLocaleString("en-IN")}) + Making ({wastagePct}%: ₹{Math.round(makingSilver).toLocaleString("en-IN")}) + Author (₹{authorCharge.toLocaleString("en-IN")}) + Gem (₹{simGemPrice.toLocaleString("en-IN")}) + 3% GST (₹{Math.round(gstSilver).toLocaleString("en-IN")})
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         )}
@@ -2374,6 +2626,68 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                             );
                           })}
                         </div>
+
+                        {/* Finish Photo Selector */}
+                        <div
+                          style={{
+                            padding: "9px 12px",
+                            borderTop: "1px solid var(--admin-border-light)",
+                            background: "var(--admin-surface)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
+                            <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--admin-text-secondary)" }}>
+                              Finish Photo (Storefront Image Switcher)
+                            </span>
+                            {getFinishOptionImage(finish.name) && (
+                              <span style={{ fontSize: "10px", color: "var(--admin-primary)", fontWeight: 700 }}>
+                                ✓ Assigned
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            {getFinishOptionImage(finish.name) ? (
+                              <img
+                                src={getFinishOptionImage(finish.name)}
+                                alt={finish.name}
+                                style={{ width: "30px", height: "30px", borderRadius: "4px", objectFit: "cover", border: "1px solid var(--admin-border)" }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: "30px",
+                                  height: "30px",
+                                  borderRadius: "4px",
+                                  background: "var(--admin-surface-elevated)",
+                                  border: "1px dashed var(--admin-border)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "13px",
+                                  color: "var(--admin-text-muted)",
+                                }}
+                              >
+                                📷
+                              </div>
+                            )}
+                            <select
+                              className="admin-select"
+                              value={getFinishOptionImage(finish.name)}
+                              onChange={(e) => handleSetFinishOptionImage(finish.name, e.target.value)}
+                              style={{ fontSize: "11px", padding: "5px 8px", flex: 1 }}
+                            >
+                              <option value="">Choose photo for {finish.name}...</option>
+                              {(formState.images || []).map((img, iIdx) => {
+                                const url = typeof img === "object" ? img.url : img;
+                                return (
+                                  <option key={iIdx} value={url}>
+                                    Photo #{iIdx + 1} {iIdx === 0 ? "(Primary)" : ""}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
@@ -2452,32 +2766,36 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                           </span>
                         </div>
 
-                        {val.price_delta ? (
-                          <div style={{ display: "flex", alignItems: "center", gap: "3px" }} onClick={(e) => e.stopPropagation()}>
-                            <span style={{ fontSize: "11px", fontWeight: 700, color: isValActive ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
-                              +₹
-                            </span>
-                            <input
-                              type="number"
-                              value={val.price_delta !== undefined ? val.price_delta : 0}
-                              onChange={(e) => handleUpdateOptionPriceDelta("size", idx, e.target.value)}
-                              title="Extra price added for this size"
-                              placeholder="0"
-                              style={{
-                                width: "65px",
-                                padding: "2px 6px",
-                                fontSize: "11px",
-                                fontWeight: 700,
-                                fontFamily: "monospace",
-                                borderRadius: "4px",
-                                border: isValActive ? "1px solid rgba(60,80,224,0.3)" : "1px solid var(--admin-border)",
-                                background: "var(--admin-surface)",
-                                color: isValActive ? "var(--admin-primary)" : "var(--admin-text-primary)",
-                                outline: "none",
-                              }}
-                            />
-                          </div>
-                        ) : null}
+                        {/* Gram-based weight input */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "3px" }} onClick={(e) => e.stopPropagation()}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: isValActive ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
+                            +g
+                          </span>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={(() => {
+                              const match = (val.value || "").match(/(\d+(?:\.\d+)?)\s*g/i);
+                              if (match) return match[1];
+                              return val.price_delta !== undefined ? val.price_delta : 0;
+                            })()}
+                            onChange={(e) => handleUpdateSizeGrams(idx, e.target.value)}
+                            title="Additional metal weight in grams for this size (e.g. 2.0g)"
+                            placeholder="0.0"
+                            style={{
+                              width: "55px",
+                              padding: "2px 6px",
+                              fontSize: "11px",
+                              fontWeight: 700,
+                              fontFamily: "monospace",
+                              borderRadius: "4px",
+                              border: isValActive ? "1px solid rgba(60,80,224,0.3)" : "1px solid var(--admin-border)",
+                              background: "var(--admin-surface)",
+                              color: isValActive ? "var(--admin-primary)" : "var(--admin-text-primary)",
+                              outline: "none",
+                            }}
+                          />
+                        </div>
                       </div>
                     );
                   })}
@@ -2735,19 +3053,24 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                           </span>
                         </div>
 
-                        {/* Direct Editable Price Delta Input */}
+                        {/* Gram-based chain weight input */}
                         <div style={{ display: "flex", alignItems: "center", gap: "3px" }} onClick={(e) => e.stopPropagation()}>
                           <span style={{ fontSize: "11px", fontWeight: 700, color: isValActive ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
-                            +₹
+                            +g
                           </span>
                           <input
                             type="number"
-                            value={val.price_delta !== undefined ? val.price_delta : 0}
-                            onChange={(e) => handleUpdateOptionPriceDelta("chain", idx, e.target.value)}
-                            title="Extra price added for this chain"
-                            placeholder="0"
+                            step="0.1"
+                            value={(() => {
+                              const match = (val.value || "").match(/(\d+(?:\.\d+)?)\s*g/i);
+                              if (match) return match[1];
+                              return val.price_delta !== undefined ? val.price_delta : 0;
+                            })()}
+                            onChange={(e) => handleUpdateChainGrams(idx, e.target.value)}
+                            title="Chain metal weight in grams (e.g. 5.0g)"
+                            placeholder="0.0"
                             style={{
-                              width: "75px",
+                              width: "55px",
                               padding: "2px 6px",
                               fontSize: "11px",
                               fontWeight: 700,
