@@ -153,9 +153,10 @@ export default function AdminProductsPage() {
 
         const matchesCollection =
           selectedCollection === "all" ||
-          String(p.collection_master_id) === String(selectedCollection);
+          String(p.collection_master_id) === String(selectedCollection) ||
+          String(p.collection?.id) === String(selectedCollection);
 
-        const matchesStatus = selectedStatus === "all" || p.status === selectedStatus;
+        const matchesStatus = selectedStatus === "all" || (p.status || "active") === selectedStatus;
 
         return matchesQuery && matchesCollection && matchesStatus;
       })
@@ -169,7 +170,7 @@ export default function AdminProductsPage() {
   }, [products, searchQuery, selectedCollection, selectedStatus, sortBy, rates]);
 
   // Aggregate Metrics
-  const activeCount = useMemo(() => products.filter((p) => p.status === "active").length, [products]);
+  const activeCount = useMemo(() => products.filter((p) => (p.status || "active") === "active").length, [products]);
   const totalWeightGrams = useMemo(
     () => products.reduce((acc, p) => acc + (parseFloat(p.base_weight_grams) || 0), 0).toFixed(1),
     [products]

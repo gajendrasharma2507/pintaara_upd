@@ -84,6 +84,8 @@ class ProductApiController extends Controller
                 'options.values',
                 'variants.optionValues.option',
                 'designLog',
+                'productFinishPurities.finish',
+                'productFinishPurities.purity',
             ])
             ->firstOrFail();
 
@@ -144,6 +146,14 @@ class ProductApiController extends Controller
                 'variants' => $variantData,
                 'design_log' => $product->designLog,
                 'master_options' => $masters,
+                'finish_purities' => $product->productFinishPurities->where('is_available', true)->values()->map(fn($fp) => [
+                    'finish_id' => $fp->finish_id,
+                    'finish_name' => $fp->finish?->name,
+                    'finish_code' => $fp->finish?->code,
+                    'purity_id' => $fp->purity_id,
+                    'purity_name' => $fp->purity?->name,
+                    'purity_code' => $fp->purity?->code,
+                ]),
                 'customization_masters' => \App\Models\CustomizationMaster::with(['values' => function($q) {
                     $q->where('is_active', true)->orderBy('sort_order');
                 }])->where('is_active', true)->orderBy('sort_order')->get(),

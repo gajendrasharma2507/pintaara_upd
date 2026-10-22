@@ -11,8 +11,8 @@ const resolveImageUrl = (img) => {
     return img;
   }
   if (img.startsWith("/storage/")) {
-    const apiHost = process.env.NEXT_PUBLIC_API_URL 
-      ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
+    const apiHost = process.env.NEXT_PUBLIC_API_URL
+      ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
       : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? 'https://api.pintaara.com' : 'http://127.0.0.1:8000');
     return `${apiHost}${img}`;
   }
@@ -127,7 +127,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
         if (res && (res.status === "success" || res.base_22kt_rate_per_10g || res.data)) {
           data = res.data || res;
         }
-      } catch (_) {}
+      } catch (_) { }
 
       if (!data) {
         const raw = await fetch(`${API_BASE_URL}/gold-rate/today`, { headers: { Accept: "application/json" } });
@@ -196,6 +196,9 @@ export default function ProductForm({ isEdit = false, productId = null, existing
   const [newCustomStoneDelta, setNewCustomStoneDelta] = useState("");
   const [newCustomChain, setNewCustomChain] = useState("");
   const [newCustomChainDelta, setNewCustomChainDelta] = useState("");
+  const [simSizeGrams, setSimSizeGrams] = useState(2.0);
+  const [simChainGrams, setSimChainGrams] = useState(5.0);
+  const [simGemPrice, setSimGemPrice] = useState(5000);
 
   const initialForm = {
     name: "",
@@ -254,15 +257,14 @@ export default function ProductForm({ isEdit = false, productId = null, existing
     if (!file) return;
     showToast(`Uploading ${file.name}...`);
     try {
-      const formData = new FormData();
-      formData.append("media", file);
-      const res = await adminApi.uploadMedia(formData);
-      if (res && res.status === "success" && res.data?.url) {
+      const res = await adminApi.uploadProductMedia(file);
+      const uploadedUrl = res?.url || res?.data?.url;
+      if (res && (res.status === "success" || uploadedUrl) && uploadedUrl) {
         setFormState((prev) => ({
           ...prev,
           design_log: {
             ...prev.design_log,
-            blueprint_image: res.data.url,
+            blueprint_image: uploadedUrl,
           },
         }));
         showToast("Blueprint drawing uploaded successfully.");
@@ -306,7 +308,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           if (colRes && colRes.status === "success" && Array.isArray(colRes.data) && colRes.data.length > 0) {
             setCollections(colRes.data);
           }
-        } catch (_) {}
+        } catch (_) { }
 
         try {
           const mastersRes = await adminApi.getMasters();
@@ -548,10 +550,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       }
     }
 
-    const isSilver = metalType === "silver" || 
-                     String(item.karat || "").toLowerCase().includes("silver") || 
-                     String(item.karat || "").toLowerCase().includes("925") ||
-                     String(item.metal || "").toLowerCase().includes("silver");
+    const isSilver = metalType === "silver" ||
+      String(item.karat || "").toLowerCase().includes("silver") ||
+      String(item.karat || "").toLowerCase().includes("925") ||
+      String(item.metal || "").toLowerCase().includes("silver");
 
     let ratePerGram;
     if (isSilver) {
@@ -576,12 +578,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
   const allAvailablePurities = puritiesList.length > 0
     ? puritiesList
     : [
-        { id: 1, code: "22KT", name: "22KT Gold", purity_fraction: 0.916, metal: "Gold" },
-        { id: 2, code: "18KT", name: "18KT Gold", purity_fraction: 0.750, metal: "Gold" },
-        { id: 3, code: "14KT", name: "14KT Gold", purity_fraction: 0.585, metal: "Gold" },
-        { id: 4, code: "925", name: "925 Silver", purity_fraction: 0.925, metal: "Silver" },
-        { id: 5, code: "24KT", name: "24KT Gold", purity_fraction: 0.999, metal: "Gold" },
-      ];
+      { id: 1, code: "22KT", name: "22KT Gold", purity_fraction: 0.916, metal: "Gold" },
+      { id: 2, code: "18KT", name: "18KT Gold", purity_fraction: 0.750, metal: "Gold" },
+      { id: 3, code: "14KT", name: "14KT Gold", purity_fraction: 0.585, metal: "Gold" },
+      { id: 4, code: "925", name: "925 Silver", purity_fraction: 0.925, metal: "Silver" },
+      { id: 5, code: "24KT", name: "24KT Gold", purity_fraction: 0.999, metal: "Gold" },
+    ];
 
   const handleToggleBenchmarkPurity = (pCode, purity) => {
     setBenchmarkPurities((prev) => {
@@ -628,20 +630,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       const weight = parseFloat(formState.base_weight_grams) || 0;
       const wastage = parseFloat(formState.wastage_percent) || 0;
       const making = parseFloat(formState.making_charge) || 0;
-      let stones = parseFloat(formState.stone_charge) || 0;
-      if (stones === 0 && Array.isArray(formState.options)) {
-        const gemOpt = formState.options.find((o) => o.name?.toLowerCase().includes("gem") || o.name?.toLowerCase().includes("stone"));
-        const activeGem = (gemOpt?.values || []).find((v) => v.enabled !== false && parseFloat(v.price_delta) > 0);
-        if (activeGem) {
-          stones = parseFloat(activeGem.price_delta) || 0;
-        }
-      }
 
       const fraction = purity.purity_fraction || 0.750;
-      const isSilver = purity.code?.toLowerCase().includes("925") || 
-                       purity.name?.toLowerCase().includes("silver") ||
-                       purity.metal?.toLowerCase() === "silver" ||
-                       purity.type?.toLowerCase() === "silver";
+      const isSilver = purity.code?.toLowerCase().includes("925") ||
+        purity.name?.toLowerCase().includes("silver") ||
+        purity.metal?.toLowerCase() === "silver" ||
+        purity.type?.toLowerCase() === "silver";
 
       let ratePerGram;
       if (isSilver) {
@@ -652,7 +646,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
       const metalValue = Math.round(weight * ratePerGram);
       const wastageValue = Math.round(metalValue * (wastage / 100));
-      const subtotal = metalValue + wastageValue + making + stones;
+      const subtotal = metalValue + wastageValue + making;
       const gst = Math.round(subtotal * 0.03);
       const total = subtotal + gst;
 
@@ -665,7 +659,6 @@ export default function ProductForm({ isEdit = false, productId = null, existing
         metalValue,
         wastageValue,
         making,
-        stones,
         gst,
         total,
         isPrimary,
@@ -930,6 +923,118 @@ export default function ProductForm({ isEdit = false, productId = null, existing
     showToast(`Added "${valName.trim()}"`);
   };
 
+  const handleSetFinishOptionImage = (finishName, imageUrl) => {
+    setFormState((prev) => {
+      let found = false;
+      const nextOptions = (prev.options || []).map((opt) => {
+        if (opt.name.toLowerCase().includes("finish")) {
+          found = true;
+          let finishFound = false;
+          const currentVals = (opt.values || []).map((v) => {
+            const vName = typeof v === "object" ? v.value : v;
+            if (vName.toLowerCase().includes(finishName.toLowerCase()) || finishName.toLowerCase().includes(vName.toLowerCase())) {
+              finishFound = true;
+              return { ...v, image: imageUrl };
+            }
+            return v;
+          });
+          if (!finishFound && imageUrl) {
+            currentVals.push({
+              value: finishName,
+              enabled: true,
+              price_delta: 0,
+              image: imageUrl,
+            });
+          }
+          return { ...opt, enabled: true, values: currentVals };
+        }
+        return opt;
+      });
+
+      if (!found && imageUrl) {
+        nextOptions.push({
+          name: "Finish Options",
+          description: "Surface finish texture and gold tone",
+          enabled: true,
+          values: [
+            {
+              value: finishName,
+              enabled: true,
+              price_delta: 0,
+              image: imageUrl,
+            },
+          ],
+        });
+      }
+
+      return { ...prev, options: nextOptions };
+    });
+    showToast(`Assigned photo to ${finishName}`);
+  };
+
+  const getFinishOptionImage = (finishName) => {
+    const finishOpt = (formState.options || []).find((o) =>
+      o.name.toLowerCase().includes("finish")
+    );
+    if (!finishOpt || !finishOpt.values) return "";
+    const matched = finishOpt.values.find((v) => {
+      const vName = (typeof v === "object" ? v.value : v || "").toLowerCase();
+      const target = finishName.toLowerCase();
+      return vName.includes(target) || target.includes(vName);
+    });
+    return matched?.image || "";
+  };
+
+  const handleUpdateSizeGrams = (valIdx, gramsStr) => {
+    const parsed = parseFloat(gramsStr);
+    const grams = isNaN(parsed) ? 0 : parsed;
+    setFormState((prev) => {
+      const nextOptions = (prev.options || []).map((opt) => {
+        if (opt.name.toLowerCase().includes("size")) {
+          const currentVals = [...(opt.values || [])];
+          if (currentVals[valIdx]) {
+            const raw = currentVals[valIdx].value || "";
+            const cleanBase = raw.replace(/\s*\(\+?[\d.]+\s*g(?:ram)?s?\)/i, "").trim();
+            const newVal = grams > 0 ? `${cleanBase} (+${grams}g)` : cleanBase;
+            currentVals[valIdx] = {
+              ...currentVals[valIdx],
+              value: newVal,
+              price_delta: grams,
+            };
+          }
+          return { ...opt, values: currentVals };
+        }
+        return opt;
+      });
+      return { ...prev, options: nextOptions };
+    });
+  };
+
+  const handleUpdateChainGrams = (valIdx, gramsStr) => {
+    const parsed = parseFloat(gramsStr);
+    const grams = isNaN(parsed) ? 0 : parsed;
+    setFormState((prev) => {
+      const nextOptions = (prev.options || []).map((opt) => {
+        if (opt.name.toLowerCase().includes("chain")) {
+          const currentVals = [...(opt.values || [])];
+          if (currentVals[valIdx]) {
+            const raw = currentVals[valIdx].value || "";
+            const cleanBase = raw.replace(/\s*\(\+?[\d.]+\s*g(?:ram)?s?\)/i, "").trim();
+            const newVal = grams > 0 ? `${cleanBase} (+${grams}g)` : cleanBase;
+            currentVals[valIdx] = {
+              ...currentVals[valIdx],
+              value: newVal,
+              price_delta: grams,
+            };
+          }
+          return { ...opt, values: currentVals };
+        }
+        return opt;
+      });
+      return { ...prev, options: nextOptions };
+    });
+  };
+
   // Matrix and Variants Management Helpers
   const handleToggleMatrixPurity = (finishId, purityId) => {
     setProductFinishMatrix((prev) => {
@@ -1033,12 +1138,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
             const cleanStoneCode = stoneName.includes("Diamond")
               ? "DIA"
               : stoneName.includes("Emerald")
-              ? "EMR"
-              : stoneName.includes("Sapphire")
-              ? "SAP"
-              : stoneName.includes("Ruby")
-              ? "RUB"
-              : "SOL";
+                ? "EMR"
+                : stoneName.includes("Sapphire")
+                  ? "SAP"
+                  : stoneName.includes("Ruby")
+                    ? "RUB"
+                    : "SOL";
 
             chainListToUse.forEach((chainItem) => {
               const chainName = chainItem ? (typeof chainItem === "object" ? chainItem.value : chainItem) : null;
@@ -1311,8 +1416,8 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       (o) => o.name.toLowerCase().includes("purity") || o.name.toLowerCase().includes("metal")
     );
     const activePurities = purityOpt?.values?.filter((v) => v.enabled)?.map((v) => v.value.split(" ")[0]) || [];
-    const matStr = activePurities.length > 0 
-      ? activePurities.map((p) => `${p} Solid Gold`).join(", ") 
+    const matStr = activePurities.length > 0
+      ? activePurities.map((p) => `${p} Solid Gold`).join(", ")
       : "18KT Solid Gold";
 
     // 2. Finish Options from enabled finishes
@@ -1381,18 +1486,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       certificate_number: formState.certificate_number ? formState.certificate_number.trim() : null,
       certificate_url: formState.certificate_url ? formState.certificate_url.trim() : null,
       designed_by: formState.designed_by || "Darshit Soni",
-      release_date: formState.release_date,
+      release_date: formState.release_date && formState.release_date.trim() ? formState.release_date.trim() : new Date().toISOString().split("T")[0],
       description: formState.description,
       model_3d_url: formState.model_3d_url || null,
       image: typeof formState.image === "object" ? formState.image.url : formState.image,
       images: (formState.images || []).map((img) => (typeof img === "object" ? img.url : img)),
       options: sanitizedOptions,
       design_log: {
-        blueprint_image: formState.design_log?.blueprint_image || null,
+        blueprint_image: typeof formState.design_log?.blueprint_image === "object" ? formState.design_log.blueprint_image.url : formState.design_log?.blueprint_image || null,
         design_type: formState.design_log?.design_type || formState.design_log?.type || null,
         status: formState.design_log?.status || "UNDER DEVELOPMENT",
         inspired_by: formState.design_log?.inspired_by || null,
-        release_date: formState.design_log?.release_date || formState.release_date || null,
+        release_date: formState.design_log?.release_date && formState.design_log.release_date.trim() ? formState.design_log.release_date.trim() : null,
         specs: {
           type: formState.design_log?.design_type || formState.design_log?.type || null,
           material_options: formState.design_log?.material_options || null,
@@ -1412,31 +1517,36 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
       if (isEdit && productId) {
         apiRes = await adminApi.updateProduct(productId, payload);
+        if (!apiRes || (apiRes.status && apiRes.status === "error") || apiRes.errors) {
+          const errorMsg = apiRes?.message || (apiRes?.errors ? Object.values(apiRes.errors).flat().join(", ") : "Failed to update product on backend.");
+          showToast("Error: " + errorMsg);
+          setIsSubmitting(false);
+          return;
+        }
         savedId = productId;
       } else {
         apiRes = await adminApi.createProduct(payload);
-        if (apiRes?.data?.id) {
-          savedId = apiRes.data.id;
+        if (!apiRes || !apiRes?.data?.id || (apiRes.status && apiRes.status === "error") || apiRes.errors) {
+          const errorMsg = apiRes?.message || (apiRes?.errors ? Object.values(apiRes.errors).flat().join(", ") : "Failed to create product on backend.");
+          showToast("Error: " + errorMsg);
+          setIsSubmitting(false);
+          return;
         }
+        savedId = apiRes.data.id;
       }
 
-      const updatedItem = apiRes?.data || {
-        id: savedId || Date.now(),
-        ...payload,
-        sku: payload.design_code,
-        collection_name: selectedCol?.name || "Unassigned",
-        karat: formState.karat,
-        purity_fraction: formState.purity_fraction,
-      };
+      const updatedItem = apiRes.data;
 
       const cached = localStorage.getItem("pintaara_products_cache");
       if (cached) {
-        const list = JSON.parse(cached);
-        const exists = list.some((p) => String(p.id) === String(savedId));
-        const updated = exists
-          ? list.map((p) => (String(p.id) === String(savedId) ? { ...p, ...updatedItem } : p))
-          : [updatedItem, ...list];
-        localStorage.setItem("pintaara_products_cache", JSON.stringify(updated));
+        try {
+          const list = JSON.parse(cached);
+          const exists = list.some((p) => String(p.id) === String(savedId));
+          const updated = exists
+            ? list.map((p) => (String(p.id) === String(savedId) ? { ...p, ...updatedItem } : p))
+            : [updatedItem, ...list];
+          localStorage.setItem("pintaara_products_cache", JSON.stringify(updated));
+        } catch (_) { }
       }
 
       if (savedId && productFinishMatrix && Object.keys(productFinishMatrix).length > 0) {
@@ -1483,13 +1593,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
       setTimeout(() => {
         router.push("/products");
-      }, 600);
+      }, 700);
     } catch (err) {
-      console.warn("Save offline error:", err);
-      showToast("Saved locally.");
-      setTimeout(() => {
-        router.push("/products");
-      }, 600);
+      console.error("Save error:", err);
+      showToast("Error: " + (err.message || "Failed to connect to backend server."));
     } finally {
       setIsSubmitting(false);
     }
@@ -1544,18 +1651,38 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           </span>
         </div>
 
-        <div>
-          <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--admin-text-primary)", margin: 0, letterSpacing: "-0.01em" }}>
-            {isEdit ? "Edit Product" : "New Product"}
-          </h1>
-          <p style={{ fontSize: "13px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: 0 }}>
-            {isEdit ? `Update specifications for SKU: ${formState.design_code || "—"}` : "Configure specifications, valuation, and customization options."}
-          </p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+          <div>
+            <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--admin-text-primary)", margin: 0, letterSpacing: "-0.01em" }}>
+              {isEdit ? "Edit Product" : "New Product"}
+            </h1>
+            <p style={{ fontSize: "13px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: 0 }}>
+              {isEdit ? `Update specifications for SKU: ${formState.design_code || "—"}` : "Configure specifications, valuation, and customization options."}
+            </p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <Link
+              href="/products"
+              className="admin-btn-outline"
+              style={{ fontSize: "13px", padding: "8px 18px" }}
+            >
+              Cancel
+            </Link>
+            <button
+              type="submit"
+              form="product-main-form"
+              disabled={isSubmitting}
+              className="admin-btn-primary"
+              style={{ fontSize: "13px", padding: "8px 24px", display: "flex", alignItems: "center", gap: "6px" }}
+            >
+              <span>{isSubmitting ? "Saving..." : isEdit ? "Save Changes" : "Create Product"}</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Main Form Layout */}
-      <form onSubmit={handleSubmit}>
+      <form id="product-main-form" onSubmit={handleSubmit}>
         {/* Navigation Tabs */}
         <div
           className="admin-card"
@@ -1570,10 +1697,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           }}
         >
           {[
-            { id: "essentials", label: "1. Essentials & Media" },
-            { id: "pricing", label: "2. Crafting Benchmark" },
-            { id: "matrix", label: "3. Bespoke Matrix & Variants" },
-            { id: "design_log", label: "4. Atelier Design Log" },
+            { id: "essentials", label: "1. Basic Details & Photos" },
+            { id: "pricing", label: "2. Gold Weight & Live Pricing" },
+            { id: "matrix", label: "3. Customization Options" },
+            { id: "design_log", label: "4. Website Design Story & Blueprint" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1595,18 +1722,21 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           ))}
         </div>
 
-        {/* TAB 1: ESSENTIALS (GENERAL INFORMATION) */}
+        {/* TAB 1: BASIC DETAILS (GENERAL INFORMATION) */}
         {activeTab === "essentials" && (
           <div className="admin-card" style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "18px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Product Title <span style={{ fontWeight: 400, color: "var(--admin-text-muted)" }}>(Optional)</span>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Product Title / Name
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Customer-facing display title (e.g. &ldquo;Piece BR-SG-OR-001&rdquo; or &ldquo;Royal Diamond Bracelet&rdquo;)
+                </span>
                 <input
                   type="text"
                   className="admin-input"
-                  placeholder="e.g. Sovereign Diamond Band (Optional)"
+                  placeholder="e.g. Royal Butterfly Diamond Pendant"
                   value={formState.name}
                   onChange={(e) => setFormState({ ...formState, name: e.target.value })}
                   style={{ width: "100%", fontSize: "13px" }}
@@ -1614,14 +1744,17 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  SKU / Design Code *
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Design Code / SKU *
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Unique identifier code (e.g. BR-SG-OR-001)
+                </span>
                 <input
                   type="text"
                   required
                   className="admin-input"
-                  placeholder="e.g. PIN-SOV-001"
+                  placeholder="e.g. BR-SG-OR-001"
                   value={formState.design_code}
                   onChange={(e) => setFormState({ ...formState, design_code: e.target.value.toUpperCase() })}
                   style={{ width: "100%", fontFamily: "monospace", fontSize: "13px" }}
@@ -1629,19 +1762,21 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               </div>
             </div>
 
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Collection
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Jewellery Collection / Category
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Category on storefront (e.g. Bracelet, Ring, Necklace)
+                </span>
                 <select
                   className="admin-input"
                   value={formState.collection_master_id}
                   onChange={(e) => setFormState({ ...formState, collection_master_id: e.target.value })}
                   style={{ width: "100%", fontSize: "13px" }}
                 >
-                  <option value="">None / Unassigned</option>
+                  <option value="">None / Unassigned Category</option>
                   {collections.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name ? c.name.charAt(0).toUpperCase() + c.name.slice(1) : `Collection #${c.id}`}
@@ -1651,29 +1786,35 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Status
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Storefront Visibility Status
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Whether buyers can view and purchase this piece online
+                </span>
                 <select
                   className="admin-input"
                   value={formState.status}
                   onChange={(e) => setFormState({ ...formState, status: e.target.value })}
                   style={{ width: "100%", fontSize: "13px" }}
                 >
-                  <option value="active">Active (Visible)</option>
-                  <option value="draft">Draft (Hidden)</option>
+                  <option value="active">Active (Visible & Buyable on Storefront)</option>
+                  <option value="draft">Draft (Hidden in Atelier Admin Only)</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                Description & Craftsmanship Notes
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                Product Description & Story
               </label>
+              <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                Craftsmanship highlights, sacred geometry, diamond details, and styling notes shown to customers
+              </span>
               <textarea
                 rows="4"
                 className="admin-input"
-                placeholder="Product specifications, story, craftsmanship notes..."
+                placeholder="Describe the craftsmanship, metal finish, comfort-fit ergonomics, and diamond cut..."
                 value={formState.description}
                 onChange={(e) => setFormState({ ...formState, description: e.target.value })}
                 style={{ width: "100%", fontSize: "13px" }}
@@ -1682,9 +1823,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Designed By
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Lead Designer / Artisan
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Creator credited on certificates and product page
+                </span>
                 <input
                   type="text"
                   className="admin-input"
@@ -1696,9 +1840,12 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                  Release Date
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                  Collection Release Date
                 </label>
+                <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                  Launch or crafting debut date
+                </span>
                 <input
                   type="date"
                   className="admin-input"
@@ -1706,6 +1853,72 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   onChange={(e) => setFormState({ ...formState, release_date: e.target.value })}
                   style={{ width: "100%", fontSize: "13px" }}
                 />
+              </div>
+            </div>
+
+            {/* BIS Hallmark & Authenticity Certificate */}
+            <div style={{ marginTop: "12px", paddingTop: "18px", borderTop: "1px solid var(--admin-border-light)" }}>
+              <div style={{ marginBottom: "14px" }}>
+                <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
+                  Government Hallmark & Authenticity Certification (BIS / HUID)
+                </h4>
+                <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "3px 0 0" }}>
+                  Official Bureau of Indian Standards (BIS) hallmark and diamond grading laboratory verification.
+                </p>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    BIS HUID Number
+                  </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    6-character alphanumeric code laser-etched on gold (e.g. 7X3M9P)
+                  </span>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    className="admin-input"
+                    placeholder="e.g. 7X3M9P"
+                    value={formState.huid || ""}
+                    onChange={(e) => setFormState({ ...formState, huid: e.target.value.toUpperCase() })}
+                    style={{ width: "100%", fontFamily: "monospace", fontSize: "13px" }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Laboratory Certificate Number
+                  </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Official SGL / IGI / GIA report number (e.g. SGL-J948271)
+                  </span>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    placeholder="e.g. SGL-J948271"
+                    value={formState.certificate_number || ""}
+                    onChange={(e) => setFormState({ ...formState, certificate_number: e.target.value })}
+                    style={{ width: "100%", fontSize: "13px" }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Certificate Verification Link / PDF
+                  </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Customer-facing web link to verify grading report online
+                  </span>
+                  <input
+                    type="url"
+                    className="admin-input"
+                    placeholder="e.g. https://sgl-labs.com/verify/..."
+                    value={formState.certificate_url || ""}
+                    onChange={(e) => setFormState({ ...formState, certificate_url: e.target.value })}
+                    style={{ width: "100%", fontSize: "13px" }}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1758,7 +1971,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                           <input
                             type="checkbox"
                             checked={isSelected}
-                            onChange={() => {}}
+                            onChange={() => { }}
                             style={{
                               width: "16px",
                               height: "16px",
@@ -1817,18 +2030,21 @@ export default function ProductForm({ isEdit = false, productId = null, existing
             <div className="admin-card" style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
               <div>
                 <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                  Crafting Cost Benchmarks
+                  Gold Weight & Crafting Cost Benchmarks
                 </h3>
                 <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "4px 0 0" }}>
-                  Define base crafting parameters. These apply proportionally across all selected purities.
+                  Define base gold weight and crafting charges. These calculate live storefront prices proportionally across all chosen purities.
                 </p>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "16px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Primary Catalog Karat
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Default Showcase Purity
                   </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Initial purity selected on product page
+                  </span>
                   <select
                     className="admin-input"
                     value={formState.karat}
@@ -1847,21 +2063,25 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                       .filter((p) => benchmarkPurities.some((bp) => bp === p.code || bp === p.id || bp === p.name))
                       .map((p) => (
                         <option key={p.id || p.code} value={p.code || p.name}>
-                          {p.name} ({Math.round((p.purity_fraction || 1) * 1000) / 10}%)
+                          {p.name} ({Math.round((p.purity_fraction || 1) * 1000) / 10}% pure)
                         </option>
                       ))}
                   </select>
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Net Base Weight (g) *
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Net Gold Weight (Grams) *
                   </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Metal weight in grams (without gems)
+                  </span>
                   <input
                     type="number"
                     step="0.001"
                     required
                     className="admin-input"
+                    placeholder="e.g. 10.5"
                     value={formState.base_weight_grams}
                     onChange={(e) => setFormState({ ...formState, base_weight_grams: e.target.value })}
                     style={{ width: "100%", fontSize: "13px" }}
@@ -1869,13 +2089,17 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Making (%)
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    Making Charge (%)
                   </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Artisan crafting & making % (e.g. 2.5%, 12%)
+                  </span>
                   <input
                     type="number"
                     step="0.1"
                     className="admin-input"
+                    placeholder="e.g. 2.5"
                     value={formState.wastage_percent}
                     onChange={(e) => setFormState({ ...formState, wastage_percent: e.target.value })}
                     style={{ width: "100%", fontSize: "13px" }}
@@ -1883,59 +2107,20 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Other Charges (₹)
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "4px" }}>
+                    AUTHOR Charges (₹ Flat)
                   </label>
+                  <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>
+                    Lead designer & author fee in ₹
+                  </span>
                   <input
                     type="number"
                     className="admin-input"
+                    placeholder="e.g. 3500"
                     value={formState.making_charge}
                     onChange={(e) => setFormState({ ...formState, making_charge: e.target.value })}
                     style={{ width: "100%", fontSize: "13px" }}
                   />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "6px" }}>
-                    Stone Charge (₹)
-                  </label>
-                  <input
-                    type="number"
-                    className="admin-input"
-                    value={formState.stone_charge}
-                    onChange={(e) => setFormState({ ...formState, stone_charge: e.target.value })}
-                    style={{ width: "100%", fontSize: "13px" }}
-                  />
-                  {getOptionValues("gem").filter((v) => v.enabled !== false).length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginTop: "6px" }}>
-                      {getOptionValues("gem")
-                        .filter((v) => v.enabled !== false)
-                        .map((v, i) => {
-                          const delta = parseFloat(v.price_delta) || 0;
-                          const isSelected = parseFloat(formState.stone_charge) === delta;
-                          return (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => setFormState({ ...formState, stone_charge: delta })}
-                              className="admin-btn-ghost"
-                              style={{
-                                fontSize: "10.5px",
-                                padding: "2px 6px",
-                                borderRadius: "4px",
-                                border: isSelected ? "1.5px solid var(--admin-primary, #3C50E0)" : "1px solid var(--admin-border)",
-                                background: isSelected ? "var(--admin-primary-light, #EFF2FE)" : "transparent",
-                                color: isSelected ? "var(--admin-primary, #3C50E0)" : "var(--admin-text-secondary)",
-                                cursor: "pointer",
-                                fontWeight: isSelected ? 700 : 500,
-                              }}
-                            >
-                              {v.value} ({delta > 0 ? `+₹${delta.toLocaleString("en-IN")}` : "₹0"})
-                            </button>
-                          );
-                        })}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -2009,7 +2194,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                     Live Benchmark Retail Price Table
                   </h3>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "4px 0 0" }}>
-                    Calculated in real-time according to live bullion rates, purity hallmarks, making (%), other charges (₹), and 3% GST.
+                    Calculated in real-time according to live bullion rates, purity hallmarks, making charges (%), AUTHOR charges (₹), and 3% GST.
                   </p>
                 </div>
               </div>
@@ -2020,14 +2205,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   <thead>
                     <tr style={{ borderBottom: "1px solid var(--admin-border)", background: "var(--admin-surface-elevated)", textAlign: "left" }}>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Purity Grade</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Rate / g</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Live Rate / g</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Metal Value</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Making ({formState.wastage_percent}%)</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Other Charges (₹)</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Stones (₹)</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>Making Charge ({formState.wastage_percent}%)</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>AUTHOR Charges (₹)</th>
                       <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)" }}>GST (3%)</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 700, color: "var(--admin-text-primary)", textAlign: "right" }}>Calculated Retail Price</th>
-                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)", textAlign: "center" }}>Role</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 700, color: "var(--admin-text-primary)", textAlign: "right" }}>Total Retail MRP (₹)</th>
+                      <th style={{ padding: "10px 14px", fontWeight: 600, color: "var(--admin-text-secondary)", textAlign: "center" }}>Storefront Role</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2050,7 +2234,6 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                         <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.metalValue.toLocaleString("en-IN")}</td>
                         <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.wastageValue.toLocaleString("en-IN")}</td>
                         <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.making.toLocaleString("en-IN")}</td>
-                        <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.stones.toLocaleString("en-IN")}</td>
                         <td style={{ padding: "12px 14px", fontFamily: "monospace" }}>₹{calc.gst.toLocaleString("en-IN")}</td>
                         <td style={{ padding: "12px 14px", textAlign: "right", fontFamily: "monospace", fontSize: "14px", fontWeight: 700, color: "var(--admin-text-primary)" }}>
                           ₹{calc.total.toLocaleString("en-IN")}
@@ -2092,6 +2275,143 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   </tbody>
                 </table>
               </div>
+
+              {/* LIVE CUSTOMIZATION PRICING SIMULATOR */}
+              <div
+                style={{
+                  marginTop: "20px",
+                  padding: "18px 20px",
+                  borderRadius: "10px",
+                  border: "1.5px solid var(--admin-primary)",
+                  background: "var(--admin-surface-elevated)",
+                  boxShadow: "0 2px 10px rgba(60,80,224,0.06)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "12px", borderBottom: "1px solid var(--admin-border-light)", paddingBottom: "10px" }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--admin-text-primary)" }}>
+                        📐 Live Customization Pricing Formula Simulator
+                      </span>
+                      <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "12px", background: "var(--admin-primary-light)", color: "var(--admin-primary)" }}>
+                        Formula Verified
+                      </span>
+                    </div>
+                    <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "4px 0 0" }}>
+                      Formula: <strong>[Total Metal Grams × Live Rate/g] + Making Charge (%) + AUTHOR Charge (₹) + Gemstones (₹ Flat) + 3% GST = Final MRP</strong>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Interactive Test Inputs */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px", marginBottom: "16px" }}>
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1px solid var(--admin-border)" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)", display: "block" }}>Base Piece Weight</span>
+                    <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--admin-text-primary)", fontFamily: "monospace" }}>
+                      {parseFloat(formState.base_weight_grams) || 5.0} g
+                    </span>
+                  </div>
+
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1px solid var(--admin-border)" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)", display: "block", marginBottom: "4px" }}>
+                      Selected Size (+g)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={simSizeGrams}
+                      onChange={(e) => setSimSizeGrams(parseFloat(e.target.value) || 0)}
+                      style={{ width: "100%", padding: "4px 6px", fontSize: "13px", fontWeight: 700, fontFamily: "monospace", borderRadius: "4px", border: "1px solid var(--admin-border)", background: "transparent", color: "var(--admin-text-primary)" }}
+                    />
+                  </div>
+
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1px solid var(--admin-border)" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)", display: "block", marginBottom: "4px" }}>
+                      Selected Chain (+g)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={simChainGrams}
+                      onChange={(e) => setSimChainGrams(parseFloat(e.target.value) || 0)}
+                      style={{ width: "100%", padding: "4px 6px", fontSize: "13px", fontWeight: 700, fontFamily: "monospace", borderRadius: "4px", border: "1px solid var(--admin-border)", background: "transparent", color: "var(--admin-text-primary)" }}
+                    />
+                  </div>
+
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-surface)", border: "1px solid var(--admin-border)" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)", display: "block", marginBottom: "4px" }}>
+                      Gemstone Flat (+₹)
+                    </label>
+                    <input
+                      type="number"
+                      step="100"
+                      value={simGemPrice}
+                      onChange={(e) => setSimGemPrice(parseFloat(e.target.value) || 0)}
+                      style={{ width: "100%", padding: "4px 6px", fontSize: "13px", fontWeight: 700, fontFamily: "monospace", borderRadius: "4px", border: "1px solid var(--admin-border)", background: "transparent", color: "var(--admin-text-primary)" }}
+                    />
+                  </div>
+
+                  <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--admin-primary-light)", border: "1px solid rgba(60,80,224,0.3)" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--admin-primary)", display: "block" }}>Total Metal Weight</span>
+                    <span style={{ fontSize: "16px", fontWeight: 800, color: "var(--admin-primary)", fontFamily: "monospace" }}>
+                      {((parseFloat(formState.base_weight_grams) || 5.0) + simSizeGrams + simChainGrams).toFixed(2)} g
+                    </span>
+                  </div>
+                </div>
+
+                {/* Simulated Comparative MRPs */}
+                {(() => {
+                  const totalGrams = (parseFloat(formState.base_weight_grams) || 5.0) + simSizeGrams + simChainGrams;
+                  const authorCharge = formState.making_charge_type === "flat" ? (parseFloat(formState.making_charge) || 0) : 0;
+                  const wastagePct = parseFloat(formState.wastage_percent) || 0;
+
+                  // 18KT Gold
+                  const rate18k = Math.round(rates.gold_24k_per_g * 0.75);
+                  const metal18k = totalGrams * rate18k;
+                  const making18k = metal18k * (wastagePct / 100);
+                  const subtotal18k = metal18k + making18k + authorCharge + simGemPrice;
+                  const gst18k = subtotal18k * 0.03;
+                  const total18k = Math.round(subtotal18k + gst18k);
+
+                  // 925 Silver
+                  const rateSilver = rates.silver_per_g || 211;
+                  const metalSilver = totalGrams * rateSilver;
+                  const makingSilver = metalSilver * (wastagePct / 100);
+                  const subtotalSilver = metalSilver + makingSilver + authorCharge + simGemPrice;
+                  const gstSilver = subtotalSilver * 0.03;
+                  const totalSilver = Math.round(subtotalSilver + gstSilver);
+
+                  return (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                      <div style={{ padding: "12px 14px", borderRadius: "8px", background: "var(--admin-surface)", border: "1.5px solid #F59E0B" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "13px", fontWeight: 700, color: "#D97706" }}>18KT Gold Customized MRP</span>
+                          <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>@ ₹{rate18k.toLocaleString("en-IN")}/g</span>
+                        </div>
+                        <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--admin-text-primary)", fontFamily: "monospace" }}>
+                          ₹{total18k.toLocaleString("en-IN")}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--admin-text-secondary)", marginTop: "4px" }}>
+                          Metal (₹{Math.round(metal18k).toLocaleString("en-IN")}) + Making ({wastagePct}%: ₹{Math.round(making18k).toLocaleString("en-IN")}) + Author (₹{authorCharge.toLocaleString("en-IN")}) + Gem (₹{simGemPrice.toLocaleString("en-IN")}) + 3% GST (₹{Math.round(gst18k).toLocaleString("en-IN")})
+                        </div>
+                      </div>
+
+                      <div style={{ padding: "12px 14px", borderRadius: "8px", background: "var(--admin-surface)", border: "1.5px solid #0284C7" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "13px", fontWeight: 700, color: "#0284C7" }}>925 Silver Customized MRP</span>
+                          <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>@ ₹{rateSilver.toLocaleString("en-IN")}/g</span>
+                        </div>
+                        <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--admin-text-primary)", fontFamily: "monospace" }}>
+                          ₹{totalSilver.toLocaleString("en-IN")}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--admin-text-secondary)", marginTop: "4px" }}>
+                          Metal (₹{Math.round(metalSilver).toLocaleString("en-IN")}) + Making ({wastagePct}%: ₹{Math.round(makingSilver).toLocaleString("en-IN")}) + Author (₹{authorCharge.toLocaleString("en-IN")}) + Gem (₹{simGemPrice.toLocaleString("en-IN")}) + 3% GST (₹{Math.round(gstSilver).toLocaleString("en-IN")})
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         )}
@@ -2116,7 +2436,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <h3 style={{ fontSize: "17px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                      Product Availability & Bespoke Matrix
+                      Customer Customization Options & Availability Matrix
                     </h3>
                     <span
                       style={{
@@ -2129,11 +2449,11 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                         border: "1px solid rgba(60,80,224,0.2)",
                       }}
                     >
-                      Bespoke Atelier Engine
+                      Storefront Bespoke Selector
                     </span>
                   </div>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: "4px 0 0" }}>
-                    Manage customer-selectable options across <strong>Metal Purity</strong>, <strong>Finish Options</strong>, <strong>Size</strong>, <strong>Gem / Stone Options</strong>, and <strong>Chain Type</strong>.
+                    Configure the choices customers see on the product page: <strong>Gold Color & Purity</strong>, <strong>Sizes</strong>, <strong>Gemstones & Diamonds</strong>, and <strong>Chain Options</strong>.
                   </p>
                 </div>
 
@@ -2152,7 +2472,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                     className="admin-btn-outline"
                     style={{ fontSize: "12px", padding: "6px 14px" }}
                   >
-                    Select All Availability
+                    Select All Options
                   </button>
                 </div>
               </div>
@@ -2162,13 +2482,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
                   <div>
                     <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span>1. Metal Purity & Finish Matrix</span>
+                      <span>1. Metal Colors & Purities (Gold & Platinum Matrix)</span>
                       <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)" }}>
-                        ({activeFinishes.filter((f) => (productFinishMatrix[f.id] || []).length > 0).length} of {activeFinishes.length} Finishes Active)
+                        ({activeFinishes.filter((f) => (productFinishMatrix[f.id] || []).length > 0).length} of {activeFinishes.length} Metal Colors Active)
                       </span>
                     </h4>
                     <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                      Configure which karat standards can be cast for each metal finish on this product.
+                      Choose which karat standards (24KT, 22KT, 18KT, 14KT, PT950) can be cast for each metal color on this piece.
                     </p>
                   </div>
                 </div>
@@ -2306,6 +2626,68 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                             );
                           })}
                         </div>
+
+                        {/* Finish Photo Selector */}
+                        <div
+                          style={{
+                            padding: "9px 12px",
+                            borderTop: "1px solid var(--admin-border-light)",
+                            background: "var(--admin-surface)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
+                            <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--admin-text-secondary)" }}>
+                              Finish Photo (Storefront Image Switcher)
+                            </span>
+                            {getFinishOptionImage(finish.name) && (
+                              <span style={{ fontSize: "10px", color: "var(--admin-primary)", fontWeight: 700 }}>
+                                ✓ Assigned
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            {getFinishOptionImage(finish.name) ? (
+                              <img
+                                src={getFinishOptionImage(finish.name)}
+                                alt={finish.name}
+                                style={{ width: "30px", height: "30px", borderRadius: "4px", objectFit: "cover", border: "1px solid var(--admin-border)" }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: "30px",
+                                  height: "30px",
+                                  borderRadius: "4px",
+                                  background: "var(--admin-surface-elevated)",
+                                  border: "1px dashed var(--admin-border)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "13px",
+                                  color: "var(--admin-text-muted)",
+                                }}
+                              >
+                                📷
+                              </div>
+                            )}
+                            <select
+                              className="admin-select"
+                              value={getFinishOptionImage(finish.name)}
+                              onChange={(e) => handleSetFinishOptionImage(finish.name, e.target.value)}
+                              style={{ fontSize: "11px", padding: "5px 8px", flex: 1 }}
+                            >
+                              <option value="">Choose photo for {finish.name}...</option>
+                              {(formState.images || []).map((img, iIdx) => {
+                                const url = typeof img === "object" ? img.url : img;
+                                return (
+                                  <option key={iIdx} value={url}>
+                                    Photo #{iIdx + 1} {iIdx === 0 ? "(Primary)" : ""}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
@@ -2317,13 +2699,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
                   <div>
                     <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span>2. Size Availability</span>
+                      <span>2. Available Sizes & Dimensions (Rings, Bangles & Chains)</span>
                       <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)" }}>
                         ({getOptionValues("size").filter((v) => v.enabled !== false).length} Sizes Active)
                       </span>
                     </h4>
                     <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                      Toggle ring sizes, bangle diameters, or chain lengths permitted on this product.
+                      Select the ring sizes, bangle diameters, or chain lengths offered for this piece. You can add extra price (+₹) for larger sizes.
                     </p>
                   </div>
 
@@ -2384,32 +2766,36 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                           </span>
                         </div>
 
-                        {val.price_delta ? (
-                          <div style={{ display: "flex", alignItems: "center", gap: "3px" }} onClick={(e) => e.stopPropagation()}>
-                            <span style={{ fontSize: "11px", fontWeight: 700, color: isValActive ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
-                              +₹
-                            </span>
-                            <input
-                              type="number"
-                              value={val.price_delta !== undefined ? val.price_delta : 0}
-                              onChange={(e) => handleUpdateOptionPriceDelta("size", idx, e.target.value)}
-                              title="Extra price added for this size"
-                              placeholder="0"
-                              style={{
-                                width: "65px",
-                                padding: "2px 6px",
-                                fontSize: "11px",
-                                fontWeight: 700,
-                                fontFamily: "monospace",
-                                borderRadius: "4px",
-                                border: isValActive ? "1px solid rgba(60,80,224,0.3)" : "1px solid var(--admin-border)",
-                                background: "var(--admin-surface)",
-                                color: isValActive ? "var(--admin-primary)" : "var(--admin-text-primary)",
-                                outline: "none",
-                              }}
-                            />
-                          </div>
-                        ) : null}
+                        {/* Gram-based weight input */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "3px" }} onClick={(e) => e.stopPropagation()}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: isValActive ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
+                            +g
+                          </span>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={(() => {
+                              const match = (val.value || "").match(/(\d+(?:\.\d+)?)\s*g/i);
+                              if (match) return match[1];
+                              return val.price_delta !== undefined ? val.price_delta : 0;
+                            })()}
+                            onChange={(e) => handleUpdateSizeGrams(idx, e.target.value)}
+                            title="Additional metal weight in grams for this size (e.g. 2.0g)"
+                            placeholder="0.0"
+                            style={{
+                              width: "55px",
+                              padding: "2px 6px",
+                              fontSize: "11px",
+                              fontWeight: 700,
+                              fontFamily: "monospace",
+                              borderRadius: "4px",
+                              border: isValActive ? "1px solid rgba(60,80,224,0.3)" : "1px solid var(--admin-border)",
+                              background: "var(--admin-surface)",
+                              color: isValActive ? "var(--admin-primary)" : "var(--admin-text-primary)",
+                              outline: "none",
+                            }}
+                          />
+                        </div>
                       </div>
                     );
                   })}
@@ -2451,13 +2837,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
                   <div>
                     <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span>3. Gem / Stone Options Availability</span>
+                      <span>3. Gemstones & Natural Diamond Choices</span>
                       <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)" }}>
                         ({getOptionValues("gem").filter((v) => v.enabled !== false).length} Gems Active)
                       </span>
                     </h4>
                     <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                      Select precious stones, certified natural diamonds, and solid gold options permitted on this piece.
+                      Select precious stones, certified natural diamonds (VVS-VS), and solid gold options permitted on this piece. Set price delta (+₹) added when customer selects that stone.
                     </p>
                   </div>
 
@@ -2593,13 +2979,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
                   <div>
                     <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span>4. Chain Type Availability</span>
+                      <span>4. Accompanying Chain Options (Pendants & Necklaces)</span>
                       <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--admin-text-muted)" }}>
                         ({getOptionValues("chain").filter((v) => v.enabled !== false).length} Chains Active)
                       </span>
                     </h4>
                     <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                      Configure chain link styles and lengths available with this design (or pendant only).
+                      Configure chain link styles and lengths (e.g. Box Chain 18&quot;, Cable Chain) or &quot;Pendant Only (No Chain)&quot;. Enter extra price (+₹) for each chain.
                     </p>
                   </div>
 
@@ -2667,19 +3053,24 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                           </span>
                         </div>
 
-                        {/* Direct Editable Price Delta Input */}
+                        {/* Gram-based chain weight input */}
                         <div style={{ display: "flex", alignItems: "center", gap: "3px" }} onClick={(e) => e.stopPropagation()}>
                           <span style={{ fontSize: "11px", fontWeight: 700, color: isValActive ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
-                            +₹
+                            +g
                           </span>
                           <input
                             type="number"
-                            value={val.price_delta !== undefined ? val.price_delta : 0}
-                            onChange={(e) => handleUpdateOptionPriceDelta("chain", idx, e.target.value)}
-                            title="Extra price added for this chain"
-                            placeholder="0"
+                            step="0.1"
+                            value={(() => {
+                              const match = (val.value || "").match(/(\d+(?:\.\d+)?)\s*g/i);
+                              if (match) return match[1];
+                              return val.price_delta !== undefined ? val.price_delta : 0;
+                            })()}
+                            onChange={(e) => handleUpdateChainGrams(idx, e.target.value)}
+                            title="Chain metal weight in grams (e.g. 5.0g)"
+                            placeholder="0.0"
                             style={{
-                              width: "75px",
+                              width: "55px",
                               padding: "2px 6px",
                               fontSize: "11px",
                               fontWeight: 700,
@@ -2737,7 +3128,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                      Product Variants & Bespoke Crafting Table
+                      5. Handcrafted Variants & Live Pricing Matrix
                     </h3>
                     <span
                       style={{
@@ -2750,11 +3141,11 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                         border: "1px solid var(--admin-border)",
                       }}
                     >
-                      {productVariants.length} Variants
+                      {productVariants.length} Combinations Generated
                     </span>
                   </div>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: "4px 0 0" }}>
-                    Fine jewellery pieces are handcrafted to order. Set SKU, custom weight, and live calculated pricing for each permitted combination.
+                    Fine jewellery pieces are handcrafted to order. Set exact gold weight (g) and final retail price (₹) for each permitted customer configuration.
                   </p>
                 </div>
 
@@ -2810,7 +3201,7 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   }}
                 >
                   <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--admin-text-secondary)", marginBottom: "4px" }}>
-                    No Variants Created Yet
+                    No Variant Combinations Generated Yet
                   </div>
                   <div style={{ fontSize: "12px", maxWidth: "440px", margin: "0 auto 16px" }}>
                     Configure your allowed Finish, Metal Purity, Size, Gem / Stone, and Chain rules above, then click &ldquo;Auto-Generate from Availability&rdquo; to populate combination SKUs and pricing.
@@ -2829,11 +3220,11 @@ export default function ProductForm({ isEdit = false, productId = null, existing
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", textAlign: "left" }}>
                     <thead>
                       <tr style={{ background: "var(--admin-surface-elevated, #F8FAFC)", borderBottom: "1px solid var(--admin-border)" }}>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Finish & Purity</th>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Size</th>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Gem / Stone</th>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Weight (g)</th>
-                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Price (₹)</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Metal Color & Purity</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Size / Dimension</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Gemstone / Natural Diamond</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Net Gold Weight (g)</th>
+                        <th style={{ padding: "12px 14px", fontWeight: 600 }}>Retail Selling Price (₹)</th>
                         <th style={{ padding: "12px 14px", fontWeight: 600, textAlign: "right" }}>Actions</th>
                       </tr>
                     </thead>
@@ -2994,10 +3385,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           <div className="admin-card" style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "22px", marginTop: "20px" }}>
             <div>
               <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                Media
+                Product Photography, 360° Video & 3D Interactive Assets
               </h3>
               <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", marginTop: "4px", margin: "4px 0 0" }}>
-                Add product imagery, promotional clips, and interactive 3D assets for the atelier view.
+                Upload high-resolution jewelry photos, editorial clips, or interactive 3D models (.glb, .gltf). The first item is automatically displayed as the primary showcase image on product cards.
               </p>
             </div>
 
@@ -3073,8 +3464,8 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               const mediaItems = Array.isArray(formState.images) && formState.images.length > 0
                 ? formState.images
                 : formState.image
-                ? [formState.image]
-                : [];
+                  ? [formState.image]
+                  : [];
 
               if (mediaItems.length === 0) return null;
 
@@ -3575,10 +3966,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
                   <h4 style={{ fontSize: "14px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                    Blueprint & Technical Drawing Sheet
+                    1. Technical Blueprint & CAD Drawing Sheet
                   </h4>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "2px 0 0" }}>
-                    Technical drawing sheet, orthographic blueprint, or 3D CAD render.
+                    Archival orthographic drawing sheet, technical CAD sketch, or 3D render displayed on the public Design Log page.
                   </p>
                 </div>
                 {formState.design_log?.blueprint_image && formState.design_log?.blueprint_image !== "/images/design-log/PD-SG-OR-001.JPG" && (
@@ -3751,10 +4142,10 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", borderBottom: "1px solid var(--admin-border)", paddingBottom: "16px" }}>
                 <div>
                   <h4 style={{ fontSize: "15px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-                    Design Log Specifications
+                    2. Design Log Editorial Story & Public Specifications
                   </h4>
                   <p style={{ fontSize: "12px", color: "var(--admin-text-secondary)", margin: "4px 0 0" }}>
-                    Public specifications displayed on the website Design Log (<code style={{ background: "rgba(60, 80, 224, 0.08)", padding: "2px 6px", borderRadius: "4px", color: "var(--admin-primary)" }}>pintaara.com/design-log</code>). If any field is left empty, it will not be displayed on the frontend.
+                    Public specifications displayed on the website Design Log (<code style={{ background: "rgba(60, 80, 224, 0.08)", padding: "2px 6px", borderRadius: "4px", color: "var(--admin-primary)" }}>pintaara.com/design-log</code>). If any field is left empty, it will be hidden automatically on the storefront.
                   </p>
                 </div>
 
@@ -3803,16 +4194,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "18px" }}>
                 {/* 1. TYPE */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      TYPE
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Jewelry Piece Type
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Classification on design log (e.g. BESPOKE BRACELET, SIGNATURE PENDANT)
+                    </span>
                   </div>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g. BESPOKE DESIGN"
+                    placeholder="e.g. BESPOKE BRACELET"
                     value={formState.design_log?.design_type || ""}
                     onChange={(e) =>
                       setFormState({
@@ -3826,16 +4219,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 2. MATERIAL OPTIONS */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      MATERIAL OPTIONS
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Gold & Precious Metal Standards
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Purity hallmarks offered (e.g. 22KT Royal Gold · 18KT Fine Gold)
+                    </span>
                   </div>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g. 18KT Solid Gold"
+                    placeholder="e.g. 18KT Solid Gold · 22KT Royal Gold"
                     value={formState.design_log?.material_options || ""}
                     onChange={(e) =>
                       setFormState({
@@ -3849,11 +4244,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 3. FINISH OPTIONS */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      FINISH OPTIONS
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Gold Color & Surface Finishes
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Metal color treatments (e.g. Yellow Gold · White Gold · Rose Gold)
+                    </span>
                   </div>
                   <input
                     type="text"
@@ -3872,16 +4269,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 4. SIZE OPTIONS */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      SIZE OPTIONS
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Available Sizing & Dimension Options
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Wearable dimensions (e.g. Standard Size · Ring Sizes 10–18 · 2.4 Bangle)
+                    </span>
                   </div>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g. Standard"
+                    placeholder="e.g. Standard Size or Ring Sizes 10–18"
                     value={formState.design_log?.size_options || ""}
                     onChange={(e) =>
                       setFormState({
@@ -3895,16 +4294,18 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 5. GEM / STONE OPTIONS */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      GEM / STONE OPTIONS
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Gemstones & Diamond Accents
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Natural diamonds & precious stones (e.g. Natural Diamond (VVS-VS) · Solid Gold)
+                    </span>
                   </div>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g. Natural Diamond"
+                    placeholder="e.g. Natural Diamond (VVS-VS) · Solid Gold"
                     value={formState.design_log?.gem_options || ""}
                     onChange={(e) =>
                       setFormState({
@@ -3918,11 +4319,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 6. INSPIRED BY */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      INSPIRED BY
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Design Story & Architectural Inspiration
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Poetic story, sacred geometry, or aesthetic philosophy behind the piece
+                    </span>
                   </div>
                   <input
                     type="text"
@@ -3941,11 +4344,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 7. A PINTAARA™ ORIGINAL */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      A PINTAARA™ ORIGINAL (Brand Origin)
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Atelier Brand Origin & Lineage
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Atelier authenticity trademark and brand provenance
+                    </span>
                   </div>
                   <input
                     type="text"
@@ -3964,11 +4369,13 @@ export default function ProductForm({ isEdit = false, productId = null, existing
 
                 {/* 8. DESIGNED X Darshit Soni */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", letterSpacing: "0.03em" }}>
-                      DESIGNED BY
+                  <div style={{ marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--admin-text-primary)", marginBottom: "3px" }}>
+                      Lead Designer / Master Artisan
                     </label>
-                    <span style={{ fontSize: "11px", color: "var(--admin-text-muted)" }}>Empty = hidden on website</span>
+                    <span style={{ display: "block", fontSize: "11px", color: "var(--admin-text-muted)" }}>
+                      Master creator credited in the Design Log and authenticity report
+                    </span>
                   </div>
                   <input
                     type="text"

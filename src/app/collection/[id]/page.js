@@ -51,6 +51,30 @@ const resolveProductImage = (product, imageUrl) => {
 
 // 57-Facet Brilliant Cut Gemstone Component (supports custom uploaded image or SVG facet fallback)
 function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, title }) {
+    if (type === 'none') {
+        return (
+            <button
+                type="button"
+                onClick={onClick}
+                title={title || 'No Stone / Solid Gold'}
+                aria-label={title || 'No Stone / Solid Gold'}
+                className={`atelier-gem-btn ${isSelected ? 'active' : ''}`}
+            >
+                <svg width="25" height="25" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="14" fill="url(#solid-gold-grad)" stroke="#B8860B" strokeWidth="1.2" />
+                    <circle cx="16" cy="16" r="7" fill="#FFFFFF" stroke="#B8860B" strokeWidth="0.8" />
+                    <defs>
+                        <linearGradient id="solid-gold-grad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#FFF3B0" />
+                            <stop offset="50%" stopColor="#D4AF37" />
+                            <stop offset="100%" stopColor="#AA7C11" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </button>
+        );
+    }
+
     if (imageUrl) {
         return (
             <button
@@ -72,6 +96,7 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
     const isDiamond = type === 'diamond';
     const isEmerald = type === 'emerald';
     const isSapphire = type === 'sapphire';
+    const isRuby = type === 'ruby';
 
     return (
         <button
@@ -128,6 +153,21 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
                             </linearGradient>
                         </>
                     )}
+                    {isRuby && (
+                        <>
+                            <radialGradient id={`rub-glow-${type}`} cx="35%" cy="35%" r="65%">
+                                <stop offset="0%" stopColor="#FDA4AF" />
+                                <stop offset="35%" stopColor="#F43F5E" />
+                                <stop offset="70%" stopColor="#BE123C" />
+                                <stop offset="100%" stopColor="#4C0519" />
+                            </radialGradient>
+                            <linearGradient id={`rub-hi-${type}`} x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor="#FFE4E6" />
+                                <stop offset="60%" stopColor="#E11D48" />
+                                <stop offset="100%" stopColor="#881337" />
+                            </linearGradient>
+                        </>
+                    )}
                 </defs>
 
                 {/* Base Girdle Circle */}
@@ -135,32 +175,32 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
                     cx="16"
                     cy="16"
                     r="15"
-                    fill={isDiamond ? `url(#dia-glow-${type})` : isEmerald ? `url(#emr-glow-${type})` : `url(#sap-glow-${type})`}
-                    stroke={isDiamond ? "#64748B" : isEmerald ? "#065F46" : "#1E3A8A"}
+                    fill={isDiamond ? `url(#dia-glow-${type})` : isEmerald ? `url(#emr-glow-${type})` : isSapphire ? `url(#sap-glow-${type})` : `url(#rub-glow-${type})`}
+                    stroke={isDiamond ? "#64748B" : isEmerald ? "#065F46" : isSapphire ? "#1E3A8A" : "#881337"}
                     strokeWidth="0.8"
                 />
 
                 {/* Facet Geometry */}
-                <polygon points="16,1 11,6 21,6" fill={isDiamond ? "#F8FAFC" : isEmerald ? "#4ADE80" : "#60A5FA"} opacity="0.9" />
-                <polygon points="31,16 26,11 26,21" fill={isDiamond ? "#E2E8F0" : isEmerald ? "#22C55E" : "#3B82F6"} opacity="0.85" />
-                <polygon points="16,31 21,26 11,26" fill={isDiamond ? "#94A3B8" : isEmerald ? "#15803D" : "#1D4ED8"} opacity="0.9" />
-                <polygon points="1,16 6,21 6,11" fill={isDiamond ? "#CBD5E1" : isEmerald ? "#16A34A" : "#2563EB"} opacity="0.85" />
+                <polygon points="16,1 11,6 21,6" fill={isDiamond ? "#F8FAFC" : isEmerald ? "#4ADE80" : isSapphire ? "#60A5FA" : "#FB7185"} opacity="0.9" />
+                <polygon points="31,16 26,11 26,21" fill={isDiamond ? "#E2E8F0" : isEmerald ? "#22C55E" : isSapphire ? "#3B82F6" : "#F43F5E"} opacity="0.85" />
+                <polygon points="16,31 21,26 11,26" fill={isDiamond ? "#94A3B8" : isEmerald ? "#15803D" : isSapphire ? "#1D4ED8" : "#9F1239"} opacity="0.9" />
+                <polygon points="1,16 6,21 6,11" fill={isDiamond ? "#CBD5E1" : isEmerald ? "#16A34A" : isSapphire ? "#2563EB" : "#E11D48"} opacity="0.85" />
 
-                <polygon points="26.6,5.4 21,6 26,11" fill={isDiamond ? "#F1F5F9" : isEmerald ? "#34D399" : "#3B82F6"} opacity="0.8" />
-                <polygon points="26.6,26.6 26,21 21,26" fill={isDiamond ? "#64748B" : isEmerald ? "#065F46" : "#1E3A8A"} opacity="0.95" />
-                <polygon points="5.4,26.6 11,26 6,21" fill={isDiamond ? "#94A3B8" : isEmerald ? "#047857" : "#1E40AF"} opacity="0.85" />
-                <polygon points="5.4,5.4 6,11 11,6" fill={isDiamond ? "#FFFFFF" : isEmerald ? "#86EFAC" : "#93C5FD"} opacity="0.9" />
+                <polygon points="26.6,5.4 21,6 26,11" fill={isDiamond ? "#F1F5F9" : isEmerald ? "#34D399" : isSapphire ? "#3B82F6" : "#FDA4AF"} opacity="0.8" />
+                <polygon points="26.6,26.6 26,21 21,26" fill={isDiamond ? "#64748B" : isEmerald ? "#065F46" : isSapphire ? "#1E3A8A" : "#881337"} opacity="0.95" />
+                <polygon points="5.4,26.6 11,26 6,21" fill={isDiamond ? "#94A3B8" : isEmerald ? "#047857" : isSapphire ? "#1E40AF" : "#9F1239"} opacity="0.85" />
+                <polygon points="5.4,5.4 6,11 11,6" fill={isDiamond ? "#FFFFFF" : isEmerald ? "#86EFAC" : isSapphire ? "#93C5FD" : "#FFE4E6"} opacity="0.9" />
 
-                <polygon points="16,6 19.5,10.5 16,12.5 12.5,10.5" fill={isDiamond ? "#FFFFFF" : isEmerald ? "#86EFAC" : "#93C5FD"} opacity="0.95" />
-                <polygon points="26,16 21.5,19.5 19.5,16 21.5,12.5" fill={isDiamond ? "#CBD5E1" : isEmerald ? "#10B981" : "#2563EB"} opacity="0.85" />
-                <polygon points="16,26 12.5,21.5 16,19.5 19.5,21.5" fill={isDiamond ? "#64748B" : isEmerald ? "#064E3B" : "#172554"} opacity="0.95" />
-                <polygon points="6,16 10.5,12.5 12.5,16 10.5,19.5" fill={isDiamond ? "#E2E8F0" : isEmerald ? "#34D399" : "#3B82F6"} opacity="0.85" />
+                <polygon points="16,6 19.5,10.5 16,12.5 12.5,10.5" fill={isDiamond ? "#FFFFFF" : isEmerald ? "#86EFAC" : isSapphire ? "#93C5FD" : "#FFF1F2"} opacity="0.95" />
+                <polygon points="26,16 21.5,19.5 19.5,16 21.5,12.5" fill={isDiamond ? "#CBD5E1" : isEmerald ? "#10B981" : isSapphire ? "#2563EB" : "#E11D48"} opacity="0.85" />
+                <polygon points="16,26 12.5,21.5 16,19.5 19.5,21.5" fill={isDiamond ? "#64748B" : isEmerald ? "#064E3B" : isSapphire ? "#172554" : "#881337"} opacity="0.95" />
+                <polygon points="6,16 10.5,12.5 12.5,16 10.5,19.5" fill={isDiamond ? "#E2E8F0" : isEmerald ? "#34D399" : isSapphire ? "#3B82F6" : "#FB7185"} opacity="0.85" />
 
                 {/* Center Octagonal Table */}
                 <polygon
                     points="12.5,10.5 19.5,10.5 22.5,13.5 22.5,18.5 19.5,21.5 12.5,21.5 9.5,18.5 9.5,13.5"
-                    fill={isDiamond ? `url(#dia-hi-${type})` : isEmerald ? `url(#emr-hi-${type})` : `url(#sap-hi-${type})`}
-                    stroke={isDiamond ? "#475569" : isEmerald ? "#064E3B" : "#172554"}
+                    fill={isDiamond ? `url(#dia-hi-${type})` : isEmerald ? `url(#emr-hi-${type})` : isSapphire ? `url(#sap-hi-${type})` : `url(#rub-hi-${type})`}
+                    stroke={isDiamond ? "#475569" : isEmerald ? "#064E3B" : isSapphire ? "#172554" : "#881337"}
                     strokeWidth="0.5"
                 />
 
@@ -430,9 +470,27 @@ export default function DynamicCollectionPage({ params }) {
     const activeOptionGroups = useMemo(() => {
         // If product has specific options configured in Admin, use them!
         if (productDetail?.options && Array.isArray(productDetail.options) && productDetail.options.length > 0) {
-            return productDetail.options.map((opt, oIdx) => {
-                const optName = opt.name || `Option ${oIdx + 1}`;
+            const seen = new Set();
+            const groups = [];
+
+            productDetail.options.forEach((opt, oIdx) => {
+                const optName = (opt.name || `Option ${oIdx + 1}`).trim();
                 const lower = optName.toLowerCase();
+
+                // Skip certificate standards or empty names
+                if (lower.includes('certificate') || !optName) return;
+
+                // Normalize key to deduplicate e.g. "Metal Purity (KT)" vs "METAL PURITY (KT)"
+                const normKey = lower.includes('purity') ? 'purity'
+                    : lower.includes('finish') ? 'finish'
+                    : lower.includes('size') ? 'size'
+                    : lower.includes('gem') || lower.includes('stone') ? 'gem'
+                    : lower.includes('chain') ? 'chain'
+                    : lower;
+
+                if (seen.has(normKey)) return;
+                seen.add(normKey);
+
                 let inputType = opt.input_type;
                 if (!inputType) {
                     if (lower.includes('finish') || lower.includes('gem') || lower.includes('stone') || lower.includes('color')) {
@@ -445,113 +503,147 @@ export default function DynamicCollectionPage({ params }) {
                 }
 
                 const rawValues = Array.isArray(opt.values) ? opt.values : [];
-                const parsedValues = rawValues.map((v, vIdx) => {
-                    if (typeof v === 'object' && v !== null) {
+                const parsedValues = rawValues
+                    .map((v, vIdx) => {
+                        if (typeof v === 'object' && v !== null) {
+                            return {
+                                id: v.id || `${optName}_${vIdx}`,
+                                value: v.value || '',
+                                code: v.code || '',
+                                image: v.image || '',
+                                hex_color: v.hex_color || null,
+                                price_delta: parseFloat(v.price_delta) || 0,
+                            };
+                        }
                         return {
-                            id: v.id || `${optName}_${vIdx}`,
-                            value: v.value || '',
-                            code: v.code || '',
-                            image: v.image || '',
-                            hex_color: v.hex_color || null,
-                            price_delta: parseFloat(v.price_delta) || 0,
+                            id: `${optName}_${vIdx}`,
+                            value: String(v),
+                            code: String(v),
+                            image: '',
+                            hex_color: null,
+                            price_delta: 0,
                         };
-                    }
-                    return {
-                        id: `${optName}_${vIdx}`,
-                        value: String(v),
-                        code: String(v),
-                        image: '',
-                        hex_color: null,
-                        price_delta: 0,
-                    };
-                });
+                    })
+                    .filter((v) => v.value && v.value.trim().length > 0);
 
-                return {
-                    id: opt.id || optName,
-                    name: optName,
-                    code: opt.code || optName.toUpperCase().replace(/[^A-Z0-9]/g, '_'),
-                    input_type: inputType,
-                    values: parsedValues,
-                };
+                if (parsedValues.length > 0) {
+                    groups.push({
+                        id: opt.id || optName,
+                        name: optName,
+                        code: opt.code || optName.toUpperCase().replace(/[^A-Z0-9]/g, '_'),
+                        input_type: inputType,
+                        values: parsedValues,
+                    });
+                }
             });
+
+            return groups;
         }
 
-        // If no product-level overrides, use the global customization masters!
-        if (customizationMasters && customizationMasters.length > 0) {
-            return customizationMasters
-                .filter((m) => m.is_active !== false)
-                .map((m) => ({
-                    id: m.id,
-                    name: m.name,
-                    code: m.code,
-                    input_type: m.input_type || 'text_button',
-                    values: (m.values || []).filter((v) => v.is_active !== false).map((v) => ({
-                        id: v.id,
-                        value: v.value,
-                        code: v.code || '',
-                        image: v.image || '',
-                        hex_color: v.hex_color || null,
-                        price_delta: parseFloat(v.price_delta) || 0,
-                    })),
-                }));
+        // When productDetail is loaded and has an empty options array, return empty
+        if (productDetail) {
+            return [];
         }
 
-        // Fallback default presets if offline matching exact atelier specifications
-        return [
-            {
-                name: 'METAL PURITY (KT)',
-                code: 'PURITY',
-                input_type: 'text_button',
-                values: [
-                    { value: '22KT', code: '22K', price_delta: 12000 },
-                    { value: '18KT', code: '18K', price_delta: 0 },
-                    { value: '14KT', code: '14K', price_delta: -10000 },
-                    { value: '925 SILVER', code: '925', price_delta: -45000 },
-                ],
-            },
-            {
-                name: 'FINISH OPTION',
-                code: 'FINISH',
-                input_type: 'swatch_image',
-                values: [
-                    { value: 'Yellow Gold', code: 'YG', hex_color: '#E6C875', price_delta: 0 },
-                    { value: 'White Gold', code: 'WG', hex_color: '#E0E0E0', price_delta: 0 },
-                    { value: 'Rose Gold', code: 'RG', hex_color: '#E8A88A', price_delta: 0 },
-                    { value: 'Black Ruthenium', code: 'BLK', hex_color: '#2A2A2A', price_delta: 0 },
-                ],
-            },
-            {
-                name: 'SIZE',
-                code: 'SIZE',
-                input_type: 'dropdown',
-                values: ['10', '11', '12', '13', '14', '15', '16'].map((s) => ({ value: s, code: s, price_delta: 0 })),
-            },
-            {
-                name: 'CHAIN',
-                code: 'CHAIN',
-                input_type: 'dropdown',
-                values: [
-                    { value: 'Box', code: 'BOX', price_delta: 0 },
-                    { value: 'Cable', code: 'CAB', price_delta: -2000 },
-                    { value: 'Rope', code: 'ROP', price_delta: 3000 },
-                    { value: 'Wheat', code: 'WHT', price_delta: 2500 },
-                    { value: 'None', code: 'NONE', price_delta: -8000 },
-                ],
-            },
-            {
-                name: 'GEM / STONE OPTIONS',
-                code: 'GEM',
-                input_type: 'swatch_image',
-                values: [
-                    { value: 'Natural Diamond', code: 'DIA', image: '/images/gems/diamond.png', price_delta: 0 },
-                    { value: 'Zambian Emerald', code: 'EMR', image: '/images/gems/emerald.png', price_delta: 2000 },
-                    { value: 'Ceylon Blue Sapphire', code: 'SAP', image: '/images/gems/sapphire.png', price_delta: 3500 },
-                    { value: 'Burmese Ruby', code: 'RUB', image: '/images/gems/ruby.png', price_delta: 4000 },
-                    { value: 'No Stone / Solid Gold', code: 'NONE', image: '', price_delta: 0 },
-                ],
-            },
-        ];
-    }, [productDetail, customizationMasters]);
+        // Initial placeholder state while loading
+        return [];
+    }, [productDetail]);
+
+    // Active Customization Category Helpers
+    const purityGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return l.includes('purity') || l.includes('karat') || g.code === 'PURITY';
+        });
+    }, [activeOptionGroups]);
+
+    const finishGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return l.includes('finish') || l.includes('tone') || g.code === 'FINISH';
+        });
+    }, [activeOptionGroups]);
+
+    const sizeGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return (l.includes('size') || g.code === 'SIZE') && !l.includes('gem') && !l.includes('stone') && !l.includes('diamond');
+        });
+    }, [activeOptionGroups]);
+
+    const gemGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return l.includes('gem') || l.includes('stone') || l.includes('diamond') || g.code === 'GEM';
+        });
+    }, [activeOptionGroups]);
+
+    const chainGroup = useMemo(() => {
+        return activeOptionGroups?.find((g) => {
+            const l = (g.name || '').toLowerCase();
+            return l.includes('chain') || g.code === 'CHAIN';
+        });
+    }, [activeOptionGroups]);
+
+    const hasSize = Boolean(sizeGroup && sizeGroup.values?.length > 0);
+    const hasGem = Boolean(gemGroup && gemGroup.values?.length > 0);
+    const hasChain = Boolean(chainGroup && chainGroup.values?.length > 0);
+
+    // Dynamic available finishes filtered by selected purity & product finish matrix
+    const availableFinishes = useMemo(() => {
+        if (!finishGroup || !finishGroup.values || finishGroup.values.length === 0) return [];
+        const matrix = productDetail?.finish_purities;
+        if (Array.isArray(matrix) && matrix.length > 0 && selectedPurity) {
+            const cleanSelectedPurity = selectedPurity.replace(/\s+/g, '').toUpperCase();
+            const allowedForPurity = matrix.filter((item) => {
+                const itemPurity = (item.purity_code || item.purity_name || '').replace(/\s+/g, '').toUpperCase();
+                return itemPurity === cleanSelectedPurity || cleanSelectedPurity.includes(itemPurity) || itemPurity.includes(cleanSelectedPurity);
+            });
+
+            if (allowedForPurity.length > 0) {
+                const filtered = finishGroup.values.filter((fVal) => {
+                    const valStr = (typeof fVal === 'string' ? fVal : fVal.value || '').toLowerCase();
+                    const fCode = (fVal.code || '').toUpperCase();
+                    return allowedForPurity.some((item) => {
+                        const mName = (item.finish_name || '').toLowerCase();
+                        const mCode = (item.finish_code || '').toUpperCase();
+                        return (
+                            (fCode && mCode && fCode === mCode) ||
+                            valStr.includes(mName) ||
+                            mName.includes(valStr) ||
+                            (valStr.includes('yellow') && (mName.includes('yellow') || mCode === 'YG')) ||
+                            (valStr.includes('rose') && (mName.includes('rose') || mCode === 'RG')) ||
+                            (valStr.includes('white') && (mName.includes('white') || mCode === 'WG')) ||
+                            (valStr.includes('black') && (mName.includes('black') || mCode === 'BLK' || mCode === 'BG')) ||
+                            (valStr.includes('silver') && (mName.includes('silver') || mCode === 'SILVER'))
+                        );
+                    });
+                });
+                if (filtered.length > 0) return filtered;
+            }
+        }
+        return finishGroup.values;
+    }, [finishGroup, productDetail?.finish_purities, selectedPurity]);
+
+    // Ensure selected finish is always valid when availableFinishes changes
+    useEffect(() => {
+        if (availableFinishes && availableFinishes.length > 0) {
+            const isCurrentAvailable = availableFinishes.some((fVal) => {
+                const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                const valLower = valStr.toLowerCase();
+                const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : '');
+                return selectedFinishCode === code || selectedFinishCode === valStr;
+            });
+            if (!isCurrentAvailable) {
+                const first = availableFinishes[0];
+                const valStr = typeof first === 'string' ? first : first.value;
+                const valLower = valStr.toLowerCase();
+                const code = first.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : 'YG');
+                setSelectedFinishCode(code);
+                handleSelectOption('FINISH OPTION', { value: valStr, price_delta: 0, image: first.image });
+            }
+        }
+    }, [availableFinishes, selectedFinishCode]);
 
     // Synchronize default selections when option groups change
     useEffect(() => {
@@ -563,29 +655,32 @@ export default function DynamicCollectionPage({ params }) {
                     const currentSelected = next[gName];
                     const exists = currentSelected && group.values.some((v) => v.value === currentSelected.value);
                     if (!exists && group.values.length > 0) {
-                        if (gName.includes('PURITY')) {
-                            const val = group.values.find((v) => v.value.includes('22K')) || group.values[0];
+                        const l = gName.toLowerCase();
+                        if (l.includes('purity') || l.includes('metal') || l.includes('karat')) {
+                            const val = group.values.find((v) => v.value.includes('18K')) || group.values.find((v) => v.value.includes('22K')) || group.values[0];
                             next[gName] = val;
-                            setSelectedPurity(val.value.includes('22K') ? '22KT' : val.value);
-                        } else if (gName.includes('FINISH')) {
-                            const val = group.values.find((v) => v.value.toLowerCase().includes('white')) || group.values[1] || group.values[0];
+                            const match = val.value.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i);
+                            setSelectedPurity(match ? match[0].toUpperCase() : val.value);
+                        } else if (l.includes('finish')) {
+                            const val = group.values.find((v) => v.value.toLowerCase().includes('yellow')) || group.values[0];
                             next[gName] = val;
-                            setSelectedFinishCode('WG');
-                        } else if (gName.includes('SIZE')) {
-                            const val = group.values.find((v) => v.value === '12') || group.values[0];
+                            setSelectedFinishCode(val.code || 'YG');
+                        } else if (l.includes('size')) {
+                            const val = group.values[0];
                             next[gName] = val;
-                            setSelectedSize(val.value);
-                        } else if (gName.includes('CHAIN')) {
+                            setSelectedSize(val.value.replace(/^(Ring\s*Size|Size)\s*/i, ''));
+                        } else if (l.includes('chain')) {
                             const val = group.values.find((v) => v.value.toLowerCase().includes('box')) || group.values[0];
                             next[gName] = val;
-                            setSelectedChain(val.value.includes('Box') ? 'Box' : val.value);
-                        } else if (gName.includes('GEM') || gName.includes('STONE')) {
+                            setSelectedChain(val.value.replace(/\s*Chain\s*/i, ' ').trim());
+                        } else if (l.includes('gem') || l.includes('stone')) {
                             const val = group.values.find((v) => {
                                 const value = v.value.toLowerCase();
-                                return value.includes('no stone') || value.includes('solid gold') || value === 'none';
+                                return value.includes('no stone') || value.includes('solid gold') || value.includes('none');
                             }) || group.values[0];
                             next[gName] = val;
-                            setSelectedGem(val.value.toLowerCase().includes('emerald') ? 'emerald' : val.value.toLowerCase().includes('sapphire') ? 'sapphire' : val.value.toLowerCase().includes('ruby') ? 'ruby' : 'none');
+                            const valLower = val.value.toLowerCase();
+                            setSelectedGem(valLower.includes('emerald') ? 'emerald' : valLower.includes('sapphire') ? 'sapphire' : valLower.includes('ruby') ? 'ruby' : valLower.includes('diamond') ? 'diamond' : 'none');
                         } else {
                             next[gName] = group.values[0];
                         }
@@ -626,38 +721,77 @@ export default function DynamicCollectionPage({ params }) {
         }
 
         const purityEntry = Object.entries(selectedOptions).find(([k]) =>
+            (purityGroup && k === purityGroup.name) ||
             k.toLowerCase().includes('purity') || k.toLowerCase().includes('metal') || k.toLowerCase().includes('karat')
         );
-        const purityStr = purityEntry?.[1]?.value || '22KT';
+        const purityStr = selectedPurity || purityEntry?.[1]?.value || '22KT';
         const gemEntry = Object.entries(selectedOptions).find(([k]) =>
             k.toLowerCase().includes('gem') || k.toLowerCase().includes('stone')
         );
         const gemName = gemEntry?.[1]?.value || '';
         const optionBreakdowns = [];
         let optionDelta = 0;
+        let extraGrams = 0;
+        let flatGemPrice = 0;
+
         Object.entries(selectedOptions).forEach(([optName, valObj]) => {
             const lowerName = optName.toLowerCase();
+            const valStr = typeof valObj === 'object' ? (valObj?.value || '') : String(valObj || '');
             const delta = Number(valObj?.price_delta) || 0;
+
+            // 1. Gram-based Size: check if value has grams e.g. "Size 12 (2.0g)" or "2g"
+            if (lowerName.includes('size')) {
+                const match = valStr.match(/(\d+(?:\.\d+)?)\s*g(?:ram)?/i);
+                if (match) {
+                    extraGrams += parseFloat(match[1]);
+                    optionBreakdowns.push({ name: optName, value: valStr, charge: `+${match[1]}g (metal)` });
+                }
+            }
+
+            // 2. Gram-based Chain: check if chain has grams e.g. "Box Chain (5.0g)" or "5g"
+            if (lowerName.includes('chain')) {
+                const match = valStr.match(/(\d+(?:\.\d+)?)\s*g(?:ram)?/i);
+                if (match) {
+                    extraGrams += parseFloat(match[1]);
+                    optionBreakdowns.push({ name: optName, value: valStr, charge: `+${match[1]}g (metal)` });
+                }
+            }
+
+            // 3. Flat Gemstone Price: flat charge for gemstone (e.g. ₹2,500 or ₹5,000)
+            if (lowerName.includes('gem') || lowerName.includes('stone') || lowerName.includes('diamond')) {
+                if (delta > 0) {
+                    flatGemPrice += delta;
+                    optionBreakdowns.push({ name: optName, value: valStr, charge: delta });
+                }
+            }
+
+            // Other flat option additions
             if (delta && !lowerName.includes('purity') && !lowerName.includes('metal') &&
                 !lowerName.includes('finish') && !lowerName.includes('size') &&
-                !lowerName.includes('gem') && !lowerName.includes('stone')) {
+                !lowerName.includes('gem') && !lowerName.includes('stone') && !lowerName.includes('chain')) {
                 optionDelta += delta;
                 optionBreakdowns.push({ name: optName, value: valObj.value, charge: delta });
             }
         });
 
+        const baseWeight = Number(productDetail.base_weight_grams) || 8.5;
+        const totalWeight = Math.round((baseWeight + extraGrams) * 100) / 100;
+
         let cancelled = false;
         const calculate = async () => {
             try {
+                const purityFraction = purityStr.includes('24') ? 1.0 : purityStr.includes('18') ? 0.75 : purityStr.includes('14') ? 0.585 : purityStr.includes('925') ? 0.925 : 0.916;
                 const response = await apiFetch('/price/calculate', {
                     method: 'POST',
                     body: JSON.stringify({
-                        weight_grams: Number(productDetail.base_weight_grams) || 8.5,
+                        weight_grams: totalWeight,
                         purity: purityStr,
+                        purity_fraction: purityFraction,
                         making_charge_flat: Number(productDetail.making_charge) || 0,
                         making_charge_percent: productDetail.making_charge_percent,
                         wastage_percent: Number(productDetail.wastage_percent) || 0,
                         gem: gemName,
+                        stone_charge: flatGemPrice > 0 ? flatGemPrice : null,
                     }),
                 });
                 const data = response?.data;
@@ -804,7 +938,19 @@ export default function DynamicCollectionPage({ params }) {
                                 const metalVal = rate22kt_g * item.defaultWeight;
                                 const sub = metalVal + Number(item.makingCharge || 0);
                                 const calculatedTotal = Math.round(sub * 1.03);
-                                const total = item.livePrice || calculatedTotal;
+                                const total = Number(item.livePrice || calculatedTotal || 0);
+                                const formattedPrice = Math.round(total).toLocaleString('en-IN');
+
+                                // Website Design.pdf p.11: design line tag (e.g. ORIGIN), code, then price
+                                const codeUpper = (item.code || '').toUpperCase();
+                                let collectionTag = 'ORIGIN';
+                                if (codeUpper.includes('-OR-') || codeUpper.includes('ORIGIN')) {
+                                    collectionTag = 'ORIGIN';
+                                } else if (item.collection && !['BRACELETS', 'BRACELET', 'PENDANTS', 'PENDANT', 'NECKLACES', 'NECKLACE', 'RINGS', 'RING', 'EARRINGS', 'EARRING', 'CHAINS', 'CHAIN', 'BANGLES', 'BANGLE'].includes(item.collection.toUpperCase())) {
+                                    collectionTag = item.collection.toUpperCase();
+                                } else if (item.name && !item.name.toLowerCase().startsWith('piece') && item.name.toUpperCase() !== codeUpper) {
+                                    collectionTag = item.name.toUpperCase();
+                                }
 
                                 return (
                                     <Link
@@ -821,10 +967,9 @@ export default function DynamicCollectionPage({ params }) {
                                             />
                                         </div>
                                         <div className="category-product-info">
-                                            {/* Website Design.pdf p.11: design name, then code, then price */}
-                                            <span className="cat-prod-collection">{(item.name || item.collection || '').toUpperCase()}</span>
+                                            <span className="cat-prod-collection">{collectionTag}</span>
                                             <h3 className="cat-prod-code">{item.code}</h3>
-                                            <span className="cat-prod-price">₹ {total.toLocaleString('en-IN')}</span>
+                                            <span className="cat-prod-price">₹ {formattedPrice}</span>
                                         </div>
                                     </Link>
                                 );
@@ -902,9 +1047,9 @@ export default function DynamicCollectionPage({ params }) {
     }
 
     const displayPrice = priceBreakdown?.total
-        ? Number(priceBreakdown.total).toLocaleString('en-IN')
+        ? Number(Math.round(priceBreakdown.total)).toLocaleString('en-IN')
         : (productDetail?.base_pricing?.total_price
-            ? Number(productDetail.base_pricing.total_price).toLocaleString('en-IN')
+            ? Number(Math.round(productDetail.base_pricing.total_price)).toLocaleString('en-IN')
             : '0');
 
     return (
@@ -1005,146 +1150,196 @@ export default function DynamicCollectionPage({ params }) {
                     </div>
                     <div className="atelier-specs-divider" />
 
-                    {/* METAL PURITY — full-width 4-button row */}
-                    <div className="atelier-control-group">
-                        <div className="atelier-spec-label">METAL PURITY (KT)</div>
-                        <div className="atelier-purity-row">
-                            {['22KT', '18KT', '14KT', '925 SILVER'].map((purity) => {
-                                const isSelected = selectedPurity === purity;
-                                const delta = purity === '22KT' ? 12000 : purity === '14KT' ? -10000 : purity === '925 SILVER' ? -45000 : 0;
-                                return (
-                                    <button
-                                        key={purity}
-                                        type="button"
-                                        className={`atelier-purity-btn ${isSelected ? 'active' : ''}`}
-                                        onClick={() => {
-                                            setSelectedPurity(purity);
-                                            handleSelectOption('METAL PURITY (KT)', { value: purity, price_delta: delta });
-                                        }}
-                                    >
-                                        {purity}
-                                    </button>
-                                );
-                            })}
+                    {/* METAL PURITY — only render if configured for this product */}
+                    {purityGroup && purityGroup.values?.length > 0 && (
+                        <div className="atelier-control-group">
+                            <div className="atelier-spec-label">METAL PURITY (KT)</div>
+                            <div className="atelier-purity-row">
+                                {purityGroup.values.map((pVal) => {
+                                    const rawVal = pVal.value || pVal.code || pVal;
+                                    const match = typeof rawVal === 'string' ? rawVal.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
+                                    const cleanPurity = match ? match[0].toUpperCase() : rawVal;
+                                    const isSelected = selectedPurity === cleanPurity || selectedPurity === rawVal;
+                                    const delta = Number(pVal.price_delta) || (cleanPurity === '22KT' ? 12000 : cleanPurity === '14KT' ? -10000 : cleanPurity === '925 SILVER' ? -45000 : 0);
+                                    return (
+                                        <button
+                                            key={pVal.id || rawVal}
+                                            type="button"
+                                            className={`atelier-purity-btn ${isSelected ? 'active' : ''}`}
+                                            onClick={() => {
+                                                setSelectedPurity(cleanPurity);
+                                                const grpName = purityGroup?.name || 'Metal Colors & Purities';
+                                                handleSelectOption(grpName, { value: rawVal, price_delta: delta });
+                                            }}
+                                        >
+                                            {cleanPurity}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* FINISH OPTION — full-width 4-bar row */}
-                    <div className="atelier-control-group">
-                        <div className="atelier-spec-label">
-                            FINISH OPTIONS
+                    {/* FINISH OPTION — only render if configured for this product */}
+                    {availableFinishes && availableFinishes.length > 0 && (
+                        <div className="atelier-control-group">
+                            <div className="atelier-spec-label">
+                                FINISH OPTIONS
+                            </div>
+                            <div className="atelier-finish-row">
+                                {availableFinishes.map((fVal, idx) => {
+                                    const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                                    const valLower = valStr.toLowerCase();
+                                    const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
+                                    const matchedBar = finishBarsData.find((b) => b.code === code || b.name.toLowerCase() === valLower) || {
+                                        name: valStr,
+                                        code: code,
+                                        label: valStr.split(' ')[0].toUpperCase(),
+                                        style: fVal.hex_color ? { background: fVal.hex_color } : { background: '#D4AF37' }
+                                    };
+                                    const isSelected = selectedFinishCode === code || selectedFinishCode === valStr;
+                                    return (
+                                        <button
+                                            key={fVal.id || code}
+                                            type="button"
+                                            aria-label={matchedBar.name || valStr}
+                                            className={`atelier-finish-bar ${isSelected ? 'active' : ''}`}
+                                            style={matchedBar.style}
+                                            onClick={() => {
+                                                setSelectedFinishCode(code);
+                                                const grpName = finishGroup?.name || 'Finish Options';
+                                                handleSelectOption(grpName, { value: valStr, price_delta: 0, image: fVal.image });
+                                                if (fVal.image) {
+                                                    const imgIdx = thumbnails.findIndex(t => t.src === fVal.image);
+                                                    if (imgIdx !== -1) {
+                                                        setActiveImgIndex(imgIdx);
+                                                        return;
+                                                    }
+                                                }
+                                                if (code === 'YG' || valLower.includes('yellow')) setActiveImgIndex(0);
+                                                else if (code === 'WG' || valLower.includes('white')) setActiveImgIndex(1);
+                                                else if (code === 'RG' || valLower.includes('rose')) setActiveImgIndex(2);
+                                            }}
+                                        >
+                                            {matchedBar.label && (
+                                                <span className={`atelier-finish-bar-label${matchedBar.labelLight ? ' is-light' : ''}`}>
+                                                    {matchedBar.label}
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
-                        <div className="atelier-finish-row">
-                            {finishBarsData.map((bar, idx) => {
-                                const isSelected = selectedFinishCode === bar.code;
-                                return (
-                                    <button
-                                        key={bar.code}
-                                        type="button"
-                                        aria-label={bar.name}
-                                        className={`atelier-finish-bar ${isSelected ? 'active' : ''}`}
-                                        style={bar.style}
-                                        onClick={() => {
-                                            setSelectedFinishCode(bar.code);
-                                            handleSelectOption('FINISH OPTION', { value: bar.name, price_delta: 0 });
-                                            if (idx === 0) setActiveImgIndex(0);
-                                            else if (idx === 1) setActiveImgIndex(1);
-                                            else if (idx === 2) setActiveImgIndex(2);
-                                        }}
-                                    >
-                                        {bar.label && <span className={`atelier-finish-bar-label${bar.labelLight ? ' is-light' : ''}`}>{bar.label}</span>}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    )}
 
-                    {/* SIZE + GEM on the same row */}
-                    <div className="atelier-size-gem-row">
-                        <div className="atelier-control-group" style={{ marginBottom: 0 }}>
-                            <div className="atelier-spec-label">SIZE</div>
-                            <div className="atelier-box-select-wrapper">
+                    {/* SIZE and/or GEM: Only render if at least one is enabled */}
+                    {(hasSize || hasGem) && (
+                        <div className={hasSize && hasGem ? "atelier-size-gem-row" : "atelier-single-option-row"}>
+                            {hasSize && (
+                                <div className="atelier-control-group" style={{ marginBottom: 0, maxWidth: hasGem ? '100%' : '50%' }}>
+                                    <div className="atelier-spec-label">SIZE</div>
+                                    <div className="atelier-box-select-wrapper">
+                                        <select
+                                            className="atelier-box-select"
+                                            value={selectedSize}
+                                            onChange={(e) => {
+                                                const chosenVal = e.target.value;
+                                                const foundObj = sizeGroup.values.find((s) => (s.value || s) === chosenVal || (s.value || s).replace(/^(Ring\s*Size|Size)\s*/i, '') === chosenVal);
+                                                setSelectedSize(chosenVal);
+                                                const grpName = sizeGroup?.name || 'Size';
+                                                handleSelectOption(grpName, { value: foundObj ? foundObj.value : chosenVal, price_delta: 0 });
+                                            }}
+                                        >
+                                            {sizeGroup.values.map((szObj) => {
+                                                const szVal = typeof szObj === 'string' ? szObj : szObj.value;
+                                                const cleanSz = szVal.replace(/^(Ring\s*Size|Size)\s*/i, '');
+                                                return (
+                                                    <option key={szObj.id || szVal} value={cleanSz}>
+                                                        {cleanSz}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+
+                            {hasGem && (
+                                <div className="atelier-control-group" style={{ marginBottom: 0 }}>
+                                    <div className="atelier-spec-label">GEM / STONE OPTIONS</div>
+                                    <div className="atelier-gems-row">
+                                        {gemGroup.values.map((gem, idx) => {
+                                            const valLower = (gem.value || '').toLowerCase();
+                                            const codeLower = (gem.code || '').toLowerCase();
+                                            const isNoStone = valLower.includes('no stone') || valLower.includes('solid gold') || valLower.includes('none');
+
+                                            const typeStr = isNoStone ? 'none'
+                                                : codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
+                                                    : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
+                                                        : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
+                                                            : codeLower.includes('rub') || valLower.includes('rub') ? 'ruby'
+                                                                : 'diamond';
+
+                                            const grpName = gemGroup?.name || 'Gem & Stone Options';
+                                            const currentVal = selectedOptions[grpName]?.value || selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value;
+                                            const isSelected = currentVal ? currentVal === gem.value : (idx === 0);
+
+                                            const rawDelta = parseFloat(gem.price_delta) || 0;
+                                            const delta = Math.abs(rawDelta);
+                                            const gemTitle = delta > 0 ? `${gem.value} (+₹${delta.toLocaleString('en-IN')})` : gem.value;
+
+                                            return (
+                                                <FacetedGemstone
+                                                    key={gem.id || gem.code || gem.value || idx}
+                                                    type={typeStr}
+                                                    imageUrl={isNoStone ? null : (gem.image || `/images/gems/${typeStr}.png`)}
+                                                    title={gemTitle}
+                                                    isSelected={isSelected}
+                                                    onClick={() => {
+                                                        setSelectedGem(typeStr);
+                                                        handleSelectOption(grpName, { value: gem.value, price_delta: delta, image: gem.image });
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* CHAIN — only render if chain option is enabled for this piece */}
+                    {hasChain && (
+                        <div className="atelier-control-group" style={{ marginTop: '0.9rem' }}>
+                            <div className="atelier-spec-label">CHAIN</div>
+                            <div className="atelier-box-select-wrapper" style={{ maxWidth: '50%' }}>
                                 <select
                                     className="atelier-box-select"
-                                    value={selectedSize}
+                                    value={selectedChain}
                                     onChange={(e) => {
-                                        setSelectedSize(e.target.value);
-                                        handleSelectOption('SIZE', { value: e.target.value, price_delta: 0 });
+                                        const chosenVal = e.target.value;
+                                        const foundObj = chainGroup.values.find((c) => (c.value || c) === chosenVal || (c.code || '') === chosenVal);
+                                        setSelectedChain(chosenVal);
+                                        handleSelectOption('CHAIN', {
+                                            value: chosenVal,
+                                            price_delta: Number(foundObj?.price_delta || (chosenVal === 'None' ? -8000 : chosenVal === 'Rope' ? 3000 : 0))
+                                        });
                                     }}
                                 >
-                                    {['10', '11', '12', '13', '14', '15', '16'].map((sz) => (
-                                        <option key={sz} value={sz}>{sz}</option>
-                                    ))}
+                                    {chainGroup.values.map((chObj) => {
+                                        const chVal = typeof chObj === 'string' ? chObj : chObj.value;
+                                        const cleanCh = chVal.replace(/\s*Chain\s*/i, ' ').trim();
+                                        return (
+                                            <option key={chObj.id || chVal} value={cleanCh}>
+                                                {cleanCh}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             </div>
                         </div>
-
-                        <div className="atelier-control-group" style={{ marginBottom: 0 }}>
-                            <div className="atelier-spec-label">GEM / STONE OPTIONS</div>
-                            <div className="atelier-gems-row">
-                                {(() => {
-                                    const gemGroup = activeOptionGroups?.find((g) => g.name.includes('GEM') || g.code === 'GEM');
-                                    const gemValues = gemGroup?.values?.length ? gemGroup.values : [
-                                        { value: 'Natural Diamond', code: 'DIA', image: '/images/gems/diamond.png', price_delta: 0 },
-                                        { value: 'Zambian Emerald', code: 'EMR', image: '/images/gems/emerald.png', price_delta: 2000 },
-                                        { value: 'Ceylon Blue Sapphire', code: 'SAP', image: '/images/gems/sapphire.png', price_delta: 3500 },
-                                    ];
-
-                                    return gemValues.map((gem, idx) => {
-                                        const valLower = (gem.value || '').toLowerCase();
-                                        const codeLower = (gem.code || '').toLowerCase();
-                                        const typeStr = codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
-                                            : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
-                                                : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
-                                                    : 'diamond';
-
-                                        const currentVal = selectedOptions['GEM / STONE OPTIONS']?.value;
-                                        const isSelected = currentVal ? currentVal === gem.value : selectedGem === typeStr || (idx === 0 && !selectedGem);
-
-                                        const rawDelta = parseFloat(gem.price_delta) || 0;
-                                        const delta = Math.abs(rawDelta);
-                                        const gemTitle = delta > 0 ? `${gem.value} (+₹${delta.toLocaleString('en-IN')})` : gem.value;
-
-                                        return (
-                                            <FacetedGemstone
-                                                key={gem.id || gem.code || gem.value || idx}
-                                                type={typeStr}
-                                                imageUrl={gem.image || `/images/gems/${typeStr}.png`}
-                                                title={gemTitle}
-                                                isSelected={isSelected}
-                                                onClick={() => {
-                                                    setSelectedGem(typeStr);
-                                                    handleSelectOption('GEM / STONE OPTIONS', { value: gem.value, price_delta: delta, image: gem.image });
-                                                }}
-                                            />
-                                        );
-                                    });
-                                })()}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* CHAIN — below the size+gem row */}
-                    <div className="atelier-control-group" style={{ marginTop: '0.9rem' }}>
-                        <div className="atelier-spec-label">CHAIN</div>
-                        <div className="atelier-box-select-wrapper" style={{ maxWidth: '50%' }}>
-                            <select
-                                className="atelier-box-select"
-                                value={selectedChain}
-                                onChange={(e) => {
-                                    setSelectedChain(e.target.value);
-                                    handleSelectOption('CHAIN', {
-                                        value: e.target.value,
-                                        price_delta: e.target.value === 'None' ? -8000 : e.target.value === 'Rope' ? 3000 : 0
-                                    });
-                                }}
-                            >
-                                {['Box', 'Cable', 'Rope', 'Wheat', 'None'].map((ch) => (
-                                    <option key={ch} value={ch}>{ch}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                    )}
 
                     {/* BOTTOM ACTION ROW: full-width line, then price left / buttons right */}
                     <div className="atelier-bottom-action-row">
@@ -1181,41 +1376,6 @@ export default function DynamicCollectionPage({ params }) {
                     </div>
                 </div>
             </main>
-
-            {relatedProducts.length > 0 && (
-                <section className="atelier-related-section" aria-labelledby="related-pieces-title">
-                    <div className="atelier-related-heading">
-                        <span className="atelier-related-kicker">CONTINUE EXPLORING</span>
-                        <h2 id="related-pieces-title">Related Pieces</h2>
-                        <p>Discover more designs from the {productDetail?.collection?.name || 'Pintaara'} collection.</p>
-                    </div>
-
-                    <div className="atelier-related-grid">
-                        {relatedProducts.map((product) => (
-                            <Link
-                                href={`/collection/${product.code}`}
-                                className="atelier-related-card"
-                                key={product.id}
-                            >
-                                <div className="atelier-related-image-frame">
-                                    <img src={product.image} alt={product.name || 'Related Pintaara jewelry'} />
-                                </div>
-                                <div className="atelier-related-card-info">
-                                    <div>
-                                        <span className="atelier-related-collection">{product.collection}</span>
-                                        <h3>{product.name || product.code}</h3>
-                                    </div>
-                                    {product.livePrice && (
-                                        <span className="atelier-related-price">
-                                            MRP ₹ {Number(product.livePrice).toLocaleString('en-IN')}
-                                        </span>
-                                    )}
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </section>
-            )}
 
             {/* Bottom Footer Bar */}
             <footer className="collection-bottom-bar light-theme">
@@ -1267,52 +1427,54 @@ export default function DynamicCollectionPage({ params }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
                                 <span>Metal Weight &amp; Purity:</span>
-                                <strong style={{ color: '#1A1A1A' }}>{priceBreakdown.weight_grams}g ({selectedPurity})</strong>
+                                <strong style={{ color: '#1A1A1A' }}>{priceBreakdown.weight_grams}g ({selectedPurity || '18KT'})</strong>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Live Metal Value (@ ₹{priceBreakdown.rate_used?.rate_per_gram}/g):</span>
-                                <strong style={{ color: '#1A1A1A' }}>₹{Number(priceBreakdown.metal_value).toLocaleString('en-IN')}</strong>
+                                <span>Metal Value (@ ₹{Number(Math.round(priceBreakdown.rate_used?.rate_per_gram || priceBreakdown.rate_per_gram || 0)).toLocaleString('en-IN')}/g):</span>
+                                <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.metal_value)).toLocaleString('en-IN')}</strong>
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Making Charges:</span>
-                                <strong style={{ color: '#1A1A1A' }}>₹{Number(priceBreakdown.making_charge).toLocaleString('en-IN')}</strong>
-                            </div>
+                            {(priceBreakdown.wastage_value > 0 || priceBreakdown.making_percent_value > 0) && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                                    <span>Making ({priceBreakdown.wastage_percent || 2.5}% of Metal):</span>
+                                    <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.wastage_value || priceBreakdown.making_percent_value)).toLocaleString('en-IN')}</strong>
+                                </div>
+                            )}
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Gemstone Option ({selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value || (selectedGem === 'diamond' ? 'Natural Diamond' : selectedGem === 'emerald' ? 'Zambian Emerald' : 'Ceylon Blue Sapphire')}):</span>
-                                <strong style={{ color: '#1A1A1A' }}>
-                                    {(() => {
-                                        const gemDelta = selectedOptions['GEM / STONE OPTIONS']?.price_delta ?? selectedOptions['GEM']?.price_delta ?? (selectedGem === 'emerald' ? 2000 : selectedGem === 'sapphire' ? 3500 : 0);
-                                        const numDelta = Math.abs(parseFloat(gemDelta) || 0);
-                                        if (numDelta > 0) return `+₹${numDelta.toLocaleString('en-IN')}`;
-                                        return 'Included';
-                                    })()}
-                                </strong>
-                            </div>
+                            {(priceBreakdown.author_charge > 0 || priceBreakdown.making_charge > 0) && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                                    <span>Author / Crafting Fee:</span>
+                                    <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.author_charge || priceBreakdown.making_charge)).toLocaleString('en-IN')}</strong>
+                                </div>
+                            )}
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Chain Selection ({selectedOptions['CHAIN']?.value || selectedOptions['CHAIN TYPE']?.value || selectedChain}):</span>
-                                <strong style={{ color: '#1A1A1A' }}>
-                                    {(() => {
-                                        const chainDelta = selectedOptions['CHAIN']?.price_delta ?? selectedOptions['CHAIN TYPE']?.price_delta ?? (selectedChain === 'None' ? -8000 : selectedChain === 'Rope' ? 3000 : 0);
-                                        const numDelta = parseFloat(chainDelta) || 0;
-                                        if (numDelta > 0) return `+₹${numDelta.toLocaleString('en-IN')}`;
-                                        if (numDelta < 0) return `-₹${Math.abs(numDelta).toLocaleString('en-IN')}`;
-                                        return 'Included';
-                                    })()}
-                                </strong>
-                            </div>
+                            {hasGem && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                                    <span>Gem ({selectedOptions[gemGroup?.name]?.value || selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value || 'No Stone'}):</span>
+                                    <strong style={{ color: '#1A1A1A' }}>
+                                        {Number(priceBreakdown.stone_charge || 0) > 0
+                                            ? `+₹${Number(Math.round(priceBreakdown.stone_charge)).toLocaleString('en-IN')}`
+                                            : '₹0'}
+                                    </strong>
+                                </div>
+                            )}
+
+                            {hasChain && selectedChain && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                                    <span>Chain Selection ({selectedChain}):</span>
+                                    <strong style={{ color: '#1A1A1A' }}>₹0</strong>
+                                </div>
+                            )}
 
                             <div style={{ borderTop: '1px solid #EEE', paddingTop: '0.6rem', display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Subtotal:</span>
-                                <strong style={{ color: '#1A1A1A' }}>₹{Number(priceBreakdown.subtotal).toLocaleString('en-IN')}</strong>
+                                <span>Taxable Subtotal:</span>
+                                <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.subtotal)).toLocaleString('en-IN')}</strong>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
                                 <span>GST (3%):</span>
-                                <strong style={{ color: '#1A1A1A' }}>₹{Number(priceBreakdown.gst).toLocaleString('en-IN')}</strong>
+                                <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.gst || priceBreakdown.gst_amount)).toLocaleString('en-IN')}</strong>
                             </div>
 
                             <div style={{
@@ -1325,14 +1487,14 @@ export default function DynamicCollectionPage({ params }) {
                                 justifyContent: 'space-between',
                                 alignItems: 'center'
                             }}>
-                                <span style={{ fontWeight: '700', color: '#1A1A1A' }}>Final Transparent Total:</span>
+                                <span style={{ fontWeight: '700', color: '#1A1A1A' }}>Final Transparent MRP:</span>
                                 <span style={{ fontWeight: '800', color: '#1A1A1A', fontSize: '1.25rem' }}>
-                                    ₹{Number(priceBreakdown.total).toLocaleString('en-IN')}
+                                    ₹{Number(Math.round(priceBreakdown.total || priceBreakdown.total_price)).toLocaleString('en-IN')}
                                 </span>
                             </div>
 
                             <div style={{ fontSize: '0.72rem', color: '#777', marginTop: '0.5rem', textAlign: 'center' }}>
-                                Live Spot Rate certified Gujarat Jeweler Association daily bulletin ({priceBreakdown.rate_used?.rate_date}).
+                                Live Spot Rate certified Gujarat Jeweler Association daily bulletin ({priceBreakdown.rate_used?.rate_date || 'Today'}).
                             </div>
                         </div>
                     </div>
@@ -1715,8 +1877,8 @@ export default function DynamicCollectionPage({ params }) {
                 }
                 .atelier-gem-btn:hover { transform: scale(1.1); }
                 .atelier-gem-btn.active {
-                    transform: scale(1.15);
-                    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+                    transform: scale(1.18);
+                    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 3.5px #1A1A1A;
                 }
                 .atelier-gem-btn img {
                     width: 100%;

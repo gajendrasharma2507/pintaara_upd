@@ -120,7 +120,7 @@ export default {
       body: formData,
     });
   },
-  getProducts: (params) => {
+  getProducts: async (params) => {
     let query = '';
     if (params && typeof params === 'object') {
       const searchParams = new URLSearchParams();
@@ -134,15 +134,135 @@ export default {
     } else if (typeof params === 'string' && params) {
       query = params.startsWith('?') ? params : `?${params}`;
     }
-    return adminFetch(`/admin/products${query}`);
+
+    // 1. Try authenticated admin endpoint
+    try {
+      const res = await adminFetch(`/admin/products${query}`);
+      if (res && res.status === 'success' && Array.isArray(res.data) && res.data.length > 0) {
+        return {
+          ...res,
+          data: res.data.map(p => ({
+            ...p,
+            sku: p.sku || p.design_code || `P-${p.id}`,
+            image: p.image || p.primary_image || (Array.isArray(p.images) && p.images[0]) || '',
+            status: p.status || 'active',
+            collection_master_id: p.collection_master_id || p.collection?.id,
+            collection_name: p.collection_name || p.collection?.name || 'Jewelry',
+          }))
+        };
+      }
+    } catch (_) {}
+
+    // 2. Fallback to public products endpoint
+    try {
+      const pub = await fetch(`${API_BASE_URL}/products${query}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (pub.ok) {
+        const pubJson = await pub.json();
+        if (pubJson && pubJson.status === 'success' && Array.isArray(pubJson.data) && pubJson.data.length > 0) {
+          return {
+            ...pubJson,
+            data: pubJson.data.map(p => ({
+              ...p,
+              sku: p.sku || p.design_code || `P-${p.id}`,
+              image: p.image || p.primary_image || (Array.isArray(p.images) && p.images[0]) || '',
+              status: p.status || 'active',
+              collection_master_id: p.collection_master_id || p.collection?.id,
+              collection_name: p.collection_name || p.collection?.name || 'Jewelry',
+              total_price: p.total_price || p.live_price?.total_price,
+              price: p.price || (p.live_price?.total_price ? `₹${Math.round(p.live_price.total_price).toLocaleString('en-IN')}` : undefined),
+            }))
+          };
+        }
+      }
+    } catch (_) {}
+
+    // 3. Fallback directly to production live API
+    try {
+      const live = await fetch(`https://api.pintaara.com/api/products${query}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (live.ok) {
+        const liveJson = await live.json();
+        if (liveJson && liveJson.status === 'success' && Array.isArray(liveJson.data) && liveJson.data.length > 0) {
+          return {
+            ...liveJson,
+            data: liveJson.data.map(p => ({
+              ...p,
+              sku: p.sku || p.design_code || `P-${p.id}`,
+              image: p.image || p.primary_image || (Array.isArray(p.images) && p.images[0]) || '',
+              status: p.status || 'active',
+              collection_master_id: p.collection_master_id || p.collection?.id,
+              collection_name: p.collection_name || p.collection?.name || 'Jewelry',
+              total_price: p.total_price || p.live_price?.total_price,
+              price: p.price || (p.live_price?.total_price ? `₹${Math.round(p.live_price.total_price).toLocaleString('en-IN')}` : undefined),
+            }))
+          };
+        }
+      }
+    } catch (_) {}
+
+    // 4. Fallback to localStorage cache
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('pintaara_products_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return { status: 'success', data: parsed };
+          }
+        }
+      } catch (_) {}
+    }
+
+    return { status: 'success', data: [] };
   },
-  getProduct: (id) => adminFetch(`/admin/products/${id}`),
+  getProduct: async (id) => {
+    try {
+      const res = await adminFetch(`/admin/products/${id}`);
+      if (res && res.status === 'success' && res.data) return res;
+    } catch (_) {}
+
+    try {
+      const pub = await fetch(`${API_BASE_URL}/products/${id}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (pub.ok) {
+        const pubJson = await pub.json();
+        if (pubJson && pubJson.status === 'success' && pubJson.data) return pubJson;
+      }
+    } catch (_) {}
+
+    return null;
+  },
   createProduct: (data) => adminFetch('/admin/products', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (id, data) => adminFetch(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProduct: (id) => adminFetch(`/admin/products/${id}`, { method: 'DELETE' }),
   previewProductPrice: (data) => adminFetch('/admin/products/preview-price', { method: 'POST', body: JSON.stringify(data) }),
   getOptionMasters: () => adminFetch('/admin/option-masters'),
-  getMasters: () => adminFetch('/admin/masters'),
+  getMasters: async () => {
+    try {
+      const res = await adminFetch('/admin/masters');
+      if (res && res.status === 'success' && Array.isArray(res.data) && res.data.length > 0) {
+        return res;
+      }
+    } catch (_) {}
+
+    try {
+      const pub = await fetch(`${API_BASE_URL}/masters`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (pub.ok) {
+        const pubJson = await pub.json();
+        if (pubJson && pubJson.status === 'success' && Array.isArray(pubJson.data) && pubJson.data.length > 0) {
+          return pubJson;
+        }
+      }
+    } catch (_) {}
+
+    return { status: 'success', data: [] };
+  },
   createMaster: (data) => adminFetch('/admin/masters', { method: 'POST', body: JSON.stringify(data) }),
   updateMaster: (id, data) => adminFetch(`/admin/masters/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteMaster: (id) => adminFetch(`/admin/masters/${id}`, { method: 'DELETE' }),
@@ -151,7 +271,24 @@ export default {
   deleteMasterValue: (valueId) => adminFetch(`/admin/masters/values/${valueId}`, { method: 'DELETE' }),
   saveMasters: (masters) => adminFetch('/admin/masters', { method: 'POST', body: JSON.stringify({ masters }) }),
   resetMasters: () => adminFetch('/admin/masters/reset', { method: 'POST' }),
-  getGoldRates: () => adminFetch('/admin/gold-rates'),
+  getGoldRates: async () => {
+    try {
+      const res = await adminFetch('/admin/gold-rates');
+      if (res && res.status === 'success' && res.data) return res;
+    } catch (_) {}
+
+    try {
+      const pub = await fetch(`${API_BASE_URL}/gold-rate/today`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (pub.ok) {
+        const pubJson = await pub.json();
+        if (pubJson) return pubJson;
+      }
+    } catch (_) {}
+
+    return null;
+  },
   updateGoldRate: (rateData) => adminFetch('/admin/gold-rates', { method: 'POST', body: JSON.stringify(rateData) }),
   getOrders: () => adminFetch('/admin/orders'),
   getOrder: (id) => adminFetch(`/admin/orders/${id}`),
@@ -177,12 +314,30 @@ export default {
       body: formData,
     });
   },
-  uploadProductMedia: async (file) => {
-    const formData = new FormData();
-    formData.append('media', file);
+  uploadProductMedia: async (fileOrFormData) => {
+    let body;
+    if (fileOrFormData instanceof FormData) {
+      body = fileOrFormData;
+    } else {
+      body = new FormData();
+      body.append('media', fileOrFormData);
+    }
     return adminFetch('/admin/products/upload-media', {
       method: 'POST',
-      body: formData,
+      body,
+    });
+  },
+  uploadMedia: async (fileOrFormData) => {
+    let body;
+    if (fileOrFormData instanceof FormData) {
+      body = fileOrFormData;
+    } else {
+      body = new FormData();
+      body.append('media', fileOrFormData);
+    }
+    return adminFetch('/admin/products/upload-media', {
+      method: 'POST',
+      body,
     });
   },
   // Sequel 247 Logistics

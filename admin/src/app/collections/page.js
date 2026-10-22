@@ -249,17 +249,20 @@ export default function AdminCollectionsPage() {
     const newStatus = col.status === "active" ? "hidden" : "active";
     const updated = { ...col, status: newStatus };
 
+    const originalCols = [...collections];
     const nextCols = collections.map((c) => (c.id === col.id ? updated : c));
     setCollections(nextCols);
     safeSetCollectionsCache(nextCols);
 
     try {
       await adminApi.updateCollection(col.id, { ...col, status: newStatus });
+      showToast(`"${col.name}" is now ${newStatus === "active" ? "Active" : "Draft"}`);
     } catch (err) {
       console.warn("Status toggle API sync error:", err);
+      setCollections(originalCols);
+      safeSetCollectionsCache(originalCols);
+      showToast(`⚠ Could not toggle status — reverted`);
     }
-
-    showToast(`"${col.name}" is now ${newStatus === "active" ? "Active" : "Draft"}`);
   };
 
   // Copy Collection URL Handle
@@ -280,10 +283,12 @@ export default function AdminCollectionsPage() {
     const finalSlug = slug.trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const finalImage = image || "/images/concept-hero1.png";
 
+    // Do not send base64 data URIs to the API — only server-uploaded URLs
+    const apiImage = (finalImage && !finalImage.startsWith("data:")) ? finalImage : undefined;
     const payload = {
       name: name.trim(),
       slug: finalSlug,
-      image: finalImage,
+      image: apiImage,
       description: "",
       status: status,
     };
@@ -294,20 +299,19 @@ export default function AdminCollectionsPage() {
         const updatedItem = apiRes?.data || {
           id: editingId,
           ...payload,
+          image: finalImage, // keep full image (may be base64) in local state only
           piecesCount: collections.find((c) => c.id === editingId)?.piecesCount || 0,
         };
 
-        const nextCols = collections.map((c) => (c.id === editingId ? { ...c, ...updatedItem } : c));
+        const nextCols = collections.map((c) => (c.id === editingId ? { ...c, ...updatedItem, image: finalImage } : c));
         setCollections(nextCols);
         safeSetCollectionsCache(nextCols);
         showToast(`Collection "${name}" updated`);
       } else {
         const apiRes = await adminApi.createCollection(payload);
-        const newItem = apiRes?.data || {
-          id: Date.now(),
-          ...payload,
-          piecesCount: 0,
-        };
+        const newItem = apiRes?.data
+          ? { ...apiRes.data, image: finalImage } // keep full image in local state
+          : { id: Date.now(), ...payload, image: finalImage, piecesCount: 0 };
 
         const nextCols = [newItem, ...collections];
         setCollections(nextCols);
@@ -318,17 +322,16 @@ export default function AdminCollectionsPage() {
       setShowModal(false);
     } catch (err) {
       console.error("Save collection error:", err);
+      showToast(`⚠ API unreachable — saved locally only`);
       if (editingId) {
-        const nextCols = collections.map((c) => (c.id === editingId ? { ...c, ...payload } : c));
+        const nextCols = collections.map((c) => (c.id === editingId ? { ...c, ...payload, image: finalImage } : c));
         setCollections(nextCols);
         safeSetCollectionsCache(nextCols);
-        showToast(`Collection "${name}" updated`);
       } else {
-        const newItem = { id: Date.now(), ...payload, piecesCount: 0 };
+        const newItem = { id: Date.now(), ...payload, image: finalImage, piecesCount: 0 };
         const nextCols = [newItem, ...collections];
         setCollections(nextCols);
         safeSetCollectionsCache(nextCols);
-        showToast(`Collection "${name}" created`);
       }
       setShowModal(false);
     } finally {

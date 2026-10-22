@@ -6,7 +6,6 @@ import ProductForm from "@/components/ProductForm";
 
 export default function EditProductPage() {
   const params = useParams();
-  const id = params?.id;
-
-  return <ProductForm isEdit={true} productId={id} />;
+  const productId = params?.id;
+  return <ProductForm isEdit={true} productId={productId} />;
 }

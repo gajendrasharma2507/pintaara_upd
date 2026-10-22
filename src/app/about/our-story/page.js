@@ -1,2 +1,7 @@
+"use client";
+
 import StoryPage from '../story/page';
-export default StoryPage;
+
+export default function OurStoryPage() {
+    return <StoryPage />;
+}

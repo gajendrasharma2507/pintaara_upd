@@ -23,6 +23,7 @@ export default function AdminGoldRatesPage() {
   const [goldFloorInput, setGoldFloorInput] = useState("0");
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState(null);
+  const [saveErrorMsg, setSaveErrorMsg] = useState(null);
 
   // References to preserve previous values for tick comparison
   const prevItemsRef = useRef({});
@@ -232,6 +233,7 @@ export default function AdminGoldRatesPage() {
     if (e && e.preventDefault) e.preventDefault();
     setIsSaving(true);
     setSaveSuccessMsg(null);
+    setSaveErrorMsg(null);
     try {
       const payload = overridePayload || {
         gold_extra_offset: Number(goldOffsetInput || 0),
@@ -267,11 +269,11 @@ export default function AdminGoldRatesPage() {
         }
         setTimeout(() => setSaveSuccessMsg(null), 5000);
       } else {
-        alert("Could not update pricing rules. Check backend connection.");
+        setSaveErrorMsg("Could not update pricing rules. Check backend connection.");
       }
     } catch (err) {
       console.error("Save error:", err);
-      alert("Failed to save rules: " + err.message);
+      setSaveErrorMsg("Failed to save rules: " + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -1177,10 +1179,12 @@ export default function AdminGoldRatesPage() {
               </div>
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-                <div style={{ fontSize: "12px", color: "#10b981", fontWeight: 700 }}>
-                  {saveSuccessMsg || (Number(goldOffsetInput || 0) === 0
-                    ? "● Active: 100% exact parity with Aarav Bullion spot rates."
-                    : `● Active: Base market spot + ₹${Number(goldOffsetInput).toLocaleString("en-IN")} atelier premium.`)}
+                <div style={{ fontSize: "12px", color: saveErrorMsg ? "#dc2626" : "#10b981", fontWeight: 700 }}>
+                  {saveErrorMsg
+                    ? `⚠ ${saveErrorMsg}`
+                    : saveSuccessMsg || (Number(goldOffsetInput || 0) === 0
+                      ? "● Active: 100% exact parity with Aarav Bullion spot rates."
+                      : `● Active: Base market spot + ₹${Number(goldOffsetInput).toLocaleString("en-IN")} atelier premium.`)}
                 </div>
 
                 <div style={{ display: "flex", gap: "10px" }}>

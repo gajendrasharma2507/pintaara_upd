@@ -360,16 +360,18 @@ export default function OrderDetailPage() {
 
   const handleToggleFulfillment = async (status) => {
     if (isSubmitting) return;
+    const prevStatus = fulfillmentStatus;
     setFulfillmentStatus(status);
     setShowFulfillDropdown(false);
     setIsSubmitting(true);
 
-    triggerNotification(`Order status updated: ${status === "fulfilled" ? "Fulfilled" : "Unfulfilled"}`);
-
     try {
       await api.updateOrderFulfillment(order.order_number || order.id, status);
+      triggerNotification(`Order status updated: ${status === "fulfilled" ? "Fulfilled" : "Unfulfilled"}`);
     } catch (err) {
       console.warn("Could not update fulfillment status on live API:", err);
+      setFulfillmentStatus(prevStatus);
+      triggerNotification(`⚠ Failed to update fulfillment status`);
     } finally {
       setIsSubmitting(false);
     }
@@ -377,11 +379,12 @@ export default function OrderDetailPage() {
 
   const handleSaveNotes = async () => {
     setIsAddingNote(false);
-    triggerNotification("Order note saved");
     try {
       await api.updateOrderNotes(order.order_number || order.id, noteText);
+      triggerNotification("Notes saved successfully");
     } catch (err) {
       console.warn("Could not update notes on live API:", err);
+      triggerNotification("⚠ Notes saved locally — API sync failed");
     }
   };
 
