@@ -625,6 +625,69 @@ export default function DynamicCollectionPage({ params }) {
         return finishGroup.values;
     }, [finishGroup, productDetail?.finish_purities, selectedPurity]);
 
+    // Dynamic available purities filtered by selected finish & product finish matrix
+    const availablePurities = useMemo(() => {
+        if (!purityGroup || !purityGroup.values || purityGroup.values.length === 0) return [];
+        const matrix = productDetail?.finish_purities;
+        if (Array.isArray(matrix) && matrix.length > 0) {
+            // Find allowed purities for currently selected finish (or across all configured finishes)
+            let allowedMatrix = matrix;
+            if (selectedFinishCode) {
+                const sCode = selectedFinishCode.toUpperCase();
+                const matchedByFinish = matrix.filter((item) => {
+                    const mCode = (item.finish_code || '').toUpperCase();
+                    const mName = (item.finish_name || '').toLowerCase();
+                    return (
+                        mCode === sCode ||
+                        (sCode === 'YG' && (mName.includes('yellow') || mCode === 'YG')) ||
+                        (sCode === 'RG' && (mName.includes('rose') || mCode === 'RG')) ||
+                        (sCode === 'WG' && (mName.includes('white') || mCode === 'WG')) ||
+                        (sCode === 'BLK' && (mName.includes('black') || mCode === 'BLK' || mCode === 'BG')) ||
+                        (sCode === 'SILVER' && (mName.includes('silver') || mCode === 'SILVER'))
+                    );
+                });
+                if (matchedByFinish.length > 0) {
+                    allowedMatrix = matchedByFinish;
+                }
+            }
+
+            const allowedPurityCodes = allowedMatrix.map((item) =>
+                (item.purity_code || item.purity_name || '').replace(/\s+/g, '').toUpperCase()
+            );
+
+            const filtered = purityGroup.values.filter((pVal) => {
+                const rawVal = pVal.value || pVal.code || pVal;
+                const match = typeof rawVal === 'string' ? rawVal.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
+                const clean = (match ? match[0] : rawVal).replace(/\s+/g, '').toUpperCase();
+                return allowedPurityCodes.some((code) => clean.includes(code) || code.includes(clean));
+            });
+
+            if (filtered.length > 0) return filtered;
+        }
+        return purityGroup.values;
+    }, [purityGroup, productDetail?.finish_purities, selectedFinishCode]);
+
+    // Ensure selected purity is always valid when availablePurities changes
+    useEffect(() => {
+        if (availablePurities && availablePurities.length > 0) {
+            const isCurrentAvailable = availablePurities.some((pVal) => {
+                const rawVal = pVal.value || pVal.code || pVal;
+                const match = typeof rawVal === 'string' ? rawVal.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
+                const clean = match ? match[0].toUpperCase() : rawVal;
+                return selectedPurity === clean || selectedPurity === rawVal;
+            });
+            if (!isCurrentAvailable) {
+                const first = availablePurities[0];
+                const rawVal = first.value || first.code || first;
+                const match = typeof rawVal === 'string' ? rawVal.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
+                const clean = match ? match[0].toUpperCase() : rawVal;
+                setSelectedPurity(clean);
+                const grpName = purityGroup?.name || 'Metal Colors & Purities';
+                handleSelectOption(grpName, { value: rawVal, price_delta: Number(first.price_delta) || 0 });
+            }
+        }
+    }, [availablePurities, selectedPurity]);
+
     // Ensure selected finish is always valid when availableFinishes changes
     useEffect(() => {
         if (availableFinishes && availableFinishes.length > 0) {
@@ -1151,11 +1214,11 @@ export default function DynamicCollectionPage({ params }) {
                     <div className="atelier-specs-divider" />
 
                     {/* METAL PURITY — only render if configured for this product */}
-                    {purityGroup && purityGroup.values?.length > 0 && (
+                    {availablePurities && availablePurities.length > 0 && (
                         <div className="atelier-control-group">
                             <div className="atelier-spec-label">METAL PURITY (KT)</div>
                             <div className="atelier-purity-row">
-                                {purityGroup.values.map((pVal) => {
+                                {availablePurities.map((pVal) => {
                                     const rawVal = pVal.value || pVal.code || pVal;
                                     const match = typeof rawVal === 'string' ? rawVal.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
                                     const cleanPurity = match ? match[0].toUpperCase() : rawVal;

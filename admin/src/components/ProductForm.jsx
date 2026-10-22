@@ -42,7 +42,7 @@ const defaultOptionMasters = [
     description: "Gold hallmark and karat purity standards",
     default_enabled: true,
     values: [
-      { value: "24KT (99.9% Pure Gold)", image: "https://images.unsplash.com/photo-1610375461246-83df859d849d?q=80&w=200&auto=format&fit=crop", enabled: true },
+      { value: "24KT (99.9% Pure Gold)", image: "https://images.unsplash.com/photo-1610375461246-83df859d849d?q=80&w=200&auto=format&fit=crop", enabled: false },
       { value: "22KT (91.6% Royal Gold)", image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=200&auto=format&fit=crop", enabled: true },
       { value: "18KT (75.0% Fine Gold)", image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=200&auto=format&fit=crop", enabled: true },
       { value: "14KT (58.5% Modern Gold)", image: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?q=80&w=200&auto=format&fit=crop", enabled: false },
@@ -1491,13 +1491,32 @@ export default function ProductForm({ isEdit = false, productId = null, existing
     setIsSubmitting(true);
     const selectedCol = collections.find((c) => String(c.id) === String(formState.collection_master_id));
 
-    const sanitizedOptions = formState.options
+    const activePurityIds = new Set(Object.values(productFinishMatrix || {}).flat().map((id) => parseInt(id)));
+    const activePurityCodes = (puritiesList || [])
+      .filter((p) => activePurityIds.has(parseInt(p.id)))
+      .map((p) => (p.code || p.name || "").replace(/\s+/g, "").toUpperCase());
+
+    const sanitizedOptions = (formState.options || [])
       .filter((opt) => opt.enabled)
-      .map((opt) => ({
-        name: opt.name,
-        enabled: true,
-        values: opt.values.filter((v) => v.enabled && v.value?.trim()),
-      }));
+      .map((opt) => {
+        const oLower = (opt.name || "").toLowerCase();
+        let vals = (opt.values || []).filter((v) => v.enabled && v.value?.trim());
+
+        // Strictly align Metal Purity options with the purities configured in Section 1 Matrix
+        if ((oLower.includes("purity") || oLower.includes("karat") || oLower.includes("metal")) && activePurityCodes.length > 0) {
+          vals = vals.filter((v) => {
+            const vRaw = (v.value || "").replace(/\s+/g, "").toUpperCase();
+            return activePurityCodes.some((ap) => vRaw.includes(ap) || ap.includes(vRaw.split("(")[0]));
+          });
+        }
+
+        return {
+          name: opt.name,
+          enabled: vals.length > 0,
+          values: vals,
+        };
+      })
+      .filter((opt) => opt.enabled && opt.values.length > 0);
 
     const payload = {
       name: formState.name?.trim() || (formState.design_code?.trim() ? `Piece ${formState.design_code.trim()}` : "Bespoke Jewelry Piece"),
