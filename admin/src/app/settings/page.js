@@ -1469,7 +1469,7 @@ export default function AdminSettingsPage() {
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
                 <label style={{ display: "flex", alignItems: "center", fontSize: "13px", fontWeight: 500, color: "#334155", marginBottom: "6px" }}>
                   Operating Currency
@@ -1493,20 +1493,6 @@ export default function AdminSettingsPage() {
                   step="0.1"
                   value={settings.atelier.gst_percent}
                   onChange={(e) => updateCategory("atelier", "gst_percent", parseFloat(e.target.value) || 0)}
-                  style={{ width: "100%", height: "36px", padding: "0 12px", border: "1px solid #CBD5E1", borderRadius: "6px", fontSize: "13px", color: "#0F172A", backgroundColor: "#FFFFFF", boxSizing: "border-box" }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "flex", alignItems: "center", fontSize: "13px", fontWeight: 500, color: "#334155", marginBottom: "6px" }}>
-                  Default Wastage (%)
-                  <InfoTip content="Default metal making loss percentage applied when calculating dynamic jewelry prices." />
-                </label>
-                <input
-                  type="number"
-                  step="0.5"
-                  value={settings.atelier.default_wastage_percent}
-                  onChange={(e) => updateCategory("atelier", "default_wastage_percent", parseFloat(e.target.value) || 0)}
                   style={{ width: "100%", height: "36px", padding: "0 12px", border: "1px solid #CBD5E1", borderRadius: "6px", fontSize: "13px", color: "#0F172A", backgroundColor: "#FFFFFF", boxSizing: "border-box" }}
                 />
               </div>
