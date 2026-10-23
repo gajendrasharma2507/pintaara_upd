@@ -358,6 +358,20 @@
         margin: calc(10 * var(--p)) 0 0 !important;
     }
 
+    html body .collection-page-root .subfooter-dot {
+        display: inline-block !important;
+        width: calc(4.5 * var(--p)) !important;
+        height: calc(4.5 * var(--p)) !important;
+        min-width: 3.5px !important;
+        min-height: 3.5px !important;
+        background-color: currentColor !important;
+        border-radius: 50% !important;
+        vertical-align: middle !important;
+        margin: 0 calc(12 * var(--p)) !important;
+        position: relative !important;
+        top: calc(-1.5 * var(--p)) !important;
+    }
+
     /* ---- Shared page footer bar (PDF p.10, 12, 13 …) -----------
        black rule from x 66 to 1854, then PINTAARA® left and
        © ALL RIGHTS RESERVED. right, 18px, 34px below the rule.   */
