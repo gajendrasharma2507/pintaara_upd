@@ -3,7 +3,7 @@
 //   Baskerville-*.woff → --font-logo / --font-serif   (brand name, titles)
 //   AvenirNext-*.ttf   → --font-sans                  (body, UI, labels)
 //   Maves-Regular.ttf  → --font-accent                (Legacy statement lines)
-import { Cinzel, Montserrat, Playfair_Display, Cormorant_Garamond, Libre_Baskerville } from "next/font/google";
+import { Cinzel, Montserrat, Cormorant_Garamond, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
 import "@/styles/header.css";
 import "@/styles/footer.css";
@@ -25,12 +25,6 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat-fallback",
   weight: ["300", "400", "500", "600"],
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair-fallback",
-  weight: ["400", "500", "600"],
 });
 
 const cormorant = Cormorant_Garamond({
@@ -63,7 +57,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className={`${cinzel.variable} ${montserrat.variable} ${playfair.variable} ${cormorant.variable} ${baskerville.variable}`}>
+      <body className={`${cinzel.variable} ${montserrat.variable} ${cormorant.variable} ${baskerville.variable}`}>
         <AuthProvider>
           <CartProvider>
             <PasswordGate>
