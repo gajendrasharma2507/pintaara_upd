@@ -7804,7 +7804,7 @@ h6 {
     .slide#slide-6 .slide-top-label {
         position: absolute !important;
         left: calc(154 * (100vw / 1920)) !important;
-        top: calc(50vh - 377 * var(--u));
+        top: calc(163 * (100vw / 1920)) !important;
         width: auto !important;
     }
 
@@ -7813,7 +7813,7 @@ h6 {
     .slide#slide-5 .slide-subtitle,
     .slide#slide-6 .slide-subtitle {
         font-family: var(--font-body) !important;
-        font-size: calc(30 * var(--u)) !important;
+        font-size: calc(30 * (100vw / 1920)) !important;
         font-weight: 400 !important;
         line-height: 1.3667 !important;
         letter-spacing: 0 !important;
