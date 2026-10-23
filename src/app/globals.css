@@ -100,7 +100,7 @@
 
     /* Layout */
     --header-height: clamp(54px, 4vw, 70px);
-    --padding-side: clamp(24px, 6vw, 120px);
+    --padding-side: max(24px, calc(150 * (100vw / 1920)));
 
     /* ── Brand Fonts ─────────────────────────────────────────── */
     /* Baskerville for logo and titles, Avenir Next for everything else,
@@ -7705,6 +7705,7 @@ h6 {
    ============================================================ */
 :root {
     --u: min(calc(100vw / 1920), calc(100vh / 1080));
+    --padding-side: calc(150 * (100vw / 1920));
 }
 
 /* Slide titles use the PDF's Baskerville Regular at every screen size */
@@ -7767,6 +7768,11 @@ h6 {
     }
 
     /* ---- Pages 2–6: shared slide grid -------------------------- */
+    .slide:not(#slide-7) {
+        padding-left: calc(150 * (100vw / 1920)) !important;
+        padding-right: calc(150 * (100vw / 1920)) !important;
+    }
+
     /* Artwork is placed larger than the screen in places (as in the PDF);
        clip it to its own slide so it never spills into the next one. */
     .slide#slide-2,
