@@ -361,7 +361,12 @@
     /* ---- Shared page footer bar (PDF p.10, 12, 13 …) -----------
        black rule from x 66 to 1854, then PINTAARA® left and
        © ALL RIGHTS RESERVED. right, 18px, 34px below the rule.   */
-    html body .collection-bottom-bar {
+    html body .collection-bottom-bar,
+    html body .collection-page-root .collection-bottom-bar,
+    html body .about-normal-page-root .collection-bottom-bar,
+    html body .about-page .collection-bottom-bar,
+    html body .terms-page-root .collection-bottom-bar,
+    html body .contact-root .collection-bottom-bar {
         margin: 0 calc(66 * var(--p)) !important;
         padding: calc(34 * var(--p)) calc(4 * var(--p)) 0 !important;
         width: auto !important;
@@ -372,24 +377,45 @@
         justify-content: space-between !important;
         align-items: flex-start !important;
         background: transparent !important;
+        box-sizing: border-box !important;
     }
 
     html body .collection-bottom-bar span,
     html body .collection-bottom-bar .bottom-brand,
     html body .collection-bottom-bar .bottom-copyright,
     html body .collection-bottom-bar.subpage-footer .bottom-brand.footer-brand,
-    html body .collection-bottom-bar.subpage-footer .bottom-copyright.footer-right {
+    html body .collection-bottom-bar.subpage-footer .bottom-copyright.footer-right,
+    html body .collection-page-root .collection-bottom-bar span,
+    html body .about-normal-page-root .collection-bottom-bar span,
+    html body .about-page .collection-bottom-bar span,
+    html body .terms-page-root .collection-bottom-bar span,
+    html body .contact-root .collection-bottom-bar span {
         font-family: var(--font-body) !important;
         font-size: calc(18 * var(--p)) !important;
         font-weight: 400 !important;
         line-height: 1.389 !important;
         letter-spacing: 0 !important;
+        text-transform: uppercase !important;
         opacity: 1 !important;
+        color: inherit !important;
     }
 
     html body .collection-page-root .collection-bottom-bar,
-    html body .collection-page-root .collection-bottom-bar span {
+    html body .collection-page-root .collection-bottom-bar span,
+    html body .about-normal-page-root.theme-olive-bg .collection-bottom-bar,
+    html body .about-normal-page-root.theme-olive-bg .collection-bottom-bar span,
+    html body .terms-page-root .collection-bottom-bar,
+    html body .terms-page-root .collection-bottom-bar span,
+    html body .contact-root .collection-bottom-bar,
+    html body .contact-root .collection-bottom-bar span {
         color: #000 !important;
+    }
+
+    html body .about-page .collection-bottom-bar,
+    html body .about-page .collection-bottom-bar span,
+    html body .about-normal-page-root.story-dark-section .collection-bottom-bar,
+    html body .about-normal-page-root.story-dark-section .collection-bottom-bar span {
+        color: #F8F3EE !important;
     }
 }
 
