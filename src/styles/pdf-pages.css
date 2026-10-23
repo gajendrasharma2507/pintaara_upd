@@ -23,7 +23,9 @@
     .about-page,
     .about-hero-page-root,
     .about-normal-page-root,
-    .legacy-page-root {
+    .legacy-page-root,
+    .terms-page-root,
+    .contact-root {
         container-type: inline-size;
         --p: calc(100cqw / 1920);
     }
