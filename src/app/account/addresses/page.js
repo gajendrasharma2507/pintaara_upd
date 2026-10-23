@@ -294,30 +294,70 @@ export default function AccountAddressesPage() {
                 </div>
             )}
 
-            {/* ADD/EDIT ADDRESS MODAL (Matching Image 2 / Image 3 & Figma 0016 / 0017) */}
+            {/* ADD/EDIT ADDRESS MODAL (Matching Figma 0016 / 0017 with full scrollable form) */}
             {modalState && (
                 <div className="acct-modal-backdrop" onClick={() => setModalState(null)}>
                     <div className="acct-addr-modal-box" onClick={(e) => e.stopPropagation()}>
-                        <button
-                            type="button"
-                            className="acct-modal-close-x"
-                            onClick={() => setModalState(null)}
-                            aria-label="Close"
-                        >
-                            ✕
-                        </button>
+                        <div className="acct-modal-header">
+                            <h2 className="acct-modal-heading">
+                                {modalState.mode === 'ADD' ? 'ADD' : 'EDIT'} {modalState.type === 'SHIPPING' ? 'SHIPPING' : 'BILLING'} ADDRESS
+                            </h2>
+                            <button
+                                type="button"
+                                className="acct-modal-close-x"
+                                onClick={() => setModalState(null)}
+                                aria-label="Close"
+                            >
+                                ✕
+                            </button>
+                        </div>
 
                         <form onSubmit={handleFormSubmit} className="acct-addr-modal-form">
+                            <div className="acct-modal-field">
+                                <label className="acct-modal-lbl">Full name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="Name as per ID Proof"
+                                    value={formData.fullName}
+                                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                    className="acct-modal-input"
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="acct-modal-field">
+                                <label className="acct-modal-lbl">Contact</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="Mobile Number"
+                                    value={formData.contact}
+                                    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                                    className="acct-modal-input"
+                                />
+                            </div>
+
+                            <div className="acct-modal-field">
+                                <label className="acct-modal-lbl">Address line 1</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="Unit No / House / Flat / Building"
+                                    value={formData.line1}
+                                    onChange={(e) => setFormData({ ...formData, line1: e.target.value })}
+                                    className="acct-modal-input"
+                                />
+                            </div>
+
                             <div className="acct-modal-field">
                                 <label className="acct-modal-lbl">Address line 2</label>
                                 <input
                                     type="text"
-                                    required
                                     placeholder="Area / Street / Landmark"
                                     value={formData.line2}
                                     onChange={(e) => setFormData({ ...formData, line2: e.target.value })}
                                     className="acct-modal-input"
-                                    autoFocus
                                 />
                             </div>
 
@@ -626,24 +666,63 @@ export default function AccountAddressesPage() {
                     align-items: center;
                     justify-content: center;
                     z-index: 1000;
-                    padding: 1rem;
+                    padding: 1.5rem 1rem;
+                    overflow-y: auto;
+                    -webkit-overflow-scrolling: touch;
                 }
 
-                /* ADD/EDIT ADDRESS MODAL BOX (Matching Image 2 / Image 3 & Figma 0016 / 0017) */
+                /* ADD/EDIT ADDRESS MODAL BOX */
                 .acct-addr-modal-box {
                     width: 100%;
                     max-width: 480px;
+                    max-height: calc(100vh - 3rem);
+                    overflow-y: auto;
                     background-color: #F5F2EB;
                     padding: 2.25rem 2.25rem 2.25rem 2.25rem;
                     box-shadow: 0 10px 40px rgba(0,0,0,0.08);
                     position: relative;
                     box-sizing: border-box;
                     font-family: var(--font-body), sans-serif;
+                    margin: auto;
+                    scrollbar-width: thin;
+                    scrollbar-color: #D5CEBF transparent;
+                }
+                .acct-addr-modal-box::-webkit-scrollbar {
+                    width: 5px;
+                }
+                .acct-addr-modal-box::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .acct-addr-modal-box::-webkit-scrollbar-thumb {
+                    background: #D5CEBF;
+                    border-radius: 4px;
+                }
+                .acct-addr-modal-box::-webkit-scrollbar-thumb:hover {
+                    background: #A8A195;
+                }
+
+                .acct-modal-header {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    position: relative;
+                    margin-bottom: 1.5rem;
+                }
+                .acct-modal-heading {
+                    font-family: var(--font-body), sans-serif;
+                    font-size: 0.95rem;
+                    font-weight: 500;
+                    letter-spacing: 0.08em;
+                    color: #1A1A1A;
+                    margin: 0;
+                    text-align: center;
+                    text-transform: uppercase;
                 }
                 .acct-modal-close-x {
                     position: absolute;
-                    right: 1.5rem;
-                    top: 1.25rem;
+                    right: 0;
+                    top: 50%;
+                    transform: translateY(-50%);
                     background: none;
                     border: none;
                     font-size: 1.25rem;
@@ -662,7 +741,6 @@ export default function AccountAddressesPage() {
                     display: flex;
                     flex-direction: column;
                     gap: 1.2rem;
-                    margin-top: 0.5rem;
                 }
                 .acct-modal-field {
                     display: flex;
