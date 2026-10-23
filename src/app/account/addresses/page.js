@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import api from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AccountAddressesPage() {
+    const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [shippingAddresses, setShippingAddresses] = useState([]);
     const [billingAddresses, setBillingAddresses] = useState([]);
@@ -111,21 +113,24 @@ export default function AccountAddressesPage() {
             ? `${formData.city}, ${formData.stateProvince || ''}, ${formData.country || 'India'}${formData.pinCode ? ` - ${formData.pinCode}` : ''}`
             : '';
 
+        const defaultName = user?.name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : '') || 'Darshit Soni';
+        const defaultPhone = user?.phone || user?.mobile || '95102 81139';
+
         const newItem = {
             id: modalState.id || `${modalState.type.toLowerCase()}-${Date.now()}`,
             tag: formData.tag || 'HOME',
-            name: formData.fullName || '',
-            contact: formData.contact || '',
-            line1: formData.line1 || '',
+            name: formData.fullName || defaultName,
+            contact: formData.contact || defaultPhone,
+            line1: formData.line1 || formData.line2 || '',
             cityStateCountryPin: formattedCityLine,
             isDefault: formData.makeDefault,
         };
 
         const isEdit = modalState.mode === 'EDIT' && typeof modalState.id === 'number';
         const addressPayload = {
-            recipient_name: formData.fullName,
-            phone: formData.contact,
-            address_line1: formData.line1,
+            recipient_name: formData.fullName || defaultName,
+            phone: formData.contact || defaultPhone,
+            address_line1: formData.line1 || formData.line2 || '',
             address_line2: formData.line2 || '',
             city: formData.city,
             state: formData.stateProvince,
@@ -289,69 +294,30 @@ export default function AccountAddressesPage() {
                 </div>
             )}
 
-            {/* ADD/EDIT ADDRESS MODAL (0016.jpg / 0017.jpg) */}
+            {/* ADD/EDIT ADDRESS MODAL (Matching Image 2 / Image 3 & Figma 0016 / 0017) */}
             {modalState && (
                 <div className="acct-modal-backdrop" onClick={() => setModalState(null)}>
                     <div className="acct-addr-modal-box" onClick={(e) => e.stopPropagation()}>
-                        <div className="acct-modal-header">
-                            <h3 className="acct-modal-heading">
-                                {modalState.mode === 'ADD' ? 'ADD' : 'EDIT'}{' '}
-                                {modalState.type === 'SHIPPING' ? 'SHIPPING ADDRESS' : 'BILLING ADDRESS'}
-                            </h3>
-                            <button
-                                type="button"
-                                className="acct-modal-close-x"
-                                onClick={() => setModalState(null)}
-                            >
-                                ✕
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            className="acct-modal-close-x"
+                            onClick={() => setModalState(null)}
+                            aria-label="Close"
+                        >
+                            ✕
+                        </button>
 
                         <form onSubmit={handleFormSubmit} className="acct-addr-modal-form">
-                            <div className="acct-modal-field">
-                                <label className="acct-modal-lbl">Full name</label>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="Name as per ID Proof"
-                                    value={formData.fullName}
-                                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                    className="acct-modal-input"
-                                />
-                            </div>
-
-                            <div className="acct-modal-field">
-                                <label className="acct-modal-lbl">Contact</label>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="Mobile Number"
-                                    value={formData.contact}
-                                    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                                    className="acct-modal-input"
-                                />
-                            </div>
-
-                            <div className="acct-modal-field">
-                                <label className="acct-modal-lbl">Address line 1</label>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="Unit No / House / Flat / Building"
-                                    value={formData.line1}
-                                    onChange={(e) => setFormData({ ...formData, line1: e.target.value })}
-                                    className="acct-modal-input"
-                                />
-                            </div>
-
                             <div className="acct-modal-field">
                                 <label className="acct-modal-lbl">Address line 2</label>
                                 <input
                                     type="text"
+                                    required
                                     placeholder="Area / Street / Landmark"
                                     value={formData.line2}
                                     onChange={(e) => setFormData({ ...formData, line2: e.target.value })}
                                     className="acct-modal-input"
+                                    autoFocus
                                 />
                             </div>
 
@@ -408,21 +374,45 @@ export default function AccountAddressesPage() {
                                     className="acct-modal-chk"
                                 />
                                 <span>
-                                    Make this my default {modalState.type === 'SHIPPING' ? 'Shipping' : 'Billing'} address.
+                                    Make this my default {modalState.type === 'SHIPPING' ? 'Shipping' : 'billing'} address.
                                 </span>
                             </label>
 
                             <button type="submit" className="acct-modal-solid-btn">
-                                ADD ADDRESS
+                                {modalState.mode === 'ADD' ? 'ADD ADDRESS' : 'SAVE CHANGES'}
                             </button>
 
-                            <button
-                                type="button"
-                                className="acct-modal-cancel-btn"
-                                onClick={() => setModalState(null)}
-                            >
-                                CANCEL
-                            </button>
+                            {modalState.mode === 'EDIT' ? (
+                                <div className="acct-modal-edit-btn-row">
+                                    <button
+                                        type="button"
+                                        className="acct-modal-cancel-btn"
+                                        onClick={() => setModalState(null)}
+                                    >
+                                        CANCEL
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="acct-modal-delete-btn"
+                                        onClick={() => {
+                                            if (modalState.id) {
+                                                handleDeleteAddress(modalState.id);
+                                                setModalState(null);
+                                            }
+                                        }}
+                                    >
+                                        DELETE
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="acct-modal-cancel-btn"
+                                    onClick={() => setModalState(null)}
+                                >
+                                    CANCEL
+                                </button>
+                            )}
                         </form>
                     </div>
                 </div>
@@ -639,55 +629,51 @@ export default function AccountAddressesPage() {
                     padding: 1rem;
                 }
 
-                /* ADD ADDRESS MODAL BOX (0016 / 0017) */
+                /* ADD/EDIT ADDRESS MODAL BOX (Matching Image 2 / Image 3 & Figma 0016 / 0017) */
                 .acct-addr-modal-box {
                     width: 100%;
-                    max-width: 500px;
+                    max-width: 480px;
                     background-color: #F5F2EB;
-                    padding: 2.25rem 2.5rem 2.5rem 2.5rem;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+                    padding: 2.25rem 2.25rem 2.25rem 2.25rem;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
                     position: relative;
-                }
-                .acct-modal-header {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    position: relative;
-                    margin-bottom: 2rem;
-                }
-                .acct-modal-heading {
-                    font-size: 0.95rem;
-                    font-weight: 500;
-                    letter-spacing: 0.06em;
-                    color: #1A1A1A;
-                    margin: 0;
-                    text-align: center;
+                    box-sizing: border-box;
+                    font-family: var(--font-body), sans-serif;
                 }
                 .acct-modal-close-x {
                     position: absolute;
-                    right: 0;
-                    top: -4px;
+                    right: 1.5rem;
+                    top: 1.25rem;
                     background: none;
                     border: none;
-                    font-size: 1.15rem;
+                    font-size: 1.25rem;
                     color: #1A1A1A;
                     cursor: pointer;
-                    padding: 0;
+                    padding: 0.25rem;
+                    line-height: 1;
+                    z-index: 2;
+                    transition: opacity 0.15s ease;
+                }
+                .acct-modal-close-x:hover {
+                    opacity: 0.7;
                 }
 
                 .acct-addr-modal-form {
                     display: flex;
                     flex-direction: column;
-                    gap: 1.15rem;
+                    gap: 1.2rem;
+                    margin-top: 0.5rem;
                 }
                 .acct-modal-field {
                     display: flex;
                     flex-direction: column;
-                    gap: 0.35rem;
+                    gap: 0.4rem;
                 }
                 .acct-modal-lbl {
-                    font-size: 0.86rem;
+                    font-family: var(--font-body), sans-serif;
+                    font-size: 0.85rem;
                     color: #1A1A1A;
+                    font-weight: 400;
                 }
                 .acct-modal-input {
                     width: 100%;
@@ -697,11 +683,14 @@ export default function AccountAddressesPage() {
                     padding: 0 12px;
                     font-size: 0.88rem;
                     color: #1A1A1A;
-                    font-family: inherit;
+                    font-family: var(--font-body), sans-serif;
                     outline: none;
+                    border-radius: 0;
+                    box-sizing: border-box;
                 }
                 .acct-modal-input::placeholder {
                     color: #888;
+                    font-family: var(--font-body), sans-serif;
                 }
                 .acct-modal-split-fields {
                     display: grid;
@@ -713,16 +702,19 @@ export default function AccountAddressesPage() {
                     display: flex;
                     align-items: center;
                     gap: 0.65rem;
+                    font-family: var(--font-body), sans-serif;
                     font-size: 0.85rem;
                     color: #1A1A1A;
                     cursor: pointer;
-                    margin-top: 0.35rem;
+                    margin-top: 0.4rem;
                 }
                 .acct-modal-chk {
-                    width: 15px;
-                    height: 15px;
+                    width: 16px;
+                    height: 16px;
                     border: 1px solid #1A1A1A;
                     accent-color: #1A1A1A;
+                    border-radius: 0;
+                    cursor: pointer;
                 }
 
                 .acct-modal-solid-btn {
@@ -730,29 +722,62 @@ export default function AccountAddressesPage() {
                     height: 46px;
                     background-color: #1A1A1A;
                     color: #F5F2EB;
-                    border: none;
+                    border: 1px solid #1A1A1A;
+                    font-family: var(--font-body), sans-serif;
                     font-size: 0.84rem;
                     font-weight: 500;
                     letter-spacing: 0.08em;
                     cursor: pointer;
                     margin-top: 0.6rem;
-                    font-family: inherit;
+                    text-transform: uppercase;
+                    transition: background 0.15s ease;
                 }
+                .acct-modal-solid-btn:hover {
+                    background-color: #333333;
+                }
+
                 .acct-modal-cancel-btn {
                     width: 100%;
                     height: 46px;
                     background-color: transparent;
                     color: #1A1A1A;
                     border: 1px solid #1A1A1A;
+                    font-family: var(--font-body), sans-serif;
                     font-size: 0.84rem;
                     font-weight: 500;
                     letter-spacing: 0.08em;
                     cursor: pointer;
-                    font-family: inherit;
+                    text-transform: uppercase;
                     transition: all 0.2s ease;
                 }
                 .acct-modal-cancel-btn:hover {
                     background-color: rgba(0,0,0,0.04);
+                }
+
+                .acct-modal-edit-btn-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 1.5rem;
+                }
+                .acct-modal-edit-btn-row .acct-modal-cancel-btn {
+                    flex: 1;
+                }
+                .acct-modal-delete-btn {
+                    background: none;
+                    border: none;
+                    color: #F15B4C;
+                    font-family: var(--font-body), sans-serif;
+                    font-size: 0.84rem;
+                    font-weight: 500;
+                    letter-spacing: 0.08em;
+                    cursor: pointer;
+                    padding: 0 1rem;
+                    text-transform: uppercase;
+                    transition: opacity 0.15s ease;
+                }
+                .acct-modal-delete-btn:hover {
+                    opacity: 0.8;
                 }
 
                 /* SUCCESS MODAL (0018) */
