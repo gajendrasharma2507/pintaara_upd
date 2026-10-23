@@ -365,6 +365,7 @@
     html body .collection-page-root .collection-bottom-bar,
     html body .about-normal-page-root .collection-bottom-bar,
     html body .about-page .collection-bottom-bar,
+    html body .legacy-page-root .collection-bottom-bar,
     html body .terms-page-root .collection-bottom-bar,
     html body .contact-root .collection-bottom-bar {
         margin: 0 calc(66 * var(--p)) !important;
@@ -388,6 +389,7 @@
     html body .collection-page-root .collection-bottom-bar span,
     html body .about-normal-page-root .collection-bottom-bar span,
     html body .about-page .collection-bottom-bar span,
+    html body .legacy-page-root .collection-bottom-bar span,
     html body .terms-page-root .collection-bottom-bar span,
     html body .contact-root .collection-bottom-bar span {
         font-family: var(--font-body) !important;
@@ -414,7 +416,9 @@
     html body .about-page .collection-bottom-bar,
     html body .about-page .collection-bottom-bar span,
     html body .about-normal-page-root.story-dark-section .collection-bottom-bar,
-    html body .about-normal-page-root.story-dark-section .collection-bottom-bar span {
+    html body .about-normal-page-root.story-dark-section .collection-bottom-bar span,
+    html body .legacy-page-root .collection-bottom-bar,
+    html body .legacy-page-root .collection-bottom-bar span {
         color: #F8F3EE !important;
     }
 }
@@ -1892,13 +1896,18 @@
     }
 
     html body .about-page .collection-bottom-bar {
+        --p: calc(100cqw / 1920) !important;
         position: absolute !important;
         left: 0 !important;
         right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
         width: auto !important;
-        top: calc(981 * var(--p)) !important;
-        bottom: auto !important;
-        z-index: 5;
+        margin: 0 calc(66 * var(--p)) !important;
+        padding: calc(34 * var(--p)) calc(4 * var(--p)) 0 !important;
+        height: calc(99 * var(--p)) !important;
+        border-top: 1px solid currentColor !important;
+        z-index: 5 !important;
     }
 }
 
@@ -2846,24 +2855,29 @@
         opacity: 1 !important;
     }
 
-    /* footer sits over the bottom of the banner image (rule at y 981) */
-    html body .legacy-page-root .legacy-future-banner>.collection-bottom-bar {
+    /* footer sits over the bottom of the banner image */
+    html body .legacy-page-root .legacy-future-banner>.collection-bottom-bar,
+    html body .legacy-page-root .collection-bottom-bar {
+        --p: calc(100cqw / 1920) !important;
         position: absolute !important;
         left: 0 !important;
         right: 0 !important;
-        top: calc(981 * var(--p)) !important;
-        bottom: auto !important;
+        bottom: 0 !important;
+        top: auto !important;
         width: auto !important;
         margin: 0 calc(66 * var(--p)) !important;
         padding: calc(34 * var(--p)) calc(4 * var(--p)) 0 !important;
+        height: calc(99 * var(--p)) !important;
+        border-top: 1px solid currentColor !important;
         background: transparent !important;
+        box-sizing: border-box !important;
         z-index: 4 !important;
     }
 
     html body .legacy-page-root .collection-bottom-bar,
     html body .legacy-page-root .collection-bottom-bar span,
     html body .legacy-page-root .collection-bottom-bar a {
-        color: #FFFFFF !important;
+        color: #F8F3EE !important;
     }
 }
 

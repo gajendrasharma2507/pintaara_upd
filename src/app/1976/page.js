@@ -265,7 +265,10 @@ export default function Legacy1976Page() {
                 </div>
 
                 {/* Footer overlay integrated inside banner */}
-                <Footer theme="dark" />
+                <footer className="collection-bottom-bar">
+                    <span className="bottom-brand">PINTAARA™</span>
+                    <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
+                </footer>
             </section>
         </div>
     );

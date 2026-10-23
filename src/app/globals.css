@@ -1974,25 +1974,7 @@ h6 {
     text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
 }
 
-.legacy-page-root .collection-bottom-bar {
-    background: transparent !important;
-    background-color: transparent !important;
-    border-top: 1px solid rgba(248, 243, 238, 0.2) !important;
-    color: #F8F3EE !important;
-    padding: 1.25rem var(--padding-side) !important;
-}
-
-.legacy-page-root .collection-bottom-bar .bottom-brand,
-.legacy-page-root .collection-bottom-bar .bottom-copyright {
-    color: #F8F3EE !important;
-    font-family: var(--font-sans) !important;
-    font-size: 0.72rem !important;
-    letter-spacing: 0.15em !important;
-    text-transform: uppercase !important;
-    opacity: 0.85 !important;
-}
-
-/* â”€â”€ 1976 TIMELINE SECTION (Warm Sepia Brown) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── 1976 TIMELINE SECTION (Warm Sepia Brown) ─────────────── */
 .legacy-timeline-section {
     position: relative;
     background: radial-gradient(ellipse at center, #D5AA7B 0%, #805D3A 50%, #503720 100%);
@@ -7384,8 +7366,7 @@ h6 {
     vertical-align: middle !important;
 }
 
-.legacy-future-banner .subpage-footer,
-.legacy-future-banner .collection-bottom-bar {
+.legacy-future-banner .subpage-footer {
     position: absolute !important;
     bottom: 0 !important;
     left: 0 !important;
