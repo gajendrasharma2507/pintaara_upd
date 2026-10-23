@@ -142,8 +142,8 @@ export default function ContactPage() {
 
             {/* ── FOOTER ── */}
             <div className="contact-footer-wrapper">
-                <footer className="collection-bottom-bar light-theme">
-                    <Link href="/" className="bottom-brand">PINTAARA™</Link>
+                <footer className="collection-bottom-bar">
+                    <span className="bottom-brand">PINTAARA™</span>
                     <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
                 </footer>
             </div>

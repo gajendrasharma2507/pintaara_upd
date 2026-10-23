@@ -3570,13 +3570,18 @@ h6 {
 }
 
 .collection-bottom-bar.dark-theme,
-.dark-theme .collection-bottom-bar {
+.dark-theme .collection-bottom-bar,
+.about-page .collection-bottom-bar,
+.story-dark-section .collection-bottom-bar {
     border-top: 1px solid rgba(248, 243, 238, 0.15) !important;
     color: #F8F3EE !important;
 }
 
 .collection-bottom-bar.light-theme,
-.light-theme .collection-bottom-bar {
+.light-theme .collection-bottom-bar,
+.theme-olive-bg .collection-bottom-bar,
+.terms-page-root .collection-bottom-bar,
+.contact-root .collection-bottom-bar {
     border-top: 1px solid rgba(44, 40, 37, 0.25) !important;
     color: #1A1A1A !important;
 }

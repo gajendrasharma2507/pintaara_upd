@@ -125,7 +125,10 @@ export default function StoryPage() {
             </main>
 
             {/* Global Footer (Full Width Divider Line) */}
-            <Footer theme="dark" />
+            <footer className="collection-bottom-bar">
+                <span className="bottom-brand">PINTAARA™</span>
+                <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
+            </footer>
         </div>
     );
 }

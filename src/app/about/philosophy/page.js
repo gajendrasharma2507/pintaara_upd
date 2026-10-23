@@ -141,7 +141,10 @@ export default function PhilosophyPage() {
             </main>
 
             {/* Global Footer */}
-            <Footer theme="light" />
+            <footer className="collection-bottom-bar">
+                <span className="bottom-brand">PINTAARA™</span>
+                <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
+            </footer>
         </div>
     );
 }

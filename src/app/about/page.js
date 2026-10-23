@@ -57,7 +57,10 @@ export default function AboutPage() {
             </div>
 
             {/* Shared Subpage Footer Bar */}
-            <Footer theme="dark" />
+            <footer className="collection-bottom-bar">
+                <span className="bottom-brand">PINTAARA™</span>
+                <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
+            </footer>
         </div>
     );
 }
