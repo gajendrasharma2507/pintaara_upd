@@ -7738,7 +7738,7 @@ h6 {
 
     .enter-page-content {
         position: absolute !important;
-        left: calc(154 * var(--u));
+        left: calc(154 * (100vw / 1920)) !important;
         top: calc(50vh - 70 * var(--u));
         width: auto !important;
         max-width: none !important;
@@ -7803,7 +7803,7 @@ h6 {
     .slide#slide-5 .slide-top-label,
     .slide#slide-6 .slide-top-label {
         position: absolute !important;
-        left: calc(154 * var(--u));
+        left: calc(154 * (100vw / 1920)) !important;
         top: calc(50vh - 377 * var(--u));
         width: auto !important;
     }
@@ -7843,7 +7843,7 @@ h6 {
     .slide#slide-5 .slide-title,
     .slide#slide-6 .slide-title {
         position: absolute !important;
-        left: calc(154 * var(--u));
+        left: calc(154 * (100vw / 1920)) !important;
         bottom: calc(50vh - 4.5 * var(--u));
     }
 
@@ -7873,7 +7873,7 @@ h6 {
     .slide#slide-5 .divider,
     .slide#slide-6 .divider {
         position: absolute !important;
-        left: calc(150 * var(--u));
+        left: calc(154 * (100vw / 1920)) !important;
         top: calc(50vh + 38.5 * var(--u));
         width: calc(141.4 * var(--u)) !important;
         height: max(1px, calc(3 * var(--u))) !important;
@@ -7887,7 +7887,7 @@ h6 {
     .slide#slide-5 .slide-desc,
     .slide#slide-6 .slide-desc {
         position: absolute !important;
-        left: calc(154 * var(--u));
+        left: calc(154 * (100vw / 1920)) !important;
         top: calc(50vh + 84 * var(--u));
         width: calc(663 * var(--u)) !important;
         max-width: none !important;
@@ -7908,7 +7908,7 @@ h6 {
     .slide#slide-5 .slide-bottom-action,
     .slide#slide-6 .slide-bottom-action {
         position: absolute !important;
-        left: calc(154 * var(--u));
+        left: calc(154 * (100vw / 1920)) !important;
         top: calc(50vh + 416 * var(--u));
         width: auto !important;
         margin: 0 !important;
