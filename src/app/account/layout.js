@@ -24,6 +24,7 @@ export default function AccountLayout({ children }) {
     const navItems = [
         { label: 'MY COLLECTION', path: '/account/collection' },
         { label: 'ORDER', path: '/account/orders' },
+        { label: 'PAYMENTS', path: '/account/payments' },
         { label: 'ADDRESSES', path: '/account/addresses' },
         { label: 'PROFILE', path: '/account' },
     ];
@@ -33,14 +34,7 @@ export default function AccountLayout({ children }) {
         ? user.name.toUpperCase()
         : (user?.first_name 
             ? `${user.first_name} ${user.last_name || ''}`.trim().toUpperCase() 
-            : 'PATRON');
-
-    const getGreeting = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return 'GOOD MORNING';
-        if (hour < 17) return 'GOOD AFTERNOON';
-        return 'GOOD EVENING';
-    };
+            : 'DARSHIT SONI');
 
     // Don't render account UI while loading or if unauthenticated (redirecting)
     if (loading || !user) return null;
@@ -56,13 +50,8 @@ export default function AccountLayout({ children }) {
             <div className="acct-body">
                 {/* Sidebar */}
                 <aside className="acct-sidebar">
-                    <div className="acct-title-block">
-                        <span className="acct-page-title">ACCOUNT</span>
-                        <div className="acct-title-line" />
-                    </div>
-
                     <div className="acct-greeting-section">
-                        <span className="acct-greeting-sub">{getGreeting()}</span>
+                        <span className="acct-greeting-sub">GOOD MORNING / AFTERNOON</span>
                         <h2 className="acct-greeting-name">{clientName}</h2>
                     </div>
 
@@ -110,7 +99,7 @@ export default function AccountLayout({ children }) {
                     background-color: #F8EFE6;
                     min-height: 100vh;
                     color: #1A1A1A;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                     display: flex;
                     flex-direction: column;
                     container-type: inline-size;
@@ -137,68 +126,54 @@ export default function AccountLayout({ children }) {
                     flex-direction: column;
                     min-height: calc(100vh - 240px);
                 }
-                .acct-title-block {
-                    margin-bottom: 2.25rem;
-                    flex-shrink: 0;
-                }
-                .acct-page-title {
-                    font-size: 1.45rem;
-                    font-weight: 400;
-                    letter-spacing: 0.04em;
-                    color: #1A1A1A;
-                    margin: 0;
-                    line-height: 1.2;
-                    text-transform: uppercase;
-                    display: block;
-                }
-                .acct-title-line {
-                    width: 48px;
-                    height: 1.5px;
-                    background-color: #1A1A1A;
-                    margin-top: 0.65rem;
-                }
                 .acct-greeting-section {
                     margin-bottom: 2.8rem;
                 }
                 .acct-greeting-sub {
                     display: block;
-                    font-size: 0.72rem;
+                    font-family: var(--font-body), sans-serif;
+                    font-size: 0.78rem;
                     font-weight: 400;
-                    letter-spacing: 0.08em;
+                    letter-spacing: 0.04em;
                     color: #1A1A1A;
-                    margin-bottom: 0.35rem;
+                    margin-bottom: 0.45rem;
                     text-transform: uppercase;
+                    line-height: 1.3;
                 }
                 .acct-greeting-name {
-                    font-size: 1.05rem;
-                    font-weight: 600;
-                    letter-spacing: 0.04em;
+                    font-family: var(--font-body), sans-serif;
+                    font-size: 1.25rem;
+                    font-weight: 400;
+                    letter-spacing: 0.02em;
                     color: #1A1A1A;
                     margin: 0;
                     text-transform: uppercase;
+                    line-height: 1.25;
                 }
                 .acct-nav-list {
                     display: flex;
                     flex-direction: column;
-                    gap: 2rem;
+                    gap: 1.85rem;
                     align-items: flex-start;
                 }
                 .acct-sidebar-link {
-                    font-size: 0.82rem;
+                    font-family: var(--font-body), sans-serif;
+                    font-size: 0.88rem;
                     font-weight: 400;
-                    letter-spacing: 0.08em;
+                    letter-spacing: 0.05em;
                     color: #1A1A1A;
                     text-decoration: none;
                     text-transform: uppercase;
                     padding: 0;
                     display: inline-block;
+                    line-height: 1.35;
                     transition: opacity 0.15s ease;
                 }
                 .acct-sidebar-link:hover { opacity: 0.7; }
                 .acct-sidebar-link.active {
                     background: transparent;
                     color: #1A1A1A;
-                    font-weight: 600;
+                    font-weight: 500;
                     padding: 0;
                 }
                 .acct-logout-btn {
