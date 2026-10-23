@@ -1432,7 +1432,7 @@
 
     html body .design-log-page-root .blueprint-img-frame {
         width: calc(375 * var(--p)) !important;
-        height: calc(375 * var(--p)) !important;
+        height: calc(500 * var(--p)) !important;
         aspect-ratio: auto !important;
         margin: 0 !important;
         border-radius: 0 !important;
