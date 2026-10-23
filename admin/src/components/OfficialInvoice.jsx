@@ -196,7 +196,7 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                     <div className="pnt-inv-brand-col">
                         <img 
                             src="/images/logo-lockup.png" 
-                            alt="Pintaara - Rooted in Legacy, Designed for Today" 
+                            alt="Pintaara" 
                             className="pnt-inv-lockup-img" 
                         />
                     </div>
