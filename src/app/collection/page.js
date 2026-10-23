@@ -246,7 +246,7 @@ export default function CollectionPage() {
                 <div className="collection-subfooter-block">
                     <span className="subfooter-tag">PINTAARA COLLECTION</span>
                     <h3 className="subfooter-text">
-                        Made to Order &nbsp;&bull;&nbsp; Hallmarked &amp; Certified &nbsp;&bull;&nbsp; Secure Delivery
+                        Made to Order &nbsp;&middot;&nbsp; Hallmarked &amp; Certified &nbsp;&middot;&nbsp; Secure Delivery
                     </h3>
                 </div>
 
