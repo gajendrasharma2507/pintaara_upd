@@ -413,115 +413,281 @@ export default function AccountProfilePage() {
             {/* ── Page Header ── */}
             <div className="profile-header">
                 <h1 className="profile-title">PROFILE</h1>
-                <p className="profile-subtitle">/ MANAGE YOUR PERSONAL INFORMATION AND ACCOUNT SETTINGS</p>
                 <div className="profile-divider" />
             </div>
 
-            {/* ── Profile Information & Security Settings Form (Matching Figma 0029/0030) ── */}
-            <div className="profile-form-wrap">
-                <h2 className="section-title">PERSONAL INFORMATION</h2>
-
-                {/* FULL NAME */}
-                <div className="form-group">
-                    <label className="field-label">FULL NAME</label>
-                    <div className="input-box clickable" onClick={() => setModal('editName')}>
-                        <span className={name || (user?.name && user.name !== 'Patron') ? "input-val" : "input-placeholder"}>
-                            {name || user?.name || "Name as per ID Proof"}
-                        </span>
-                        <span className="chevron">&gt;</span>
+            {isEditing ? (
+                /* ── Old Edit Form matching 0029.jpg & 0030.jpg ── */
+                <div className="old-edit-form">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.8rem' }}>
+                        <h2 className="section-title" style={{ margin: 0 }}>PERSONAL INFORMATION</h2>
+                        <button
+                            type="button"
+                            onClick={() => setIsEditing(false)}
+                            className="profile-edit-btn"
+                            style={{ padding: '6px 18px', fontSize: '0.72rem' }}
+                        >
+                            ← BACK TO PROFILE
+                        </button>
                     </div>
-                </div>
 
-                {/* CONTACT */}
-                <div className="form-group">
-                    <label className="field-label">CONTACT</label>
-                    <div className="input-box clickable" onClick={() => setModal('changePhone')}>
-                        <span className={phone && phone !== '—' ? "input-val" : "input-placeholder"}>
-                            {phone && phone !== '—' ? phone : (user?.phone && user.phone !== '—' ? user.phone : "Mobile Number")}
-                        </span>
-                        <span className="chevron">&gt;</span>
-                    </div>
-                </div>
-
-                {/* EMAIL */}
-                <div className="form-group">
-                    <label className="field-label">EMAIL</label>
-                    <div className="input-box clickable" onClick={() => setModal('changeEmail')}>
-                        <span className={email && email !== '—' ? "input-val" : "input-placeholder"}>
-                            {email && email !== '—' ? email : (user?.email && user.email !== '—' ? user.email : "Email")}
-                        </span>
-                        <span className="chevron">&gt;</span>
-                    </div>
-                </div>
-
-                {/* ID PROOF */}
-                <div className="form-group">
-                    <label className="field-label">ID PROOF</label>
-                    <div className="id-proof-row">
-                        <div className="input-box flex-1">
-                            <span className={docPath ? "input-val" : "input-placeholder"}>
-                                {docPath ? docPath.split('/').pop() : "Aadhar, Driver's License, Passport"}
+                    {/* FULL NAME */}
+                    <div className="form-group">
+                        <label className="field-label">FULL NAME</label>
+                        <div className="input-box clickable" onClick={() => setModal('editName')}>
+                            <span className={name ? "input-val" : "input-placeholder"}>
+                                {name || displayName || "Name as per ID Proof"}
                             </span>
+                            <span className="chevron">&gt;</span>
                         </div>
+                    </div>
+
+                    {/* CONTACT */}
+                    <div className="form-group">
+                        <label className="field-label">CONTACT</label>
+                        <div className="input-box clickable" onClick={() => setModal('changePhone')}>
+                            <span className={phone && phone !== '—' ? "input-val" : "input-placeholder"}>
+                                {phone && phone !== '—' ? phone : "Mobile Number"}
+                            </span>
+                            <span className="chevron">&gt;</span>
+                        </div>
+                    </div>
+
+                    {/* EMAIL */}
+                    <div className="form-group">
+                        <label className="field-label">EMAIL</label>
+                        <div className="input-box clickable" onClick={() => setModal('changeEmail')}>
+                            <span className={email && email !== '—' ? "input-val" : "input-placeholder"}>
+                                {email && email !== '—' ? email : "Email"}
+                            </span>
+                            <span className="chevron">&gt;</span>
+                        </div>
+                    </div>
+
+                    {/* ID PROOF */}
+                    <div className="form-group">
+                        <label className="field-label">ID PROOF</label>
+                        <div className="id-proof-row">
+                            <div className="input-box flex-1">
+                                <span className={docPath ? "input-val" : "input-placeholder"}>
+                                    {docPath ? docPath.split('/').pop() : "Aadhar, Driver's License, Passport"}
+                                </span>
+                            </div>
+                            <button
+                                type="button"
+                                className="upload-square-btn"
+                                onClick={() => fileInputRef.current?.click()}
+                                title="Upload ID Document"
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* SECURITY */}
+                    <h2 className="section-title" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }}>SECURITY</h2>
+
+                    {/* PASSWORD */}
+                    <div className="form-group">
+                        <label className="field-label">PASSWORD</label>
+                        <div className="input-box">
+                            <span className="password-dots">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
+                            <button
+                                type="button"
+                                className="inline-action-btn"
+                                onClick={() => setModal('changePassword')}
+                            >
+                                CHANGE
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* TWO-STEP VERIFICATION */}
+                    <div className="form-group">
+                        <label className="field-label">TWO-STEP VERIFICATION</label>
+                        <div className="input-box">
+                            <span className="input-val">{twoFactorEnabled ? 'Enable' : 'Disable'}</span>
+                            <button
+                                type="button"
+                                className="inline-action-btn"
+                                onClick={handleToggle2FA}
+                            >
+                                {twoFactorEnabled ? 'DISABLE' : 'ENABLE'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* DELETE ACCOUNT */}
+                    <div className="delete-row">
                         <button
                             type="button"
-                            className="upload-square-btn"
-                            onClick={() => fileInputRef.current?.click()}
-                            title="Upload ID Document"
+                            className="delete-account-link"
+                            onClick={() => setModal('deleteAccount')}
                         >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <polyline points="17 8 12 3 7 8" />
-                                <line x1="12" y1="3" x2="12" y2="15" />
-                            </svg>
+                            DELETE ACCOUNT
                         </button>
                     </div>
                 </div>
+            ) : (
+                /* ── Two Column Profile Details & ID Card (No Icons) ── */
+                <div className="profile-grid">
+                    {/* Left Column: Personal Information */}
+                    <div className="profile-details-column">
+                        <div className="profile-detail-row name-row">
+                            <span className="profile-name-text">{displayName}</span>
+                        </div>
 
-                {/* SECURITY */}
-                <h2 className="section-title security-section-title">SECURITY</h2>
+                        <div className="profile-detail-row">
+                            <span className="profile-regular-text">{displayPhone}</span>
+                        </div>
 
-                {/* PASSWORD */}
-                <div className="form-group">
-                    <label className="field-label">PASSWORD</label>
-                    <div className="input-box">
-                        <span className="password-dots">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
-                        <button
-                            type="button"
-                            className="inline-action-btn"
-                            onClick={() => setModal('changePassword')}
-                        >
-                            CHANGE
-                        </button>
+                        <div className="profile-detail-row">
+                            {displayEmail !== '—' ? (
+                                <a href={`mailto:${displayEmail}`} className="profile-email-link">
+                                    {displayEmail}
+                                </a>
+                            ) : (
+                                <span className="profile-regular-text">—</span>
+                            )}
+                        </div>
+
+                        <div className="profile-detail-row">
+                            <span className="profile-regular-text">{displayId}</span>
+                        </div>
+
+                        <div className="profile-detail-row address-row">
+                            <div className="profile-regular-text">{addressLine1}</div>
+                            <div className="profile-regular-text">{addressLine2}</div>
+                        </div>
+
+                        <div className="profile-detail-row" style={{ marginTop: '0.8rem' }}>
+                            <button
+                                type="button"
+                                onClick={() => setIsEditing(true)}
+                                className="profile-edit-btn"
+                            >
+                                EDIT PROFILE
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Real Uploaded Document Preview */}
+                    <div className="profile-document-column">
+                        {!hasDoc ? (
+                            /* No document uploaded — show upload prompt */
+                            <div className="profile-card-wrapper">
+                                <button
+                                    type="button"
+                                    className="profile-upload-prompt"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={uploadingDoc}
+                                    title="Click to upload government ID proof"
+                                >
+                                    <div className="profile-upload-icon-circle">
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                            <polyline points="17 8 12 3 7 8"/>
+                                            <line x1="12" y1="3" x2="12" y2="15"/>
+                                        </svg>
+                                    </div>
+                                    <span className="profile-upload-main-text">
+                                        {uploadingDoc ? 'UPLOADING DOCUMENT...' : 'UPLOAD ID PROOF'}
+                                    </span>
+                                    <span className="profile-upload-sub-text">
+                                        Aadhaar · Passport · Driver&apos;s Licence
+                                    </span>
+                                    <span className="profile-upload-badge">
+                                        {uploadingDoc ? 'Processing...' : '+ CHOOSE FILE'}
+                                    </span>
+                                </button>
+                            </div>
+                        ) : isPdf ? (
+                            <div className="profile-card-wrapper">
+                                <div className="profile-pdf-preview-card">
+                                    <iframe
+                                        src={`${resolveDocUrl(docPath)}#toolbar=0&navpanes=0&scrollbar=0`}
+                                        title="PDF Document Preview"
+                                        className="profile-pdf-iframe"
+                                    />
+                                    <a 
+                                        href={resolveDocUrl(docPath)} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="profile-pdf-overlay"
+                                        title="Open Full PDF Document"
+                                    >
+                                        <span className="profile-pdf-pill">OPEN PDF ↗</span>
+                                    </a>
+                                </div>
+                                <div className="profile-doc-meta-row">
+                                    <span className="profile-doc-name">{docPath.split('/').pop()}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploadingDoc}
+                                        className="profile-doc-replace-btn"
+                                    >
+                                        {uploadingDoc ? 'Uploading...' : 'Replace Document'}
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            /* Image document (JPG/PNG/WEBP) */
+                            <div className="profile-card-wrapper">
+                                <div className="profile-image-card">
+                                    <a 
+                                        href={resolveDocUrl(docPath)} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="profile-licence-link"
+                                        title="Click to view full document in new tab"
+                                    >
+                                        <img 
+                                            src={resolveDocUrl(docPath)} 
+                                            alt="Government Identity Document" 
+                                            className="profile-licence-image"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.style.display = 'none';
+                                                const fb = e.target.parentElement?.parentElement?.querySelector('.doc-fallback-card');
+                                                if (fb) fb.style.display = 'flex';
+                                            }}
+                                        />
+                                    </a>
+                                    <div className="doc-fallback-card" style={{ display: 'none' }}>
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 500, letterSpacing: '0.04em', color: '#1A1A1A' }}>
+                                            {docPath.split('/').pop()}
+                                        </span>
+                                        <a
+                                            href={resolveDocUrl(docPath)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize: '0.72rem', letterSpacing: '0.06em', color: '#1A1A1A', textDecoration: 'underline', marginTop: '6px' }}
+                                        >
+                                            VIEW DOCUMENT ↗
+                                        </a>
+                                    </div>
+                                </div>
+                                <div className="profile-doc-meta-row">
+                                    <span className="profile-doc-name">{docPath.split('/').pop()}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploadingDoc}
+                                        className="profile-doc-replace-btn"
+                                    >
+                                        {uploadingDoc ? 'Uploading...' : 'Replace Document'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-
-                {/* TWO-STEP VERIFICATION */}
-                <div className="form-group">
-                    <label className="field-label">TWO-STEP VERIFICATION</label>
-                    <div className="input-box">
-                        <span className="input-val">{twoFactorEnabled ? 'Enable' : 'Disable'}</span>
-                        <button
-                            type="button"
-                            className="inline-action-btn"
-                            onClick={handleToggle2FA}
-                        >
-                            {twoFactorEnabled ? 'DISABLE' : 'ENABLE'}
-                        </button>
-                    </div>
-                </div>
-
-                {/* DELETE ACCOUNT */}
-                <div className="delete-row">
-                    <button
-                        type="button"
-                        className="delete-account-link"
-                        onClick={() => setModal('deleteAccount')}
-                    >
-                        DELETE ACCOUNT
-                    </button>
-                </div>
-            </div>
+            )}
 
             {/* ══════════════ MODALS ══════════════ */}
 
@@ -937,30 +1103,286 @@ export default function AccountProfilePage() {
                     margin: 0;
                 }
 
-                /* Profile Form (Matching Figma 0029 / 0030) */
-                .profile-form-wrap {
+                /* Old Edit Form matching 0029.jpg / 0030.jpg */
+                .old-edit-form {
                     width: 100%;
-                    max-width: 680px;
-                    padding-top: 1.5rem;
+                    max-width: 620px;
+                    padding-top: 2rem;
                 }
                 .section-title {
-                    font-family: var(--font-body), sans-serif;
-                    font-size: 0.84rem;
-                    font-weight: 400;
+                    font-size: 0.88rem;
+                    font-weight: 500;
                     letter-spacing: 0.08em;
                     color: #1A1A1A;
                     text-transform: uppercase;
-                    margin: 0 0 1.5rem 0;
-                }
-                .security-section-title {
-                    margin-top: 2.75rem;
-                    margin-bottom: 1.5rem;
+                    margin: 0 0 1.25rem 0;
                 }
                 .form-group {
                     display: flex;
                     flex-direction: column;
-                    gap: 0.45rem;
-                    margin-bottom: 1.35rem;
+                    gap: 0.5rem;
+                    margin-bottom: 1.25rem;
+                }
+
+                /* Profile 2-column Layout (No Icons) */
+                .profile-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1.15fr;
+                    gap: 3.5rem;
+                    align-items: start;
+                    padding-top: 2rem;
+                }
+                .profile-details-column {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.6rem;
+                }
+                .profile-detail-row {
+                    line-height: 1.45;
+                }
+                .profile-name-text {
+                    font-size: 0.95rem;
+                    font-weight: 700;
+                    color: #1A1A1A;
+                    letter-spacing: 0.02em;
+                }
+                .profile-regular-text {
+                    font-size: 0.88rem;
+                    font-weight: 400;
+                    color: #1A1A1A;
+                    letter-spacing: 0.02em;
+                    line-height: 1.5;
+                }
+                .profile-email-link {
+                    font-size: 0.88rem;
+                    font-weight: 400;
+                    color: #1A1A1A;
+                    letter-spacing: 0.02em;
+                    text-decoration: underline;
+                    transition: opacity 0.15s ease;
+                }
+                .profile-email-link:hover {
+                    opacity: 0.7;
+                }
+
+                .profile-edit-btn {
+                    display: inline-block;
+                    border: 1px solid #1A1A1A;
+                    background: transparent;
+                    padding: 8px 24px;
+                    color: #1A1A1A;
+                    font-size: 0.76rem;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border-radius: 2px;
+                }
+                .profile-edit-btn:hover {
+                    background: #1A1A1A;
+                    color: #FAF8F5;
+                }
+
+                /* Document Preview Column */
+                .profile-document-column {
+                    display: flex;
+                    justify-content: flex-start;
+                }
+                .profile-card-wrapper {
+                    max-width: 390px;
+                    width: 100%;
+                }
+                .profile-upload-prompt {
+                    width: 100%;
+                    max-width: 390px;
+                    min-height: 220px;
+                    border: 1.5px dashed #C8C4BB;
+                    background: rgba(255, 255, 255, 0.45);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 2.2rem 1.5rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border-radius: 4px;
+                    box-sizing: border-box;
+                    text-align: center;
+                }
+                .profile-upload-prompt:hover {
+                    border-color: #1A1A1A;
+                    background: rgba(255, 255, 255, 0.85);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+                }
+                .profile-upload-prompt:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+                .profile-upload-icon-circle {
+                    width: 52px;
+                    height: 52px;
+                    border-radius: 50%;
+                    background: #FAF8F5;
+                    border: 1px solid #E5E1DA;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 1rem;
+                    transition: border-color 0.2s ease;
+                }
+                .profile-upload-prompt:hover .profile-upload-icon-circle {
+                    border-color: #1A1A1A;
+                }
+                .profile-upload-main-text {
+                    font-size: 0.82rem;
+                    font-weight: 600;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    color: #1A1A1A;
+                    display: block;
+                    margin-bottom: 0.4rem;
+                }
+                .profile-upload-sub-text {
+                    font-size: 0.7rem;
+                    letter-spacing: 0.05em;
+                    color: #7A7670;
+                    display: block;
+                    margin-bottom: 1.1rem;
+                }
+                .profile-upload-badge {
+                    display: inline-block;
+                    border: 1px solid #1A1A1A;
+                    background: #1A1A1A;
+                    color: #FAF8F5;
+                    font-size: 0.68rem;
+                    letter-spacing: 0.1em;
+                    font-weight: 500;
+                    padding: 6px 16px;
+                    border-radius: 2px;
+                    text-transform: uppercase;
+                    transition: all 0.2s ease;
+                }
+                .profile-upload-prompt:hover .profile-upload-badge {
+                    background: transparent;
+                    color: #1A1A1A;
+                }
+                .profile-image-card {
+                    width: 100%;
+                    max-width: 390px;
+                    background: #FFFFFF;
+                    border: 1px solid #E5E1DA;
+                    border-radius: 4px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+                }
+                .doc-fallback-card {
+                    width: 100%;
+                    max-width: 390px;
+                    min-height: 180px;
+                    background: #FFFFFF;
+                    border: 1px solid #E5E1DA;
+                    border-radius: 4px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 1.5rem;
+                    box-sizing: border-box;
+                    text-align: center;
+                }
+                .profile-licence-link {
+                    display: block;
+                    text-decoration: none;
+                }
+                .profile-licence-image {
+                    width: 100%;
+                    max-width: 390px;
+                    height: auto;
+                    display: block;
+                    border-radius: 4px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                    cursor: pointer;
+                }
+                .profile-licence-image:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+                }
+                .profile-doc-meta-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-end;
+                    width: 100%;
+                    margin-top: 8px;
+                }
+                .profile-doc-name {
+                    font-size: 11px;
+                    letter-spacing: 0.04em;
+                    color: #6C645C;
+                    max-width: 250px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                .profile-doc-replace-btn {
+                    border: none;
+                    background: transparent;
+                    font-size: 11px;
+                    letter-spacing: 0.06em;
+                    text-decoration: underline;
+                    cursor: pointer;
+                    color: #6C645C;
+                    padding: 0;
+                    transition: color 0.15s ease;
+                }
+                .profile-doc-replace-btn:hover {
+                    color: #1A1A1A;
+                }
+                .profile-pdf-preview-card {
+                    position: relative;
+                    width: 100%;
+                    max-width: 390px;
+                    height: 240px;
+                    background: #FFFFFF;
+                    border: 1px solid #E5E1DA;
+                    border-radius: 4px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+                }
+                .profile-pdf-iframe {
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                    pointer-events: none;
+                }
+                .profile-pdf-overlay {
+                    position: absolute;
+                    inset: 0;
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: flex-end;
+                    padding: 12px;
+                    background: linear-gradient(to top, rgba(0, 0, 0, 0.25) 0%, transparent 40%);
+                    text-decoration: none;
+                }
+                .profile-pdf-pill {
+                    background: #1A1A1A;
+                    color: #FFFFFF;
+                    font-size: 10px;
+                    letter-spacing: 0.12em;
+                    font-weight: 600;
+                    padding: 6px 14px;
+                    border-radius: 2px;
+                    text-transform: uppercase;
+                }
+
+                @media (max-width: 860px) {
+                    .profile-grid {
+                        grid-template-columns: 1fr;
+                        gap: 2.5rem;
+                    }
                 }
                 .field-label {
                     font-size: 0.72rem;
@@ -1018,16 +1440,16 @@ export default function AccountProfilePage() {
                     width: 44px;
                     height: 44px;
                     border: 1px solid #1A1A1A;
-                    background-color: #D2D0C8;
+                    background: transparent;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
                     flex-shrink: 0;
-                    transition: opacity 0.15s ease;
+                    transition: background 0.15s ease;
                 }
                 .upload-square-btn:hover {
-                    opacity: 0.85;
+                    background-color: rgba(26, 26, 26, 0.06);
                 }
 
                 /* Password & 2FA */
