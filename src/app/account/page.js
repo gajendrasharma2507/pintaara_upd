@@ -112,6 +112,23 @@ export default function AccountProfilePage() {
     const [primaryAddress, setPrimaryAddress] = useState(null);
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('edit') === 'true') {
+                setIsEditing(true);
+            }
+        }
+        const handlePopState = () => {
+            if (typeof window !== 'undefined') {
+                const params = new URLSearchParams(window.location.search);
+                setIsEditing(params.get('edit') === 'true');
+            }
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    useEffect(() => {
         if (user) {
             if (user.name) setName(user.name);
             if (user.phone) setPhone(user.phone);
@@ -413,23 +430,16 @@ export default function AccountProfilePage() {
             {/* ── Page Header ── */}
             <div className="profile-header">
                 <h1 className="profile-title">PROFILE</h1>
+                {isEditing && (
+                    <p className="profile-subtitle">/ MANAGE YOUR PERSONAL INFORMATION AND ACCOUNT SETTINGS</p>
+                )}
                 <div className="profile-divider" />
             </div>
 
             {isEditing ? (
-                /* ── Old Edit Form matching 0029.jpg & 0030.jpg ── */
+                /* ── Full Page Edit Form matching Figma 0029.jpg & 0030.jpg ── */
                 <div className="old-edit-form">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.8rem' }}>
-                        <h2 className="section-title" style={{ margin: 0 }}>PERSONAL INFORMATION</h2>
-                        <button
-                            type="button"
-                            onClick={() => setIsEditing(false)}
-                            className="profile-edit-btn"
-                            style={{ padding: '6px 18px', fontSize: '0.72rem' }}
-                        >
-                            ← BACK TO PROFILE
-                        </button>
-                    </div>
+                    <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>PERSONAL INFORMATION</h2>
 
                     {/* FULL NAME */}
                     <div className="form-group">
@@ -521,14 +531,36 @@ export default function AccountProfilePage() {
                         </div>
                     </div>
 
-                    {/* DELETE ACCOUNT */}
-                    <div className="delete-row">
+                    {/* DELETE ACCOUNT & BACK OPTION */}
+                    <div className="delete-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <button
                             type="button"
                             className="delete-account-link"
                             onClick={() => setModal('deleteAccount')}
                         >
                             DELETE ACCOUNT
+                        </button>
+                        <button
+                            type="button"
+                            className="profile-back-link"
+                            onClick={() => {
+                                setIsEditing(false);
+                                if (typeof window !== 'undefined' && window.history.pushState) {
+                                    window.history.pushState({}, '', '/account');
+                                }
+                            }}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#77726B',
+                                fontSize: '0.74rem',
+                                letterSpacing: '0.08em',
+                                textTransform: 'uppercase',
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                            }}
+                        >
+                            ← VIEW PROFILE
                         </button>
                     </div>
                 </div>
@@ -567,7 +599,12 @@ export default function AccountProfilePage() {
                         <div className="profile-detail-row" style={{ marginTop: '0.8rem' }}>
                             <button
                                 type="button"
-                                onClick={() => setIsEditing(true)}
+                                onClick={() => {
+                                    setIsEditing(true);
+                                    if (typeof window !== 'undefined' && window.history.pushState) {
+                                        window.history.pushState({}, '', '/account?edit=true');
+                                    }
+                                }}
                                 className="profile-edit-btn"
                             >
                                 EDIT PROFILE
@@ -1106,8 +1143,8 @@ export default function AccountProfilePage() {
                 /* Old Edit Form matching 0029.jpg / 0030.jpg */
                 .old-edit-form {
                     width: 100%;
-                    max-width: 620px;
-                    padding-top: 2rem;
+                    max-width: 680px;
+                    padding-top: 1.5rem;
                 }
                 .section-title {
                     font-size: 0.88rem;
@@ -1440,16 +1477,16 @@ export default function AccountProfilePage() {
                     width: 44px;
                     height: 44px;
                     border: 1px solid #1A1A1A;
-                    background: transparent;
+                    background-color: #D2D0C8;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
                     flex-shrink: 0;
-                    transition: background 0.15s ease;
+                    transition: opacity 0.15s ease;
                 }
                 .upload-square-btn:hover {
-                    background-color: rgba(26, 26, 26, 0.06);
+                    opacity: 0.85;
                 }
 
                 /* Password & 2FA */
