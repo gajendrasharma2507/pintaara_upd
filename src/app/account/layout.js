@@ -24,7 +24,6 @@ export default function AccountLayout({ children }) {
     const navItems = [
         { label: 'MY COLLECTION', path: '/account/collection' },
         { label: 'ORDER', path: '/account/orders' },
-        { label: 'PAYMENTS', path: '/account/payments' },
         { label: 'ADDRESSES', path: '/account/addresses' },
         { label: 'PROFILE', path: '/account' },
     ];
