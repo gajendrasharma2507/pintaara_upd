@@ -103,7 +103,9 @@
 
     /* ---- Shared type helpers ------------------------------------ */
     html body .collection-page-root .collection-subtitle,
-    html body .collection-page-root .how-intro-left .collection-subtitle {
+    html body .collection-page-root .how-intro-left .collection-subtitle,
+    html body .terms-page-root .terms-page-title,
+    html body .acct-root .acct-page-title {
         font-family: var(--font-body) !important;
         font-size: calc(30 * var(--p)) !important;
         font-weight: 400 !important;
@@ -113,6 +115,8 @@
         opacity: 1 !important;
         padding-left: calc(4 * var(--p)) !important;
         display: block !important;
+        text-transform: uppercase !important;
+        margin: 0 !important;
     }
 
     html body .collection-page-root .subtitle-underline-wrapper {
@@ -122,14 +126,50 @@
         gap: 0 !important;
     }
 
+    html body .terms-page-root .terms-title-block,
+    html body .acct-root .acct-title-block {
+        display: block !important;
+        margin: 0 0 calc(36 * var(--p)) 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+    }
+
     html body .collection-page-root .subtitle-line,
-    html body .collection-page-root .how-intro-left .subtitle-line {
+    html body .collection-page-root .how-intro-left .subtitle-line,
+    html body .terms-page-root .terms-title-line,
+    html body .acct-root .acct-title-line {
         width: calc(75 * var(--p)) !important;
         height: calc(2 * var(--p)) !important;
         min-height: 1px;
         background: #000 !important;
         margin: calc(13 * var(--p)) 0 0 !important;
         opacity: 1 !important;
+    }
+
+    /* ---- /terms-of-use & /privacy container ----------------------- */
+    html body .terms-page-root .terms-main-container {
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: calc(163 * var(--p)) calc(150 * var(--p)) 0 !important;
+        height: calc(100vh - 99 * var(--p) - 99 * var(--p)) !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .terms-page-root .terms-content-grid {
+        grid-template-columns: calc(260 * var(--p)) 1fr !important;
+        gap: calc(80 * var(--p)) !important;
+    }
+
+    /* ---- /account container --------------------------------------- */
+    html body .acct-root .acct-body {
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: calc(163 * var(--p)) calc(150 * var(--p)) calc(60 * var(--p)) !important;
+        grid-template-columns: calc(260 * var(--p)) 1fr !important;
+        gap: calc(80 * var(--p)) !important;
+        box-sizing: border-box !important;
     }
 
     /* ---- PDF p.8–10: /collection -------------------------------- */

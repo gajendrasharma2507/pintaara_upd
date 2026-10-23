@@ -56,6 +56,11 @@ export default function AccountLayout({ children }) {
             <div className="acct-body">
                 {/* Sidebar */}
                 <aside className="acct-sidebar">
+                    <div className="acct-title-block">
+                        <span className="acct-page-title">ACCOUNT</span>
+                        <div className="acct-title-line" />
+                    </div>
+
                     <div className="acct-greeting-section">
                         <span className="acct-greeting-sub">{getGreeting()}</span>
                         <h2 className="acct-greeting-name">{clientName}</h2>
@@ -131,6 +136,26 @@ export default function AccountLayout({ children }) {
                     display: flex;
                     flex-direction: column;
                     min-height: calc(100vh - 240px);
+                }
+                .acct-title-block {
+                    margin-bottom: 2.25rem;
+                    flex-shrink: 0;
+                }
+                .acct-page-title {
+                    font-size: 1.45rem;
+                    font-weight: 400;
+                    letter-spacing: 0.04em;
+                    color: #1A1A1A;
+                    margin: 0;
+                    line-height: 1.2;
+                    text-transform: uppercase;
+                    display: block;
+                }
+                .acct-title-line {
+                    width: 48px;
+                    height: 1.5px;
+                    background-color: #1A1A1A;
+                    margin-top: 0.65rem;
                 }
                 .acct-greeting-section {
                     margin-bottom: 2.8rem;

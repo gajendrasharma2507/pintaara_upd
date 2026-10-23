@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import Header from '@/components/Header';
 import { useCart } from '@/context/CartContext';
 import RegionModal from '@/components/RegionModal';
 import { termsData, privacyData } from '@/data/legalData';
@@ -104,49 +105,7 @@ function LegalContent({ pageType = "terms" }) {
     return (
         <div className="terms-page-root">
             {/* Header: Fixed at top */}
-            <header className="terms-header">
-                <div className="terms-header-inner">
-                    <Link href="/" className="terms-brand-logo">
-                        <span className="header-logo-text">PINTAARA</span>
-                    </Link>
-
-                    <nav className="terms-nav-links">
-                        <Link href="/collection" className="terms-nav-item">COLLECTION</Link>
-                        <Link href="/design-log" className="terms-nav-item">DESIGN LOG</Link>
-                        <Link href="/about" className="terms-nav-item">ABOUT</Link>
-                        <Link href="/1976" className="terms-nav-item">1976</Link>
-                    </nav>
-
-                    <div className="terms-header-actions">
-                        <button
-                            type="button"
-                            className="terms-icon-btn"
-                            aria-label="Select Region and Language"
-                            onClick={() => setIsRegionOpen(true)}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="2" y1="12" x2="22" y2="12"></line>
-                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path>
-                            </svg>
-                        </button>
-                        <Link href="/account" className="terms-icon-btn" aria-label="Profile">
-                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                        </Link>
-                        <Link href="/bag" className="terms-icon-btn terms-cart-btn" aria-label="Shopping Bag">
-                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <path d="M16 10a4 4 0 0 1-8 0"></path>
-                            </svg>
-                            {cartCount > 0 && <span className="terms-cart-badge">{cartCount}</span>}
-                        </Link>
-                    </div>
-                </div>
-            </header>
+            <Header headerStyle="dark" />
 
             {/* Region Modal */}
             <RegionModal isOpen={isRegionOpen} onClose={() => setIsRegionOpen(false)} />
