@@ -428,7 +428,7 @@ export default function AccountProfilePage() {
             />
 
             {/* ── Page Header ── */}
-            <div className="profile-header">
+            <div className={`profile-header ${isEditing ? 'has-subtitle' : ''}`}>
                 <h1 className="profile-title">PROFILE</h1>
                 {isEditing && (
                     <p className="profile-subtitle">/ MANAGE YOUR PERSONAL INFORMATION AND ACCOUNT SETTINGS</p>
@@ -1112,24 +1112,29 @@ export default function AccountProfilePage() {
                     width: 100%;
                 }
 
-                /* Header matching user reference */
+                /* Header matching user reference (exact same as ADDRESS heading) */
                 .profile-header {
                     margin-bottom: 2rem;
                 }
                 .profile-title {
-                    font-size: 1.15rem;
+                    font-family: var(--font-body), sans-serif;
+                    font-size: 1.4rem;
                     font-weight: 500;
-                    letter-spacing: 0.06em;
+                    letter-spacing: 0.04em;
                     color: #1A1A1A;
                     margin: 0 0 1.25rem 0;
                     text-transform: uppercase;
                 }
+                .profile-header.has-subtitle .profile-title {
+                    margin: 0 0 0.4rem 0;
+                }
                 .profile-subtitle {
+                    font-family: var(--font-body), sans-serif;
                     font-size: 0.72rem;
                     letter-spacing: 0.08em;
-                    color: #222222;
+                    color: #1A1A1A;
                     font-weight: 400;
-                    margin-top: 0.45rem;
+                    margin-top: 0;
                     margin-bottom: 1.25rem;
                     text-transform: uppercase;
                 }
