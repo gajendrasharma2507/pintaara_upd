@@ -152,7 +152,7 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
                                             <div className="footer-col footer-col-about">
                                                 <h3>ABOUT</h3>
                                                 <ul>
-                                                    <li><Link href="/about"><span className="tree-symbol">├</span> Our Philosophy</Link></li>
+                                                    <li><Link href="/about/philosophy"><span className="tree-symbol">├</span> Our Philosophy</Link></li>
                                                     <li><Link href="/about/story"><span className="tree-symbol">└</span> Our Story</Link></li>
                                                 </ul>
                                             </div>
@@ -161,7 +161,7 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
                                                 <h3>CUSTOMER SERVICE</h3>
                                                 <ul>
                                                     <li><Link href="/contact"><span className="tree-symbol">├</span> Contact Us</Link></li>
-                                                    <li><Link href="/account"><span className="tree-symbol">└</span> Order Status</Link></li>
+                                                    <li><Link href="/account/orders"><span className="tree-symbol">└</span> Order Status</Link></li>
                                                     <li><Link href="/terms-of-use#delivery"><span className="tree-symbol">└</span> Shipping</Link></li>
                                                 </ul>
                                             </div>
