@@ -645,7 +645,12 @@ export default function DynamicCollectionPage({ params }) {
             const cleanSelectedPurity = selectedPurity.replace(/\s+/g, '').toUpperCase();
             const allowedForPurity = matrix.filter((item) => {
                 const itemPurity = (item.purity_code || item.purity_name || '').replace(/\s+/g, '').toUpperCase();
-                return itemPurity === cleanSelectedPurity || cleanSelectedPurity.includes(itemPurity) || itemPurity.includes(cleanSelectedPurity);
+                return (
+                    itemPurity === cleanSelectedPurity ||
+                    cleanSelectedPurity.includes(itemPurity) ||
+                    itemPurity.includes(cleanSelectedPurity) ||
+                    (cleanSelectedPurity.includes('SILVER') && (itemPurity.includes('925') || itemPurity.includes('SILVER')))
+                );
             });
 
             if (allowedForPurity.length > 0) {
@@ -673,73 +678,91 @@ export default function DynamicCollectionPage({ params }) {
         return finishGroup.values;
     }, [finishGroup, productDetail?.finish_purities, selectedPurity]);
 
-    // Dynamic available purities derived from product finish matrix, configured options, & karat
+    // Dynamic available purities derived strictly from product finish matrix when configured, or fallback options
     const availablePurities = useMemo(() => {
         const matrix = productDetail?.finish_purities;
         const groupVals = Array.isArray(purityGroup?.values) ? purityGroup.values : [];
         const allConfigured = [];
         const seenCodes = new Set();
 
-        // 1. Gather all purities from the product's finish_purities matrix
+        // Helper to normalize any purity string to a standard code: '24KT', '22KT', '18KT', '14KT', '10KT', 'PT950', '925 SILVER'
+        const normalizePurity = (raw) => {
+            if (!raw || typeof raw !== 'string') return '';
+            const u = raw.toUpperCase().trim();
+            if (u.includes('24KT') || u.includes('24K')) return '24KT';
+            if (u.includes('22KT') || u.includes('22K')) return '22KT';
+            if (u.includes('18KT') || u.includes('18K')) return '18KT';
+            if (u.includes('14KT') || u.includes('14K')) return '14KT';
+            if (u.includes('10KT') || u.includes('10K')) return '10KT';
+            if (u.includes('PT950') || u.includes('PLATINUM')) return 'PT950';
+            if (u.includes('925') || u.includes('SILVER')) return '925 SILVER';
+            const m = u.match(/(\d+KT|\d+K|\d+\s*SILVER|925|PT\d+)/i);
+            return m ? m[0].replace(/\s+/g, '') : u.replace(/\s+/g, '');
+        };
+
+        // 1. When product has finish_purities matrix configured in Admin, use ONLY the purities active in that matrix!
         if (Array.isArray(matrix) && matrix.length > 0) {
             matrix.forEach((item) => {
                 const rawName = item.purity_code || item.purity_name || '';
-                const match = typeof rawName === 'string' ? rawName.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
-                const cleanCode = (match ? match[0] : rawName).toUpperCase().trim();
-                const normKey = cleanCode.replace(/\s+/g, '');
-                if (!normKey || seenCodes.has(normKey)) return;
-                seenCodes.add(normKey);
+                const cleanCode = normalizePurity(rawName);
+                if (!cleanCode || seenCodes.has(cleanCode)) return;
+                seenCodes.add(cleanCode);
 
                 // Check if a purityGroup value matches
                 const matchedGroupVal = groupVals.find((gv) => {
                     const gRaw = gv.value || gv.code || gv;
-                    const gMatch = typeof gRaw === 'string' ? gRaw.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
-                    const gClean = (gMatch ? gMatch[0] : gRaw).toUpperCase().replace(/\s+/g, '');
-                    return gClean.includes(normKey) || normKey.includes(gClean);
+                    return normalizePurity(String(gRaw)) === cleanCode;
                 });
 
                 if (matchedGroupVal) {
-                    allConfigured.push(matchedGroupVal);
+                    allConfigured.push({
+                        ...matchedGroupVal,
+                        code: cleanCode,
+                        value: cleanCode,
+                    });
                 } else {
                     allConfigured.push({
                         id: item.purity_id || cleanCode,
-                        value: item.purity_name || cleanCode,
+                        value: cleanCode,
                         code: cleanCode,
                         price_delta: cleanCode === '22KT' ? 12000 : cleanCode === '14KT' ? -10000 : cleanCode.includes('SILVER') ? -45000 : 0,
                     });
                 }
             });
-        }
-
-        // 2. Also incorporate any purities from purityGroup.values
-        groupVals.forEach((gv) => {
-            const gRaw = gv.value || gv.code || gv;
-            const gMatch = typeof gRaw === 'string' ? gRaw.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
-            const gClean = (gMatch ? gMatch[0] : gRaw).toUpperCase().replace(/\s+/g, '');
-            if (gClean && !seenCodes.has(gClean)) {
-                seenCodes.add(gClean);
-                allConfigured.push(gv);
-            }
-        });
-
-        // 3. Fallback to productDetail.karat or productDetail.purity if still empty
-        if (allConfigured.length === 0 && (productDetail?.karat || productDetail?.purity)) {
-            const rawKarat = String(productDetail.karat || productDetail.purity).toUpperCase();
-            allConfigured.push({
-                id: 'primary',
-                value: rawKarat,
-                code: rawKarat,
-                price_delta: 0,
+        } else {
+            // 2. Only if NO matrix is configured, fall back to purityGroup.values
+            groupVals.forEach((gv) => {
+                const gRaw = gv.value || gv.code || gv;
+                const cleanCode = normalizePurity(String(gRaw));
+                if (cleanCode && !seenCodes.has(cleanCode)) {
+                    seenCodes.add(cleanCode);
+                    allConfigured.push({
+                        ...gv,
+                        code: cleanCode,
+                        value: cleanCode,
+                    });
+                }
             });
+
+            // 3. Fallback to productDetail.karat or productDetail.purity if still empty
+            if (allConfigured.length === 0 && (productDetail?.karat || productDetail?.purity)) {
+                const cleanCode = normalizePurity(String(productDetail.karat || productDetail.purity));
+                if (cleanCode) {
+                    allConfigured.push({
+                        id: 'primary',
+                        value: cleanCode,
+                        code: cleanCode,
+                        price_delta: 0,
+                    });
+                }
+            }
         }
 
         // 4. Sort purities: 24KT -> 22KT -> 18KT -> 14KT -> 10KT -> PT950 -> 925 SILVER
-        const rankOrder = { '24KT': 1, '22KT': 2, '18KT': 3, '14KT': 4, '10KT': 5, 'PT950': 6, '925SILVER': 7, '925': 7, 'SILVER': 7 };
+        const rankOrder = { '24KT': 1, '22KT': 2, '18KT': 3, '14KT': 4, '10KT': 5, 'PT950': 6, '925SILVER': 7, '925 SILVER': 7 };
         return allConfigured.sort((a, b) => {
-            const aClean = String(a.code || a.value || '').replace(/\s+/g, '').toUpperCase();
-            const bClean = String(b.code || b.value || '').replace(/\s+/g, '').toUpperCase();
-            const rA = rankOrder[aClean] || 99;
-            const rB = rankOrder[bClean] || 99;
+            const rA = rankOrder[a.code] || 99;
+            const rB = rankOrder[b.code] || 99;
             return rA - rB;
         });
     }, [purityGroup, productDetail?.finish_purities, productDetail?.karat, productDetail?.purity]);
@@ -748,19 +771,14 @@ export default function DynamicCollectionPage({ params }) {
     useEffect(() => {
         if (availablePurities && availablePurities.length > 0) {
             const isCurrentAvailable = availablePurities.some((pVal) => {
-                const rawVal = pVal.value || pVal.code || pVal;
-                const match = typeof rawVal === 'string' ? rawVal.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
-                const clean = match ? match[0].toUpperCase() : rawVal;
-                return selectedPurity === clean || selectedPurity === rawVal;
+                return selectedPurity === pVal.code || selectedPurity === pVal.value;
             });
             if (!isCurrentAvailable) {
                 const first = availablePurities[0];
-                const rawVal = first.value || first.code || first;
-                const match = typeof rawVal === 'string' ? rawVal.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
-                const clean = match ? match[0].toUpperCase() : rawVal;
+                const clean = first.code || first.value;
                 setSelectedPurity(clean);
                 const grpName = purityGroup?.name || 'Metal Colors & Purities';
-                handleSelectOption(grpName, { value: rawVal, price_delta: Number(first.price_delta) || 0 });
+                handleSelectOption(grpName, { value: clean, price_delta: Number(first.price_delta) || 0 });
             }
         }
     }, [availablePurities, selectedPurity]);
@@ -1303,13 +1321,13 @@ export default function DynamicCollectionPage({ params }) {
                                     const delta = Number(pVal.price_delta) || (cleanPurity === '22KT' ? 12000 : cleanPurity === '14KT' ? -10000 : cleanPurity === '925 SILVER' ? -45000 : 0);
                                     return (
                                         <button
-                                            key={pVal.id || rawVal}
+                                            key={pVal.id || cleanPurity}
                                             type="button"
                                             className={`atelier-purity-btn ${isSelected ? 'active' : ''}`}
                                             onClick={() => {
                                                 setSelectedPurity(cleanPurity);
                                                 const grpName = purityGroup?.name || 'Metal Colors & Purities';
-                                                handleSelectOption(grpName, { value: rawVal, price_delta: delta });
+                                                handleSelectOption(grpName, { value: cleanPurity, price_delta: delta });
                                             }}
                                         >
                                             {cleanPurity}

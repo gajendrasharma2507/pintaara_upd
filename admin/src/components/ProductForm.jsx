@@ -1554,8 +1554,9 @@ export default function ProductForm({ isEdit = false, productId = null, existing
       .filter((p) => activePurityIds.has(parseInt(p.id)))
       .map((p) => (p.code || p.name || "").replace(/\s+/g, "").toUpperCase());
 
-    const benchmarkCodes = (benchmarkPurities || []).map((bp) => String(bp).replace(/\s+/g, "").toUpperCase());
-    const allAllowedPurityCodes = [...new Set([...activePurityCodes, ...benchmarkCodes])];
+    const hasActiveMatrix = activePurityCodes.length > 0;
+    const benchmarkCodes = hasActiveMatrix ? [] : (benchmarkPurities || []).map((bp) => String(bp).replace(/\s+/g, "").toUpperCase());
+    const allAllowedPurityCodes = hasActiveMatrix ? activePurityCodes : [...new Set([...activePurityCodes, ...benchmarkCodes])];
 
     const sanitizedOptions = (formState.options || [])
       .filter((opt) => opt.enabled)
@@ -1568,21 +1569,23 @@ export default function ProductForm({ isEdit = false, productId = null, existing
           if (allAllowedPurityCodes.length > 0) {
             vals = vals.filter((v) => {
               const vRaw = (v.value || "").replace(/\s+/g, "").toUpperCase();
-              return allAllowedPurityCodes.some((ap) => vRaw.includes(ap) || ap.includes(vRaw.split("(")[0]));
+              return allAllowedPurityCodes.some((ap) => vRaw.includes(ap) || ap.includes(vRaw.split("(")[0]) || (ap.includes("925") && vRaw.includes("SILVER")));
             });
           }
-          benchmarkCodes.forEach((bCode) => {
-            const hasIt = vals.some((v) => (v.value || "").replace(/\s+/g, "").toUpperCase().includes(bCode));
-            if (!hasIt) {
-              const matchedTemplate = defaultOptionMasters[0]?.values?.find((v) => (v.value || "").replace(/\s+/g, "").toUpperCase().includes(bCode));
-              vals.push({
-                value: matchedTemplate?.value || (bCode.includes("925") ? "925 Silver (92.5% Hallmark)" : `${bCode} Gold`),
-                image: matchedTemplate?.image || "",
-                enabled: true,
-                price_delta: 0,
-              });
-            }
-          });
+          if (!hasActiveMatrix) {
+            benchmarkCodes.forEach((bCode) => {
+              const hasIt = vals.some((v) => (v.value || "").replace(/\s+/g, "").toUpperCase().includes(bCode));
+              if (!hasIt) {
+                const matchedTemplate = defaultOptionMasters[0]?.values?.find((v) => (v.value || "").replace(/\s+/g, "").toUpperCase().includes(bCode));
+                vals.push({
+                  value: matchedTemplate?.value || (bCode.includes("925") ? "925 Silver (92.5% Hallmark)" : `${bCode} Gold`),
+                  image: matchedTemplate?.image || "",
+                  enabled: true,
+                  price_delta: 0,
+                });
+              }
+            });
+          }
         }
 
         return {
