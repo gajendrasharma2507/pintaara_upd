@@ -1874,6 +1874,7 @@
        PDF frame (footer included) always fits the window */
     html body .about-page {
         --p: min(calc(100cqw / 1920), calc(100vh / 1080));
+        --pw: calc(100cqw / 1920);
         position: relative !important;
         height: 100vh !important;
         min-height: 0 !important;
@@ -1902,7 +1903,7 @@
            page label sits exactly where the COLLECTION label does */
         --p: calc(100cqw / 1920);
         position: absolute !important;
-        left: calc(154 * var(--p)) !important;
+        left: calc(154 * var(--pw)) !important;
         top: calc(163 * var(--p)) !important;
         margin: 0 !important;
     }
@@ -1925,7 +1926,7 @@
 
     html body .about-page .about-title {
         position: absolute !important;
-        left: calc(154 * var(--p)) !important;
+        left: calc(154 * var(--pw)) !important;
         top: calc(396.5 * var(--p)) !important;
         margin: 0 !important;
         font-family: var(--font-display) !important;
@@ -1941,7 +1942,7 @@
 
     html body .about-page .about-divider {
         position: absolute !important;
-        left: calc(150 * var(--p)) !important;
+        left: calc(154 * var(--pw)) !important;
         top: calc(578.5 * var(--p)) !important;
         width: calc(141.4 * var(--p)) !important;
         height: max(1px, calc(3 * var(--p))) !important;
@@ -1952,7 +1953,7 @@
 
     html body .about-page .about-description {
         position: absolute !important;
-        left: calc(154 * var(--p)) !important;
+        left: calc(154 * var(--pw)) !important;
         top: calc(624 * var(--p)) !important;
         width: calc(812 * var(--p)) !important;
         max-width: none !important;
@@ -1968,7 +1969,7 @@
 
     html body .about-page .about-actions {
         position: absolute !important;
-        left: calc(150 * var(--p)) !important;
+        left: calc(154 * var(--pw)) !important;
         top: calc(863 * var(--p)) !important;
         display: flex !important;
         gap: 0 !important;
