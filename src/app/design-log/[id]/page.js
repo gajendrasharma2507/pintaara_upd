@@ -236,7 +236,7 @@ export default function DesignLogSubPage({ params }) {
       {/* ── Row 6: footer ── */}
       <footer className="dl-footer">
         <span className="dl-footer-brand">PINTAARA™</span>
-        <span className="dl-footer-copy">© 2026 DARSHIT SONI. ALL RIGHTS RESERVED.</span>
+        <span className="dl-footer-copy">© ALL RIGHTS RESERVED.</span>
       </footer>
     </div>
   );

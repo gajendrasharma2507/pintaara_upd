@@ -25,7 +25,8 @@
     .about-normal-page-root,
     .legacy-page-root,
     .terms-page-root,
-    .contact-root {
+    .contact-root,
+    .appointment-page-root {
         container-type: inline-size;
         --p: calc(100cqw / 1920);
     }
@@ -149,7 +150,7 @@
         width: auto !important;
         margin: 0 !important;
         padding: calc(163 * var(--p)) calc(150 * var(--p)) 0 !important;
-        height: calc(100vh - 99 * var(--p) - 99 * var(--p)) !important;
+        height: auto !important;
         box-sizing: border-box !important;
     }
 
@@ -484,7 +485,8 @@
     html body .about-page .collection-bottom-bar,
     html body .legacy-page-root .collection-bottom-bar,
     html body .terms-page-root .collection-bottom-bar,
-    html body .contact-root .collection-bottom-bar {
+    html body .contact-root .collection-bottom-bar,
+    html body .appointment-page-root .collection-bottom-bar {
         margin: 0 calc(66 * var(--p)) !important;
         padding: calc(34 * var(--p)) calc(4 * var(--p)) 0 !important;
         width: auto !important;
@@ -508,7 +510,9 @@
     html body .about-page .collection-bottom-bar span,
     html body .legacy-page-root .collection-bottom-bar span,
     html body .terms-page-root .collection-bottom-bar span,
-    html body .contact-root .collection-bottom-bar span {
+    html body .contact-root .collection-bottom-bar span,
+    html body .appointment-page-root .collection-bottom-bar span,
+    html body .appointment-page-root .collection-bottom-bar .bottom-brand {
         font-family: var(--font-body) !important;
         font-size: calc(18 * var(--p)) !important;
         font-weight: 400 !important;
@@ -526,7 +530,10 @@
     html body .terms-page-root .collection-bottom-bar,
     html body .terms-page-root .collection-bottom-bar span,
     html body .contact-root .collection-bottom-bar,
-    html body .contact-root .collection-bottom-bar span {
+    html body .contact-root .collection-bottom-bar span,
+    html body .appointment-page-root .collection-bottom-bar,
+    html body .appointment-page-root .collection-bottom-bar span,
+    html body .appointment-page-root .collection-bottom-bar .bottom-brand {
         color: #000 !important;
     }
 
@@ -535,8 +542,10 @@
     html body .about-normal-page-root.story-dark-section .collection-bottom-bar,
     html body .about-normal-page-root.story-dark-section .collection-bottom-bar span,
     html body .legacy-page-root .collection-bottom-bar,
-    html body .legacy-page-root .collection-bottom-bar span {
-        color: #F8F3EE !important;
+    html body .legacy-page-root .collection-bottom-bar span,
+    html body .design-log-page-root .collection-bottom-bar,
+    html body .design-log-page-root .collection-bottom-bar span {
+        color: #FFFFFF !important;
     }
 }
 
@@ -1320,6 +1329,18 @@
         margin-top: calc(70 * var(--p)) !important;
     }
 
+    /* keep the footer at the bottom of the window when the bag is
+       empty or short, like every other page */
+    html body .bag-page-root {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 100vh !important;
+    }
+
+    html body .bag-page-root > .bag-main-container {
+        flex: 1 0 auto !important;
+    }
+
     html body .bag-page-root .collection-bottom-bar,
     html body .bag-page-root .collection-bottom-bar span,
     html body .checkout-page-root .collection-bottom-bar,
@@ -1858,8 +1879,10 @@
     html body .dl-subpage-root .dl-footer-copy {
         font-family: var(--font-body) !important;
         font-size: calc(18 * var(--p)) !important;
+        font-weight: 400 !important;
         line-height: 1.389 !important;
         letter-spacing: 0 !important;
+        text-transform: uppercase !important;
         color: #FFFFFF !important;
         opacity: 1 !important;
     }
@@ -2995,7 +3018,7 @@
     html body .legacy-page-root .collection-bottom-bar,
     html body .legacy-page-root .collection-bottom-bar span,
     html body .legacy-page-root .collection-bottom-bar a {
-        color: #F8F3EE !important;
+        color: #FFFFFF !important;
     }
 }
 

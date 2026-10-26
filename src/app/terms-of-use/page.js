@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
@@ -20,7 +20,14 @@ function LegalContent({ pageType = "terms" }) {
     const { cartCount } = useCart();
     const [isRegionOpen, setIsRegionOpen] = useState(false);
     const [activeSection, setActiveSection] = useState(sections[0]?.id || "");
-    const articleRef = useRef(null);
+
+    // Gap left above a section when jumping to it (the whole page scrolls)
+    const SECTION_OFFSET = 48;
+
+    const scrollWindowTo = (el, behavior) => {
+        const top = el.getBoundingClientRect().top + window.scrollY - SECTION_OFFSET;
+        window.scrollTo({ top: Math.max(top, 0), behavior });
+    };
 
     // Deep linking hash support
     useEffect(() => {
@@ -29,76 +36,53 @@ function LegalContent({ pageType = "terms" }) {
             if (hash) {
                 setTimeout(() => {
                     const el = document.getElementById(hash);
-                    if (el && articleRef.current) {
-                        articleRef.current.scrollTo({
-                            top: el.offsetTop,
-                            behavior: 'smooth'
-                        });
+                    if (el) {
+                        scrollWindowTo(el, 'smooth');
                         setActiveSection(hash);
                     }
                 }, 120);
             } else {
                 setActiveSection(sections[0]?.id || "");
-                if (articleRef.current) {
-                    articleRef.current.scrollTop = 0;
-                }
+                window.scrollTo(0, 0);
             }
         }
     }, [effectiveType]);
 
-    // Track scroll inside the article container
+    // Highlight the section currently at the top of the window
     useEffect(() => {
-        const article = articleRef.current;
-        if (!article) return;
-
         const handleScroll = () => {
-            if (article.scrollHeight - article.scrollTop - article.clientHeight <= 40) {
+            const doc = document.documentElement;
+            if (doc.scrollHeight - window.scrollY - window.innerHeight <= 40) {
                 setActiveSection(sections[sections.length - 1]?.id);
                 return;
             }
 
-            const triggerPoint = 50;
+            const triggerPoint = SECTION_OFFSET + 50;
             let currentId = sections[0]?.id;
 
             for (let i = 0; i < sections.length; i++) {
                 const el = document.getElementById(sections[i].id);
-                if (el) {
-                    const topRel = el.offsetTop - article.scrollTop;
-                    if (topRel <= triggerPoint) {
-                        currentId = sections[i].id;
-                    }
+                if (el && el.getBoundingClientRect().top <= triggerPoint) {
+                    currentId = sections[i].id;
                 }
             }
 
             setActiveSection(currentId);
         };
 
-        article.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('scroll', handleScroll, { passive: true });
         handleScroll();
-        return () => article.removeEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
     }, [sections]);
 
-    // Smooth scroll inside article container
+    // Smooth scroll the page to a section
     const scrollToSection = (e, id) => {
         e.preventDefault();
-        const article = articleRef.current;
         const el = document.getElementById(id);
-        if (article && el) {
-            article.scrollTo({
-                top: el.offsetTop,
-                behavior: 'smooth'
-            });
+        if (el) {
+            scrollWindowTo(el, 'smooth');
             setActiveSection(id);
-            if (typeof window !== 'undefined') {
-                window.history.replaceState(null, '', `#${id}`);
-            }
-        }
-    };
-
-    // Forward wheel scrolling over sidebar to the article
-    const handleWheelOnSidebar = (e) => {
-        if (articleRef.current) {
-            articleRef.current.scrollTop += e.deltaY;
+            window.history.replaceState(null, '', `#${id}`);
         }
     };
 
@@ -114,7 +98,7 @@ function LegalContent({ pageType = "terms" }) {
             <main className="terms-main-container">
                 <div className="terms-content-grid">
                     {/* Left Sidebar: 100% matching image */}
-                    <aside className="terms-sidebar" onWheel={handleWheelOnSidebar}>
+                    <aside className="terms-sidebar">
                         <div className="terms-title-block">
                             <h1 className="terms-page-title">{currentData.pageTitle}</h1>
                             <div className="terms-title-line" />
@@ -139,7 +123,7 @@ function LegalContent({ pageType = "terms" }) {
                     </aside>
 
                     {/* Middle / Right Policy Text: ONLY THIS PART SCROLLS */}
-                    <article className="terms-article" ref={articleRef}>
+                    <article className="terms-article">
                         {sections.map((sec) => (
                             <section key={sec.id} id={sec.id} className="terms-policy-section">
                                 <h2 className="terms-section-title">{sec.title}</h2>
@@ -173,18 +157,14 @@ function LegalContent({ pageType = "terms" }) {
             </div>
 
             <style jsx global>{`
-                /* ── FIXED SCREEN ROOT LAYOUT ── */
+                /* ── ROOT LAYOUT (the whole page scrolls) ── */
                 html, body {
-                    height: 100%;
-                    overflow: hidden;
                     background-color: #F6F4EE;
                 }
 
                 .terms-page-root {
                     background-color: #F6F4EE;
-                    height: 100vh;
-                    max-height: 100vh;
-                    overflow: hidden;
+                    min-height: 100vh;
                     color: #1A1A1A;
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                     display: flex;
@@ -270,15 +250,13 @@ function LegalContent({ pageType = "terms" }) {
                     justify-content: center;
                 }
 
-                /* ── MAIN CONTAINER (FILLS SPACE BETWEEN FIXED HEADER & FIXED FOOTER) ── */
+                /* ── MAIN CONTAINER (grows with the text, footer follows it) ── */
                 .terms-main-container {
                     max-width: 1360px;
                     margin: 0 auto;
                     padding: 2.75rem 2rem 1rem 2rem;
                     width: 100%;
                     flex: 1;
-                    min-height: 0;
-                    overflow: hidden;
                     display: flex;
                 }
 
@@ -288,16 +266,16 @@ function LegalContent({ pageType = "terms" }) {
                     grid-template-columns: 250px 1fr;
                     gap: 5.5rem;
                     width: 100%;
-                    height: 100%;
-                    min-height: 0;
-                    overflow: hidden;
+                    align-items: start;
                 }
 
-                /* ── SIDEBAR (STATIONARY ON LEFT, MATCHING IMAGE 1 100%) ── */
+                /* ── SIDEBAR (sticks in view while the page scrolls) ── */
                 .terms-sidebar {
                     display: flex;
                     flex-direction: column;
-                    height: 100%;
+                    position: sticky;
+                    top: 48px;
+                    max-height: calc(100vh - 96px);
                     overflow: hidden;
                     user-select: none;
                 }
@@ -370,23 +348,13 @@ function LegalContent({ pageType = "terms" }) {
                     color: #1A1A1A;
                 }
 
-                /* ── RIGHT ARTICLE (MIDDLE TEXT SCROLLS, MATCHING IMAGE 1 100%) ── */
+                /* ── RIGHT ARTICLE (flows with the page) ── */
                 .terms-article {
                     display: flex;
                     flex-direction: column;
-                    height: 100%;
-                    overflow-y: auto;
                     padding-right: 2.5rem;
                     padding-bottom: 4rem;
                     position: relative;
-                    scroll-behavior: smooth;
-                    scrollbar-width: none;
-                    -ms-overflow-style: none;
-                }
-                .terms-article::-webkit-scrollbar {
-                    display: none;
-                    width: 0;
-                    height: 0;
                 }
 
                 .terms-policy-section {
@@ -496,6 +464,8 @@ function LegalContent({ pageType = "terms" }) {
                         gap: 2rem;
                     }
                     .terms-sidebar {
+                        position: static;
+                        max-height: none;
                         height: auto;
                         overflow: visible;
                     }
