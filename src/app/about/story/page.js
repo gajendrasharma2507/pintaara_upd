@@ -119,7 +119,7 @@ export default function StoryPage() {
 
                         {/* RIGHT: Cocoon image */}
                         <div className="butterfly-media-col">
-                            <img src="/images/about/story_cocoon1.png" alt="Gold chrysalis on branch — PINTAARA The Butterfly" className="butterfly-cocoon-img" />
+                            <img src="/images/about/story_cocoon.png" alt="Gold chrysalis on branch — PINTAARA The Butterfly" className="butterfly-cocoon-img" />
                         </div>
                     </div>
             </main>
