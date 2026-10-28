@@ -10,6 +10,7 @@ import "@/styles/footer.css";
 import "@/styles/product-pricing.css";
 import "@/styles/collection-view.css";
 import "@/styles/pdf-pages.css";
+import "@/styles/mobile-home.css";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import PasswordGate from "@/components/PasswordGate";

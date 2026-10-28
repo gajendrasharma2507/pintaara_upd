@@ -83,10 +83,14 @@ export default function Header({ headerStyle, reveal, onNavigate }) {
                     {isSubPage ? (
                         <Link href="/" className="logo" aria-label="PINTAARA Home">
                             <span className="header-logo-text">PINTAARA</span>
+                            {/* logo image from Website Design Mobile.pdf (phones only) */}
+                            <img src="/images/mobile/logo-wordmark.png" alt="" aria-hidden="true" className="header-logo-img-mobile" />
                         </Link>
                     ) : (
                         <a href="#slide-2" className="logo" aria-label="PINTAARA Home" onClick={(e) => handleLocalLinkClick(e, 0)}>
                             <span className="header-logo-text">PINTAARA</span>
+                            {/* logo image from Website Design Mobile.pdf (phones only) */}
+                            <img src="/images/mobile/logo-wordmark.png" alt="" aria-hidden="true" className="header-logo-img-mobile" />
                         </a>
                     )}
                     

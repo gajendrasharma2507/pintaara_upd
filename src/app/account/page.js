@@ -569,15 +569,15 @@ export default function AccountProfilePage() {
                 <div className="profile-grid">
                     {/* Left Column: Personal Information */}
                     <div className="profile-details-column">
-                        <div className="profile-detail-row name-row">
+                        <div className="profile-detail-row name-row" data-label="NAME">
                             <span className="profile-name-text">{displayName}</span>
                         </div>
 
-                        <div className="profile-detail-row">
+                        <div className="profile-detail-row" data-label="PHONE">
                             <span className="profile-regular-text">{displayPhone}</span>
                         </div>
 
-                        <div className="profile-detail-row">
+                        <div className="profile-detail-row" data-label="EMAIL">
                             {displayEmail !== '—' ? (
                                 <a href={`mailto:${displayEmail}`} className="profile-email-link">
                                     {displayEmail}
@@ -587,16 +587,16 @@ export default function AccountProfilePage() {
                             )}
                         </div>
 
-                        <div className="profile-detail-row">
+                        <div className="profile-detail-row" data-label="MEMBER">
                             <span className="profile-regular-text">{displayId}</span>
                         </div>
 
-                        <div className="profile-detail-row address-row">
+                        <div className="profile-detail-row address-row" data-label="ADDRESS">
                             <div className="profile-regular-text">{addressLine1}</div>
                             <div className="profile-regular-text">{addressLine2}</div>
                         </div>
 
-                        <div className="profile-detail-row" style={{ marginTop: '0.8rem' }}>
+                        <div className="profile-detail-row profile-actions-row" style={{ marginTop: '0.8rem' }}>
                             <button
                                 type="button"
                                 onClick={() => {

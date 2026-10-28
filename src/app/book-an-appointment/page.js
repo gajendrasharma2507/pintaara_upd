@@ -41,6 +41,7 @@ export default function BookAppointmentPage() {
                 <div className="appointment-header-inner">
                     <Link href="/" className="appointment-brand-logo">
                         <span className="header-logo-text">PINTAARA</span>
+                        <img src="/images/mobile/logo-wordmark.png" alt="" aria-hidden="true" className="header-logo-img-mobile" />
                     </Link>
 
                     <nav className="appointment-nav-links">

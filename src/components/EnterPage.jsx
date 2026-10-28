@@ -47,12 +47,17 @@ export default function EnterPage({ onEnter, isExiting, config }) {
                 className="enter-page-bg"
                 style={{
                     backgroundImage: `url('${config?.bgImage || "/images/concept-enter.png"}')`,
-                    backgroundPosition: config?.bgPosition || 'center'
+                    backgroundPosition: config?.bgPosition || 'center',
+                    ...(config?.mobileBgImage ? { '--mobile-bg': `url('${config.mobileBgImage}')` } : {})
                 }}
             />
             <div className="enter-page-shimmer" />
             <div className="enter-page-content" onClick={(e) => e.stopPropagation()}>
-                <h1 className="brand-title">{config?.title || "PINTAARA"}</h1>
+                <h1 className="brand-title">
+                    <span className="brand-title-text">{config?.title || "PINTAARA"}</span>
+                    {/* wordmark image from Website Design Mobile.pdf (phones only) */}
+                    <img src="/images/mobile/enter-wordmark.png" alt="" aria-hidden="true" className="brand-title-img-mobile" />
+                </h1>
                 <button
                     type="button"
                     className={`enter-button ${activeExit ? 'pressed' : ''}`}

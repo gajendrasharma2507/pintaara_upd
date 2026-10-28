@@ -14,6 +14,7 @@
 export const ENTER_PAGE_CONFIG = {
     bgImage: "/images/concept-enter.png",
     bgPosition: "center",
+    mobileBgImage: "/images/mobile/enter.jpg", // Website Design Mobile.pdf page 1
     title: "PINTAARA",
     buttonText: "ENTER"
 };
@@ -27,6 +28,8 @@ export const PINTAARA_CONFIG = {
         {
             id: "slide-2",
             bgImage: "/images/concept-hero12.png", // Golden particle butterfly — same artwork as Website Design.pdf page 2
+            mobileBgImage: "/images/mobile/hero.jpg", // Website Design Mobile.pdf page 2
+            mobileTitle: "FORMS THAT\nARRIVE ON\nTHEIR OWN\nTERMS.",
             bgPosition: "center",
             theme: "dark",
             headerStyle: "light",
@@ -40,6 +43,10 @@ export const PINTAARA_CONFIG = {
             id: "slide-3",
             bgImage: "", // Gradient applied via CSS
             contentImage: "/images/concept-collection2.png", // Rendered as <img> on right side — same artwork as Website Design.pdf page 3
+            mobileBgImage: "/images/mobile/collection.jpg", // Website Design Mobile.pdf page 3
+            mobileTitle: "RARE FORMS.\nTIMELESS\nPRESENCE.",
+            mobileDesc: "A collection of original designs\ncreated to carry identity,\nemotion, and presence. Some\nare inspired by stories. Others\nby the pursuit of a form that\nsimply deserved to exist.",
+            mobileDescJustify: true,
             bgPosition: "right center",
             theme: "cream",
             headerStyle: "dark",
@@ -54,6 +61,9 @@ export const PINTAARA_CONFIG = {
             id: "slide-4",
             bgImage: "", // Gradient applied via CSS
             contentImage: "/images/concept-designlog1.png", // Rendered as <img> on right side — same artwork as Website Design.pdf page 4
+            mobileBgImage: "/images/mobile/design-log.jpg", // Website Design Mobile.pdf page 4
+            mobileDesc: "Every piece begins long before\nit becomes jewellery.\n\nA record of original designs,\ndimensions and development\nbefore they become jewellery.",
+            mobileDescJustify: true,
             bgPosition: "right center",
             theme: "dark",
             headerStyle: "light",
@@ -68,6 +78,9 @@ export const PINTAARA_CONFIG = {
             id: "slide-5",
             bgImage: "", // Gradient applied via CSS
             contentImage: "/images/concept-philosophy.png", // Rendered as <img> on right side
+            mobileBgImage: "/images/mobile/philosophy.jpg", // Website Design Mobile.pdf page 5
+            mobileTitle: "OTHERS FOLLOW\nWHAT ALREADY\nEXISTS.\nPINTAARA SEARCHES\nFOR FORMS THAT\nDON'T.",
+            mobileDesc: "Originality begins with a\ndifferent question:\n\"What is yet to be explored?\"",
             bgPosition: "right center",
             theme: "olive",
             headerStyle: "dark",
@@ -81,6 +94,8 @@ export const PINTAARA_CONFIG = {
         {
             id: "slide-6",
             bgImage: "/images/about/story_mountain2.png", // Glowing green mountain peak – OUR STORY, same artwork as Website Design.pdf page 6
+            mobileTitle: "THIS IS\nBECOMING.",
+            mobileDesc: "Inspired by aspiration,\ntransformation and the pursuit\nof something greater than\noneself.",
             bgPosition: "center",
             theme: "dark",
             headerStyle: "light",

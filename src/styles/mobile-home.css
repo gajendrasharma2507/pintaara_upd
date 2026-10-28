@@ -1,0 +1,1827 @@
+/* ==================================================================
+   MOBILE VIEW — "Website Design Mobile.pdf"
+   ------------------------------------------------------------------
+   Every number below is read from the PDF's 390 x 693 phone frame
+   and scaled to the real screen width with --m (1 PDF px). Desktop
+   is untouched: apart from the first rule (which hides the extra
+   mobile-only text on wider screens), everything lives inside the
+   max-width: 767px query.
+   p1 Enter · p2 Hero · p3 Collection · p4 Design Log · p5 Philosophy
+   p6 Our Story · p7 Footer slide · p8 About (/about)
+   ================================================================== */
+
+/* Mobile-only copies of the slide titles / descriptions, and the PDF
+   logo images that replace the typed logos on phones */
+.slide-title-mobile,
+.slide-desc-mobile,
+.header-logo-img-mobile,
+.brand-title-img-mobile,
+.footer-bottom-logo-img-mobile {
+    display: none;
+}
+
+@media (max-width: 767px) {
+
+    .slider-root-wrapper,
+    .enter-page-overlay,
+    .about-page {
+        --m: calc(100vw / 390);
+        /* vertical nudges so the text glyphs land on the PDF's y values */
+        --ty-title: -2.5;
+        --ty-body: 0.6;
+        --ty-small: 1.1;
+        --ty-tiny: -0.3;
+    }
+
+    /* ---- Header (p2–p8, used on every page on phones): logo left, icons
+       right, hairline at y 43.5 ---- */
+    html body .main-header {
+        height: calc(44 * var(--m)) !important;
+        padding: 0 calc(31 * var(--m)) 0 calc(30 * var(--m)) !important;
+        border: none !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: none !important;
+    }
+
+    html body .main-header .header-container {
+        height: calc(44 * var(--m)) !important;
+        max-width: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: space-between !important;
+        gap: 0 !important;
+        border-bottom: max(1px, calc(0.45 * var(--m))) solid #FFFFFF !important;
+        box-sizing: border-box !important;
+    }
+
+    /* light pages (dark header text) get a black hairline, as on PDF p3 */
+    html body .main-header.header-dark .header-container {
+        border-bottom-color: #000000 !important;
+    }
+
+    /* home slides: white hairline except on the cream Collection slide */
+    html body .slider-root-wrapper .main-header.header-dark .header-container {
+        border-bottom-color: #FFFFFF !important;
+    }
+
+    /* the hairline is black only on the cream Collection slide (p3) */
+    html body .slider-root-wrapper[data-active-slide="slide-3"] .main-header .header-container {
+        border-bottom-color: #000000 !important;
+    }
+
+    html body .main-header .logo {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        opacity: 1 !important;
+    }
+
+    /* logo = PDF image, never typed text (text kept for screen readers) */
+    html body .main-header {
+        --m: calc(100vw / 390);
+    }
+
+    html body .main-header .header-logo-text {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+    }
+
+    html body .main-header .header-logo-img-mobile {
+        display: block !important;
+        width: calc(107.85 * var(--m)) !important;
+        height: calc(13.39 * var(--m)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+
+    /* pages with their own header (contact, appointment, sign-in pages)
+       use the same PDF logo image instead of typed text */
+    html body .contact-brand-logo .header-logo-text,
+    html body .appointment-brand-logo .header-logo-text,
+    html body .auth-logo .header-logo-text {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+    }
+
+    html body .contact-brand-logo .header-logo-img-mobile,
+    html body .appointment-brand-logo .header-logo-img-mobile,
+    html body .auth-logo .header-logo-img-mobile {
+        display: block !important;
+        width: calc(107.85 * 100vw / 390) !important;
+        height: calc(13.39 * 100vw / 390) !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+
+    /* exact PDF box, x 29.67 y 21.5 (header starts at x 30) */
+    html body .main-header .header-logo-img-mobile {
+        margin: calc(21.5 * var(--m)) 0 0 calc(-0.33 * var(--m)) !important;
+    }
+
+    html body .main-header .header-icons {
+        display: flex !important;
+        align-items: center !important;
+        gap: calc(8.6 * var(--m)) !important;
+        margin: calc(20.8 * var(--m)) calc(6.4 * var(--m)) 0 auto !important;
+        height: calc(14.4 * var(--m)) !important;
+    }
+
+    html body .main-header .header-icon-svg {
+        width: calc(15.5 * var(--m)) !important;
+        height: calc(15.5 * var(--m)) !important;
+    }
+
+    html body .main-header .mobile-menu-toggle {
+        margin: calc(19 * var(--m)) 0 0 calc(8.6 * var(--m)) !important;
+        width: calc(17 * var(--m)) !important;
+        height: calc(17 * var(--m)) !important;
+        padding: calc(2.5 * var(--m)) 0 !important;
+    }
+
+    /* the home header stays visible on every slide (no hover on phones) */
+    html body .slider-root-wrapper .main-header.header-reveal,
+    html body .slider-root-wrapper .main-header.header-reveal .logo,
+    html body .slider-root-wrapper .main-header.header-reveal .header-icons {
+        opacity: 1 !important;
+    }
+
+    /* ---- p1 Enter ----------------------------------------------------- */
+    html body .enter-page-overlay {
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    html body .enter-page-overlay .enter-page-bg {
+        background-image: var(--mobile-bg) !important;
+        background-size: cover !important;
+        background-position: center !important;
+    }
+
+    html body .enter-page-overlay .enter-page-content {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc(331 * var(--m)) !important;
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    html body .enter-page-overlay .brand-title {
+        display: block !important;
+        width: calc(196 * var(--m)) !important;
+        height: calc(20 * var(--m)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 0 !important;
+        background: none !important;
+    }
+
+    html body .enter-page-overlay .brand-title-text {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+    }
+
+    html body .enter-page-overlay .brand-title-img-mobile {
+        display: block !important;
+        width: calc(196 * var(--m)) !important;
+        height: calc(20 * var(--m)) !important;
+        max-width: none !important;
+    }
+
+    html body .enter-page-overlay .enter-button {
+        display: block !important;
+        margin: calc(13.3 * var(--m)) 0 0 0 !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: 1.2 !important;
+        letter-spacing: calc(7.25 * var(--m)) !important;
+        color: #F8F3EE !important;
+        opacity: 1 !important;
+    }
+
+    html body .enter-page-overlay .enter-btn-label {
+        font: inherit !important;
+        letter-spacing: inherit !important;
+        color: inherit !important;
+    }
+
+    /* ---- Slides p2–p6: full-screen artwork, text placed as in the PDF ---- */
+    html body #slider-container .slide {
+        background-size: cover !important;
+        background-repeat: no-repeat !important;
+    }
+
+    html body #slider-container .slide[style*="--mobile-bg"] {
+        background-image: var(--mobile-bg) !important;
+        background-position: center top !important;
+    }
+
+    /* the desktop right-hand artwork is part of the mobile image */
+    html body #slider-container .slide .slide-content-img {
+        display: none !important;
+    }
+
+    /* p6 story: landscape art 1684 x 960 on the 390 x 693 frame, x -524 */
+    html body #slider-container .slide#slide-6 {
+        background-size: auto 138.5% !important;
+        background-position: 40.5% 0 !important;
+    }
+
+    /* p7 footer slide: art fills the height, centred */
+    html body #slider-container .slide#slide-7 {
+        background-size: cover !important;
+        background-position: 50% 0 !important;
+    }
+
+    html body #slider-container .slide .slide-content {
+        position: absolute !important;
+        inset: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        transform: none;
+    }
+
+    html body #slider-container .slide .slide-top-label,
+    html body #slider-container .slide .slide-main-block,
+    html body #slider-container .slide .slide-bottom-action {
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        transform: none;
+    }
+
+    /* label — Avenir 14.4, glyph top y 73 */
+    html body #slider-container .slide .slide-subtitle {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc((73 + var(--ty-body)) * var(--m)) !important;
+        margin: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
+    }
+
+    /* title — Baskerville 25.3, lines every 37.7, first glyph top y 127 */
+    html body #slider-container .slide .slide-title {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc((127 + var(--ty-title)) * var(--m)) !important;
+        width: calc(330 * var(--m)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: var(--font-display) !important;
+        font-size: calc(25.3 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(37.7 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+    }
+
+    html body #slider-container .slide .slide-title-desktop {
+        display: none !important;
+    }
+
+    html body #slider-container .slide .slide-title-mobile {
+        display: block !important;
+    }
+
+    html body #slider-container .slide .slide-title-mobile-line {
+        display: block;
+        white-space: nowrap;
+    }
+
+    /* divider — 29 x 0.9 rule at x 30 */
+    html body #slider-container .slide .hero-divider {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc(243.5 * var(--m)) !important;
+        width: calc(29 * var(--m)) !important;
+        height: max(1px, calc(0.9 * var(--m))) !important;
+        margin: 0 !important;
+        opacity: 1 !important;
+    }
+
+    /* description — Avenir 14.4, lines every 19.8, 219 wide */
+    html body #slider-container .slide .slide-desc {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc((263 + var(--ty-body)) * var(--m)) !important;
+        width: calc(219 * var(--m)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        white-space: normal !important;
+    }
+
+    html body #slider-container .slide .slide-desc-desktop {
+        display: none !important;
+    }
+
+    html body #slider-container .slide .slide-desc-mobile {
+        display: block !important;
+    }
+
+    html body #slider-container .slide .footer-bottom-center .slide-desc-desktop {
+        display: none !important;
+    }
+
+    html body #slider-container .slide .footer-bottom-center .slide-desc-mobile {
+        display: inline !important;
+    }
+
+    html body #slider-container .slide .slide-desc-mobile-line {
+        display: block;
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    html body #slider-container .slide .slide-desc-mobile-line.is-gap {
+        height: calc(19.8 * var(--m));
+    }
+
+    /* justified lines, like the PDF (paragraph ends stay left) */
+    html body #slider-container .slide .slide-desc-mobile.is-justified .slide-desc-mobile-line {
+        white-space: normal;
+        text-align: justify;
+        text-align-last: justify;
+    }
+
+    html body #slider-container .slide .slide-desc-mobile.is-justified .slide-desc-mobile-line.is-last {
+        text-align-last: left;
+    }
+
+    /* CTA — Avenir 10.8, glyph top y 579 (kept 99px off the bottom) */
+    html body #slider-container .slide .action-btn {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        bottom: calc((693 - 579 - var(--ty-small) - 13) * var(--m)) !important;
+        top: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(10.8 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(13 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
+        border: none !important;
+        background: none !important;
+    }
+
+    html body #slider-container .slide .action-btn::before,
+    html body #slider-container .slide .action-btn::after {
+        display: none !important;
+    }
+
+    /* per-slide positions and colours */
+    html body #slider-container .slide#slide-2 .slide-title {
+        color: #F8F3EE !important;
+    }
+
+    html body #slider-container .slide#slide-3 .slide-title,
+    html body #slider-container .slide#slide-5 .slide-title {
+        color: #3C3732 !important;
+    }
+
+    html body #slider-container .slide#slide-3 .slide-subtitle,
+    html body #slider-container .slide#slide-3 .slide-desc,
+    html body #slider-container .slide#slide-3 .action-btn,
+    html body #slider-container .slide#slide-5 .slide-subtitle,
+    html body #slider-container .slide#slide-5 .slide-desc,
+    html body #slider-container .slide#slide-5 .action-btn {
+        color: #000000 !important;
+    }
+
+    html body #slider-container .slide#slide-3 .hero-divider,
+    html body #slider-container .slide#slide-5 .hero-divider {
+        background: #000000 !important;
+    }
+
+    html body #slider-container .slide#slide-4 .slide-title,
+    html body #slider-container .slide#slide-6 .slide-title {
+        color: #F8F3ED !important;
+    }
+
+    html body #slider-container .slide#slide-4 .slide-subtitle,
+    html body #slider-container .slide#slide-4 .slide-desc,
+    html body #slider-container .slide#slide-4 .action-btn,
+    html body #slider-container .slide#slide-6 .slide-subtitle,
+    html body #slider-container .slide#slide-6 .slide-desc,
+    html body #slider-container .slide#slide-6 .action-btn {
+        color: #FFFFFF !important;
+    }
+
+    html body #slider-container .slide#slide-4 .hero-divider,
+    html body #slider-container .slide#slide-6 .hero-divider {
+        background: #FFFFFF !important;
+    }
+
+    /* two-line titles (p4, p6): rule at y 216.6, text from y 236 */
+    html body #slider-container .slide#slide-4 .hero-divider,
+    html body #slider-container .slide#slide-6 .hero-divider {
+        left: calc(29 * var(--m)) !important;
+        top: calc(216.2 * var(--m)) !important;
+    }
+
+    html body #slider-container .slide#slide-4 .slide-desc,
+    html body #slider-container .slide#slide-6 .slide-desc {
+        top: calc((236 + var(--ty-body)) * var(--m)) !important;
+    }
+
+    /* p5 six-line title: rule at y 361.1, text from y 380 */
+    html body #slider-container .slide#slide-5 .hero-divider {
+        top: calc(360.7 * var(--m)) !important;
+    }
+
+    html body #slider-container .slide#slide-5 .slide-desc {
+        top: calc((380 + var(--ty-body)) * var(--m)) !important;
+        width: auto !important;
+    }
+
+    html body #slider-container .slide#slide-6 .slide-desc {
+        width: auto !important;
+    }
+
+    /* ---- p7 Footer slide ----------------------------------------------- */
+    html body #slider-container .slide .footer-layout {
+        position: absolute !important;
+        inset: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    html body #slider-container .slide .footer-top {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: calc((127 + var(--ty-title)) * var(--m)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        text-align: center !important;
+    }
+
+    html body #slider-container .slide .footer-title {
+        margin: 0 !important;
+        font-family: var(--font-display) !important;
+        font-size: calc(25.3 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(37.7 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        color: #F8F3ED !important;
+        white-space: nowrap !important;
+    }
+
+    html body #slider-container .slide .footer-subtitle {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: calc((157 - 127 + var(--ty-body) - var(--ty-title)) * var(--m)) !important;
+        margin: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* columns: MEMBERSHIP | CUSTOMER SERVICE at y 272, ABOUT | LEGAL at y 380 */
+    html body #slider-container .slide .footer-columns {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc((272 + var(--ty-tiny)) * var(--m)) !important;
+        width: calc(330 * var(--m)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: grid !important;
+        grid-template-columns: calc(166 * var(--m)) 1fr !important;
+        grid-template-rows: calc(108 * var(--m)) auto !important;
+        grid-template-areas: "membership cs" "about legal" !important;
+        gap: 0 !important;
+    }
+
+    html body #slider-container .slide .footer-col {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+        text-align: left !important;
+    }
+
+    html body #slider-container .slide .footer-col-membership { grid-area: membership !important; }
+    html body #slider-container .slide .footer-col-cs { grid-area: cs !important; }
+    html body #slider-container .slide .footer-col-about { grid-area: about !important; }
+    html body #slider-container .slide .footer-col-legal { grid-area: legal !important; }
+
+    html body #slider-container .slide .footer-col h3 {
+        margin: 0 0 calc(14.3 * var(--m)) !important;
+        height: calc(12.5 * var(--m)) !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(9 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(12.5 * var(--m)) !important;
+        letter-spacing: calc(1.1 * var(--m)) !important;
+        color: #F8F3EE !important;
+        white-space: nowrap !important;
+    }
+
+    html body #slider-container .slide .footer-col ul {
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+        display: block !important;
+    }
+
+    html body #slider-container .slide .footer-col li {
+        display: block !important;
+        height: calc(15 * var(--m)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: calc(15 * var(--m)) !important;
+        overflow: visible !important;
+    }
+
+    html body #slider-container .slide .footer-col li a {
+        display: inline !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(9 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(15 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        color: #F8F3EE !important;
+        white-space: nowrap !important;
+        padding: 0 !important;
+    }
+
+    html body #slider-container .slide .footer-col .tree-symbol {
+        display: inline-block !important;
+        width: calc(6.5 * var(--m)) !important;
+        margin: 0 !important;
+        font-size: calc(9 * var(--m)) !important;
+        line-height: calc(15 * var(--m)) !important;
+        vertical-align: top !important;
+        color: #F8F3EE !important;
+        opacity: 1 !important;
+    }
+
+    /* bottom (PDF images): butterfly 15.93 x 13.42 at x 31.04 y 616.29,
+       wordmark 81.08 x 10.04 at x 56.53 y 617.62, Instagram 16.38 at
+       x 341.81 y 614.81, copyright lines at y 641 / 650. The 330 x 45 box
+       starts at y 614 and stays 34px off the bottom on taller phones. */
+    html body #slider-container .slide .footer-bottom-bar {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        bottom: calc(34 * var(--m)) !important;
+        top: auto !important;
+        right: auto !important;
+        width: calc(330 * var(--m)) !important;
+        height: calc(45 * var(--m)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        display: block !important;
+    }
+
+    html body #slider-container .slide .footer-bottom-brand,
+    html body #slider-container .slide .footer-bottom-right,
+    html body #slider-container .slide .footer-bottom-center {
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    html body #slider-container .slide .footer-bottom-butterfly {
+        position: absolute !important;
+        left: calc(1.04 * var(--m)) !important;
+        top: calc(2.29 * var(--m)) !important;
+        width: calc(15.93 * var(--m)) !important;
+        height: calc(13.42 * var(--m)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+
+    html body #slider-container .slide .footer-bottom-logo {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+    }
+
+    html body #slider-container .slide .footer-bottom-logo-img-mobile {
+        display: block !important;
+        position: absolute !important;
+        left: calc(26.53 * var(--m)) !important;
+        top: calc(3.62 * var(--m)) !important;
+        width: calc(81.08 * var(--m)) !important;
+        height: calc(10.04 * var(--m)) !important;
+        max-width: none !important;
+    }
+
+    html body #slider-container .slide .footer-ig-link {
+        position: static !important;
+        display: block !important;
+    }
+
+    html body #slider-container .slide .footer-ig-icon {
+        display: block !important;
+        position: absolute !important;
+        left: calc(311.81 * var(--m)) !important;
+        top: calc(0.81 * var(--m)) !important;
+        width: calc(16.38 * var(--m)) !important;
+        height: calc(16.38 * var(--m)) !important;
+        max-width: none !important;
+    }
+
+    html body #slider-container .slide .footer-bottom-center {
+        position: absolute !important;
+        left: calc(1 * var(--m)) !important;
+        top: calc((641 - 614 + 0.2) * var(--m)) !important;
+        text-align: left !important;
+    }
+
+    html body #slider-container .slide .footer-bottom-center p {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(7.2 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(9 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        white-space: nowrap !important;
+        text-align: left !important;
+    }
+
+    /* ---- p8 About (/about) ------------------------------------------- */
+    html body .about-page {
+        height: 100svh !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        background-image: url('/images/about/about_hero_emerald.png') !important;
+        background-size: auto 100% !important;
+        background-position: 67.8% 0 !important;
+    }
+
+    html body .about-page .about-content {
+        position: absolute !important;
+        inset: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        transform: none !important;
+    }
+
+    html body .about-page .about-top-label,
+    html body .about-page .about-main-block {
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+    }
+
+    html body .about-page .about-label {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc((73 + var(--ty-body)) * var(--m)) !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+    }
+
+    html body .about-page .about-title {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc((127 + var(--ty-title)) * var(--m)) !important;
+        width: calc(330 * var(--m)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+        font-family: var(--font-display) !important;
+        font-size: calc(25.3 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(37.7 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        color: #F8F3ED !important;
+        white-space: normal !important;
+    }
+
+    /* "A NEW NAME. / DECADES OF / CRAFT." — replace the desktop <br> break */
+    html body .about-page .about-title br {
+        display: none !important;
+    }
+
+    html body .about-page .about-title {
+        width: calc(200 * var(--m)) !important;
+    }
+
+    html body .about-page .about-divider {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc(243.5 * var(--m)) !important;
+        width: calc(29 * var(--m)) !important;
+        height: max(1px, calc(0.9 * var(--m))) !important;
+        margin: 0 !important;
+        background: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+
+    html body .about-page .about-description {
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        top: calc((263 + var(--ty-body)) * var(--m)) !important;
+        width: calc(219 * var(--m)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        text-align: justify !important;
+        color: #FFFFFF !important;
+    }
+
+    /* links: EXPLORE OUR STORY (olive bar) at y 542, EXPLORE PHILOSOPHY
+       (blue bar) at y 579 — the reverse of desktop */
+    html body .about-page .about-actions {
+        position: absolute !important;
+        left: calc(28.9 * var(--m)) !important;
+        bottom: calc((693 - 592.2) * var(--m)) !important;
+        top: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        gap: calc(23.5 * var(--m)) !important;
+    }
+
+    html body .about-page .about-action {
+        display: flex !important;
+        align-items: center !important;
+        width: auto !important;
+        height: calc(12.6 * var(--m)) !important;
+        gap: calc(10.6 * var(--m)) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(10.8 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: 1 !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+        white-space: nowrap !important;
+    }
+
+    html body .about-page .about-action-line {
+        display: block !important;
+        width: max(1.5px, calc(1.8 * var(--m))) !important;
+        min-width: 0 !important;
+        height: calc(12.6 * var(--m)) !important;
+        margin: 0 !important;
+    }
+
+    html body .about-page .action-story .about-action-line {
+        background: #878564 !important;
+    }
+
+    html body .about-page .action-philosophy .about-action-line {
+        background: #476C8F !important;
+    }
+
+    /* footer: rule at y 646.5, PINTAARA™ / © at y 660, 7.2px */
+    html body .about-page .collection-bottom-bar {
+        position: absolute !important;
+        left: calc(29 * var(--m)) !important;
+        right: calc(32 * var(--m)) !important;
+        top: auto !important;
+        bottom: 0 !important;
+        width: auto !important;
+        height: calc((693 - 646.5) * var(--m)) !important;
+        margin: 0 !important;
+        padding: calc((660 - 646.5 + var(--ty-tiny)) * var(--m)) 0 0 calc(1 * var(--m)) !important;
+        border-top: max(1px, calc(0.45 * var(--m))) solid #FFFFFF !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .about-page .collection-bottom-bar span {
+        font-family: var(--font-body) !important;
+        font-size: calc(7.2 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(9.2 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* ---- Other pages on phones (not in the mobile PDF) ----------------- */
+    /* product page: the 12 thumbnails forced the image column to 736px and
+       the main image was cut off; let the column fit the screen (the
+       thumbnail row already scrolls sideways) */
+    html body .atelier-page-root .atelier-main-container {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    html body .atelier-page-root .atelier-media-column {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* design log article: the floating header covered the
+       "BACK TO DESIGN LOG" link (it sat at y 16); start below the header */
+    html body .dl-subpage-root .dl-hero {
+        padding-top: calc(44 * 100vw / 390 + 16px) !important;
+    }
+
+    /* bag: the footer floated mid-screen on an empty/short bag and its
+       text sat on the line. Pin it to the bottom and use the mobile PDF
+       footer (p8): rule 29 -> 358, text 7.2px 13.5px under it, 46.5px tall */
+    html body .bag-page-root {
+        --m: calc(100vw / 390);
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 100svh !important;
+    }
+
+    html body .bag-page-root > .bag-main-container {
+        flex: 1 0 auto !important;
+        /* full width: in the flex column, auto margins shrank an empty
+           bag to its content and centred it (label at x 71) */
+        align-self: stretch !important;
+        width: auto !important;
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .bag-page-root > .collection-bottom-bar {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        height: calc(46.5 * var(--m)) !important;
+        margin: calc(40 * var(--m)) calc(32 * var(--m)) 0 calc(29 * var(--m)) !important;
+        padding: calc(13.2 * var(--m)) 0 0 calc(1 * var(--m)) !important;
+        border-top: max(1px, calc(0.45 * var(--m))) solid #000000 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        box-sizing: border-box !important;
+        background: transparent !important;
+    }
+
+    html body .bag-page-root > .collection-bottom-bar span {
+        font-family: var(--font-body) !important;
+        font-size: calc(7.2 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(9.2 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        color: #000000 !important;
+    }
+
+    /* terms / privacy: the page title sat at y 24, under the header */
+    html body .terms-page-root .terms-main-container {
+        padding-top: calc(44 * 100vw / 390 + 24px) !important;
+    }
+
+    /* every inner page: the mobile PDF footer (p8) instead of the cramped
+       14px bar — rule 29 -> 358, text 7.2px 13.5px under it, 46.5px tall,
+       line in the page's own text colour */
+    html body .collection-bottom-bar {
+        --m: calc(100vw / 390);
+        width: auto !important;
+        max-width: none !important;
+        height: calc(46.5 * var(--m)) !important;
+        margin-left: calc(29 * var(--m)) !important;
+        margin-right: calc(32 * var(--m)) !important;
+        margin-bottom: 0 !important;
+        padding: calc(13.2 * var(--m)) 0 0 calc(1 * var(--m)) !important;
+        border-top: max(1px, calc(0.45 * var(--m))) solid currentColor !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .collection-bottom-bar span,
+    html body .collection-bottom-bar a,
+    html body .collection-bottom-bar .bottom-brand,
+    html body .collection-bottom-bar .bottom-copyright {
+        font-family: var(--font-body) !important;
+        font-size: calc(7.2 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(9.2 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        text-decoration: none !important;
+    }
+
+    /* contact: the page stayed locked to one screen (max-height 100vh), so
+       the text scrolled behind the footer; let it scroll like a page */
+    html body .contact-root {
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100svh !important;
+        overflow: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    html body .contact-root .contact-main {
+        flex: 1 0 auto !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    html body .contact-root .contact-footer-wrapper {
+        margin-top: calc(40 * var(--m, 1px)) !important;
+    }
+
+    /* bag: the 6-column desktop table can't fit a phone (the code broke
+       into 4 lines, price/qty ran off the edge) — one card per item */
+    html body .bag-page-root .cart-table-header {
+        display: none !important;
+    }
+
+    html body .bag-page-root .cart-table-row {
+        display: grid !important;
+        grid-template-columns: calc(96 * var(--m)) minmax(0, 1fr) calc(22 * var(--m)) !important;
+        grid-template-areas:
+            "item details action"
+            "item price price"
+            "qty total total" !important;
+        column-gap: calc(16 * var(--m)) !important;
+        row-gap: calc(12 * var(--m)) !important;
+        align-items: start !important;
+        padding: calc(20 * var(--m)) 0 !important;
+    }
+
+    html body .bag-page-root .cart-table-row .td-col {
+        width: auto !important;
+        min-width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        text-align: left !important;
+    }
+
+    html body .bag-page-root .cart-table-row .col-item { grid-area: item !important; }
+    html body .bag-page-root .cart-table-row .col-details { grid-area: details !important; }
+    html body .bag-page-root .cart-table-row .col-price { grid-area: price !important; }
+    html body .bag-page-root .cart-table-row .col-qty { grid-area: qty !important; align-self: center !important; }
+    html body .bag-page-root .cart-table-row .col-total { grid-area: total !important; align-self: center !important; text-align: right !important; }
+    html body .bag-page-root .cart-table-row .col-action { grid-area: action !important; justify-self: end !important; }
+
+    html body .bag-page-root .col-qty .qty-control-box {
+        width: calc(96 * var(--m)) !important;
+        max-width: 100% !important;
+    }
+
+    html body .bag-page-root .cart-item-img-wrapper {
+        width: calc(96 * var(--m)) !important;
+        height: calc(96 * var(--m)) !important;
+    }
+
+    html body .bag-page-root .cart-item-code {
+        white-space: nowrap !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+    }
+
+    html body .bag-page-root .cart-item-specs .spec-line {
+        white-space: normal !important;
+        word-break: normal !important;
+    }
+
+    html body .bag-page-root .col-price .price-val::before {
+        content: "Price  ";
+        white-space: pre;
+        opacity: 0.6;
+    }
+
+    html body .bag-page-root .col-total .price-val::before {
+        content: "Total  ";
+        white-space: pre;
+        opacity: 0.6;
+    }
+
+    html body .bag-page-root .price-val {
+        white-space: nowrap !important;
+    }
+
+    /* 1976: the footer sat in the centred banner and shrank to 144px —
+       pin it across the bottom of the banner */
+    html body .legacy-page-root .legacy-future-banner > .collection-bottom-bar {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        align-self: stretch !important;
+    }
+
+    /* design log article: its own footer, same spacing as the others */
+    html body .dl-subpage-root .dl-footer-rule {
+        width: auto !important;
+        height: max(1px, calc(0.45 * 100vw / 390)) !important;
+        margin: calc(40 * 100vw / 390) calc(32 * 100vw / 390) 0 calc(29 * 100vw / 390) !important;
+    }
+
+    html body .dl-subpage-root .dl-footer {
+        height: calc(45.5 * 100vw / 390) !important;
+        margin: 0 calc(32 * 100vw / 390) 0 calc(29 * 100vw / 390) !important;
+        padding: calc(13.2 * 100vw / 390) 0 0 calc(1 * 100vw / 390) !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .dl-subpage-root .dl-footer-brand,
+    html body .dl-subpage-root .dl-footer-copy {
+        font-family: var(--font-body) !important;
+        font-size: calc(7.2 * 100vw / 390) !important;
+        font-weight: 400 !important;
+        line-height: calc(9.2 * 100vw / 390) !important;
+        letter-spacing: 0 !important;
+    }
+
+    /* 1976: transparent header over the sepia photo — a soft shadow keeps
+       the copper logo readable */
+    html body .legacy-page-root .main-header .header-logo-img-mobile {
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55)) !important;
+    }
+
+    /* 1976: the closing headline was one 735px line, cut off both sides */
+    html body .legacy-page-root .future-headline {
+        white-space: normal !important;
+        max-width: 100% !important;
+        text-align: center !important;
+    }
+
+    /* ---- Same start on every page (mobile PDF p3-p8) -------------------
+       After the 44px header the page label always starts at x 30, y 73
+       (14.4px Avenir, uppercase), exactly like "ABOUT US" / "COLLECTION"
+       in the PDF. Values tuned per page so the label's text box lands on
+       y 73. --pg-top nudges each page's own container. */
+    html body .collection-page-root,
+    html body .design-log-page-root,
+    html body .about-normal-page-root,
+    html body .bag-page-root,
+    html body .terms-page-root,
+    html body .contact-root,
+    html body .appointment-page-root,
+    html body .dl-subpage-root,
+    html body .atelier-page-root {
+        --m: calc(100vw / 390);
+    }
+
+    /* measured nudges (text box of a 14.4px label vs. its container) */
+    html body .collection-page-root { --pg-collection: calc(-1.8 * var(--m)); }
+    html body .design-log-page-root { --pg-designlog: calc(0.7 * var(--m)); }
+    html body .about-normal-page-root { --pg-about: calc(0.7 * var(--m)); }
+    html body .bag-page-root { --pg-bag: calc(0.7 * var(--m)); }
+    html body .terms-page-root { --pg-terms: calc(0.7 * var(--m)); }
+    html body .contact-root,
+    html body .appointment-page-root { --pg-contact: calc(0.7 * var(--m)); }
+
+    /* page labels: one style everywhere */
+    html body .collection-page-root .collection-subtitle,
+    html body .design-log-page-root .design-process-label,
+    html body .about-normal-page-root .phil-header-subtitle,
+    html body .about-normal-page-root .story-label,
+    html body .bag-page-root .bag-title,
+    html body .terms-page-root .terms-page-title,
+    html body .contact-root .contact-page-title,
+    html body .appointment-page-root .appointment-page-title {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+    }
+
+    /* containers: left edge x 30, label text box at y 73 */
+    html body .collection-page-root .collection-main-container,
+    html body .collection-page-root:has(.category-subpage-header) .collection-main-container {
+        padding-top: calc(73 * var(--m) + var(--pg-collection, 0px)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    html body .design-log-page-root .design-process-content {
+        padding-top: calc(73 * var(--m) + var(--pg-designlog, 0px)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    html body .about-normal-page-root .philosophy-page-container,
+    html body .about-normal-page-root .story-page-container {
+        padding-top: calc(73 * var(--m) + var(--pg-about, 0px)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    html body .bag-page-root .bag-main-container {
+        padding-top: calc(73 * var(--m) + var(--pg-bag, 0px)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    html body .terms-page-root .terms-main-container {
+        padding-top: calc(73 * var(--m) + var(--pg-terms, 0px)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    html body .dl-subpage-root .dl-hero {
+        padding-top: calc(73 * var(--m) + var(--pg-dl, 0px)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    html body .atelier-page-root .atelier-main-container {
+        padding-top: calc(73 * var(--m) + var(--pg-product, 0px)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    /* contact + appointment: their own header, sized like the PDF header */
+    html body .contact-header,
+    html body .appointment-header {
+        height: calc(44 * var(--m)) !important;
+        padding: 0 calc(31 * var(--m)) 0 calc(30 * var(--m)) !important;
+        border: none !important;
+        background: transparent !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .contact-header .contact-header-inner,
+    html body .appointment-header .appointment-header-inner {
+        height: calc(44 * var(--m)) !important;
+        max-width: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: space-between !important;
+        border-bottom: max(1px, calc(0.45 * var(--m))) solid #000000 !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .contact-header .contact-brand-logo .header-logo-img-mobile,
+    html body .appointment-header .appointment-brand-logo .header-logo-img-mobile {
+        margin: calc(21.5 * var(--m)) 0 0 calc(-0.33 * var(--m)) !important;
+    }
+
+    html body .contact-header .contact-header-actions,
+    html body .appointment-header .appointment-header-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: calc(8.6 * var(--m)) !important;
+        margin: calc(20.8 * var(--m)) 0 0 auto !important;
+        height: calc(15.5 * var(--m)) !important;
+    }
+
+    html body .contact-header .contact-icon-btn svg,
+    html body .appointment-header .appointment-icon-btn svg {
+        width: calc(15.5 * var(--m)) !important;
+        height: calc(15.5 * var(--m)) !important;
+    }
+
+    html body .contact-root .contact-inner,
+    html body .appointment-page-root .appointment-main-container {
+        padding-top: calc((73 - 44) * var(--m) + var(--pg-contact, 0px)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    /* long one-line texts that ran past the 30px side margins */
+    html body .collection-page-root .collection-title {
+        white-space: normal !important;
+        max-width: 100% !important;
+    }
+
+    html body .legacy-page-root .legacy-subtitle-text,
+    html body .legacy-page-root .future-subtext {
+        white-space: normal !important;
+        max-width: calc(330 * 100vw / 390) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+    }
+
+    /* signed-in pages: account (orders, addresses, collection) + checkout
+       start at the same place as every other page — x 30, y 73 */
+    html body .acct-root,
+    html body .checkout-page-root {
+        --m: calc(100vw / 390);
+    }
+
+    html body .acct-root .acct-greeting-sub,
+    html body .checkout-page-root .checkout-title {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+    }
+
+    html body .acct-root .acct-body {
+        padding-top: calc(73.7 * var(--m)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    html body .checkout-page-root .checkout-main-container {
+        padding-top: calc(73.7 * var(--m)) !important;
+        padding-left: calc(30 * var(--m)) !important;
+        padding-right: calc(30 * var(--m)) !important;
+    }
+
+    /* account sidebar: the desktop min-height left a big empty gap under
+       the name; stack greeting, a row of links and LOG OUT compactly */
+    html body .acct-root .acct-body {
+        gap: calc(28 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-sidebar {
+        min-height: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: calc(18 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-greeting-section {
+        margin: 0 !important;
+    }
+
+    html body .acct-root .acct-nav-list {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: calc(10 * var(--m)) calc(22 * var(--m)) !important;
+        margin: 0 !important;
+    }
+
+    html body .acct-root .acct-sidebar-link {
+        padding: 0 !important;
+        font-size: calc(11.5 * var(--m)) !important;
+        line-height: calc(16 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-logout-btn {
+        align-self: flex-start !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: calc(11.5 * var(--m)) !important;
+        line-height: calc(16 * var(--m)) !important;
+        text-align: left !important;
+    }
+
+    /* ---- Sign-in pages (login, register, forgot password) --------------
+       Same 44px PDF header as every page, card from x 30 to x 360 starting
+       at y 73, one type scale (PDF fonts) on all three pages. */
+    html body .auth-root {
+        --m: calc(100vw / 390);
+    }
+
+    html body .auth-root .auth-header {
+        position: relative !important;
+        height: calc(44 * var(--m)) !important;
+        padding: 0 calc(31 * var(--m)) 0 calc(30 * var(--m)) !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: space-between !important;
+        border: none !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .auth-root .auth-header::after {
+        content: "" !important;
+        position: absolute !important;
+        left: calc(30 * var(--m)) !important;
+        right: calc(31 * var(--m)) !important;
+        bottom: 0 !important;
+        border-bottom: max(1px, calc(0.45 * var(--m))) solid #000000 !important;
+    }
+
+    html body .auth-root .auth-logo .header-logo-img-mobile {
+        margin: calc(21.5 * var(--m)) 0 0 calc(-0.33 * var(--m)) !important;
+    }
+
+    html body .auth-root .auth-globe-btn {
+        width: calc(15.5 * var(--m)) !important;
+        height: calc(15.5 * var(--m)) !important;
+        margin: calc(20.3 * var(--m)) 0 0 auto !important;
+        padding: 0 !important;
+    }
+
+    html body .auth-root .auth-globe-btn svg {
+        width: calc(15.5 * var(--m)) !important;
+        height: calc(15.5 * var(--m)) !important;
+    }
+
+    html body .auth-root .auth-center {
+        display: block !important;
+        min-height: 0 !important;
+        padding: calc((73 - 44) * var(--m)) calc(30 * var(--m)) calc(40 * var(--m)) !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .auth-root .auth-card {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: calc(28 * var(--m)) calc(24 * var(--m)) calc(32 * var(--m)) !important;
+        box-sizing: border-box !important;
+        font-family: var(--font-body) !important;
+    }
+
+    html body .auth-root .auth-butterfly {
+        margin: 0 auto calc(14 * var(--m)) !important;
+    }
+
+    html body .auth-root .auth-butterfly img {
+        width: calc(48 * var(--m)) !important;
+        height: calc(42 * var(--m)) !important;
+        object-fit: contain !important;
+    }
+
+    html body .auth-root .auth-title {
+        margin: 0 0 calc(8 * var(--m)) !important;
+        font-family: var(--font-display) !important;
+        font-size: calc(25.3 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(32 * var(--m)) !important;
+        letter-spacing: 0.04em !important;
+        text-transform: uppercase !important;
+        text-align: center !important;
+    }
+
+    html body .auth-root .auth-subtitle {
+        margin: 0 0 calc(24 * var(--m)) !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(13 * var(--m)) !important;
+        line-height: calc(18 * var(--m)) !important;
+        text-align: center !important;
+        max-width: none !important;
+    }
+
+    html body .auth-root .auth-label {
+        font-family: var(--font-body) !important;
+        font-size: calc(10.8 * var(--m)) !important;
+        line-height: calc(14 * var(--m)) !important;
+        letter-spacing: 0.08em !important;
+        margin-bottom: calc(6 * var(--m)) !important;
+    }
+
+    html body .auth-root .auth-card input:not([type="checkbox"]):not([type="radio"]) {
+        height: calc(44 * var(--m)) !important;
+        padding: 0 calc(14 * var(--m)) !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14 * var(--m)) !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .auth-root .auth-card button[type="submit"],
+    html body .auth-root .auth-card .auth-secondary-btn,
+    html body .auth-root .auth-card a.auth-outline-btn {
+        min-height: calc(44 * var(--m)) !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(12 * var(--m)) !important;
+        letter-spacing: 0.12em !important;
+        box-sizing: border-box !important;
+    }
+
+    /* empty bag: message + link styled like the site's other text / CTAs
+       (the link was a default blue underline) */
+    html body .bag-page-root .empty-bag-block {
+        margin-top: calc(28 * var(--m)) !important;
+        text-align: left !important;
+    }
+
+    html body .bag-page-root .empty-message {
+        margin: 0 0 calc(16 * var(--m)) !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        color: #000000 !important;
+    }
+
+    html body .bag-page-root .empty-shop-btn {
+        display: inline-block !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(10.8 * var(--m)) !important;
+        line-height: calc(13 * var(--m)) !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+        color: #000000 !important;
+        text-decoration: none !important;
+        border-bottom: max(1px, calc(0.6 * var(--m))) solid #000000 !important;
+        padding-bottom: calc(2 * var(--m)) !important;
+    }
+
+    /* checkout: footer at the bottom of the screen on a short checkout */
+    html body .checkout-page-root {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 100svh !important;
+    }
+
+    html body .checkout-page-root > .checkout-main-container {
+        flex: 1 0 auto !important;
+        align-self: stretch !important;
+        width: auto !important;
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .checkout-page-root > .collection-bottom-bar {
+        margin-top: calc(40 * var(--m)) !important;
+    }
+
+    /* inner pages: once scrolled, the header floats over the page — give it
+       the page colour so text doesn't show through the logo and icons */
+    html body .main-header.header-page-floating.header-dark {
+        background: rgba(248, 243, 238, 0.97) !important;
+        background-color: rgba(248, 243, 238, 0.97) !important;
+    }
+
+    html body .main-header.header-page-floating.header-light {
+        background: rgba(14, 11, 9, 0.94) !important;
+        background-color: rgba(14, 11, 9, 0.94) !important;
+    }
+
+    /* bag summary: amounts line up with the right edge (x 360) */
+    html body .bag-page-root .bag-summary-totals-wrapper,
+    html body .bag-page-root .summary-breakdown-box,
+    html body .bag-page-root .summary-grand-total-box {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ---- Account sections (profile, orders, address, my collection) ---- */
+    html body .acct-root .profile-title,
+    html body .acct-root .acct-page-title,
+    html body .acct-root .acct-addr-title,
+    html body .acct-root .acct-col-title {
+        margin: 0 0 calc(14 * var(--m)) !important;
+        font-family: var(--font-display) !important;
+        font-size: calc(25.3 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(32 * var(--m)) !important;
+        letter-spacing: 0.02em !important;
+        text-transform: uppercase !important;
+    }
+
+    html body .acct-root .profile-header {
+        margin: 0 0 calc(4 * var(--m)) !important;
+    }
+
+    html body .acct-root .profile-grid {
+        padding-top: calc(8 * var(--m)) !important;
+        gap: calc(28 * var(--m)) !important;
+    }
+
+    /* profile details: label + value rows with a hairline, like a list */
+    html body .acct-root .profile-details-column {
+        gap: 0 !important;
+    }
+
+    html body .acct-root .profile-detail-row[data-label] {
+        margin: 0 !important;
+        padding: calc(12 * var(--m)) 0 !important;
+        border-bottom: max(1px, calc(0.45 * var(--m))) solid rgba(0, 0, 0, 0.14) !important;
+    }
+
+    html body .acct-root .profile-detail-row[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: calc(4 * var(--m));
+        font-family: var(--font-body);
+        font-size: calc(9.5 * var(--m));
+        line-height: calc(12 * var(--m));
+        letter-spacing: 0.1em;
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    html body .acct-root .profile-name-text,
+    html body .acct-root .profile-regular-text,
+    html body .acct-root .profile-email-link {
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        font-weight: 400 !important;
+        color: #000000 !important;
+    }
+
+    html body .acct-root .profile-email-link {
+        text-decoration: none !important;
+        word-break: break-all !important;
+    }
+
+    html body .acct-root .profile-actions-row {
+        margin: calc(20 * var(--m)) 0 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .acct-root .profile-edit-btn {
+        width: 100% !important;
+        height: calc(44 * var(--m)) !important;
+        padding: 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(12 * var(--m)) !important;
+        letter-spacing: 0.12em !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .acct-root .profile-upload-prompt,
+    html body .acct-root .profile-upload-prompt * {
+        font-family: var(--font-body) !important;
+    }
+
+    html body .acct-root .profile-upload-prompt {
+        width: 100% !important;
+        padding: calc(28 * var(--m)) calc(20 * var(--m)) !important;
+        box-sizing: border-box !important;
+    }
+
+    /* account top: greeting left with LOG OUT on the right of the name,
+       then the four links as one tab row between two hairlines (LOG OUT
+       used to sit alone on its own line under the links) */
+    html body .acct-root .acct-sidebar {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        grid-template-areas:
+            "greeting logout"
+            "nav nav" !important;
+        align-items: end !important;
+        column-gap: calc(16 * var(--m)) !important;
+        row-gap: calc(18 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-greeting-section {
+        grid-area: greeting !important;
+        min-width: 0 !important;
+    }
+
+    html body .acct-root .acct-logout-btn {
+        grid-area: logout !important;
+        align-self: end !important;
+        justify-self: end !important;
+        margin: 0 0 calc(2 * var(--m)) !important;
+        padding: 0 0 calc(1 * var(--m)) !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(10.8 * var(--m)) !important;
+        line-height: calc(14 * var(--m)) !important;
+        letter-spacing: 0.08em !important;
+        color: #000000 !important;
+        border-bottom: max(1px, calc(0.6 * var(--m))) solid #000000 !important;
+        white-space: nowrap !important;
+    }
+
+    html body .acct-root .acct-nav-list {
+        grid-area: nav !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: calc(12 * var(--m)) 0 !important;
+        border-top: max(1px, calc(0.45 * var(--m))) solid rgba(0, 0, 0, 0.14) !important;
+        border-bottom: max(1px, calc(0.45 * var(--m))) solid rgba(0, 0, 0, 0.14) !important;
+    }
+
+    html body .acct-root .acct-sidebar-link {
+        position: relative !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(10.8 * var(--m)) !important;
+        line-height: calc(14 * var(--m)) !important;
+        letter-spacing: 0.06em !important;
+        color: rgba(0, 0, 0, 0.55) !important;
+        white-space: nowrap !important;
+        text-decoration: none !important;
+    }
+
+    html body .acct-root .acct-sidebar-link.active {
+        color: #000000 !important;
+        font-weight: 500 !important;
+    }
+
+    /* small underline under the current tab, sitting on the bottom hairline */
+    html body .acct-root .acct-sidebar-link.active::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: calc(-12.5 * var(--m));
+        border-bottom: max(1px, calc(1.2 * var(--m))) solid #000000;
+    }
+
+    /* about: an older page rule kept the header 70px tall with its own
+       faint bottom border — a second line under "ABOUT US". One line only. */
+    html body .about-page .main-header,
+    html body .about-page .main-header.header-light {
+        height: calc(44 * var(--m)) !important;
+        border: none !important;
+        border-bottom: none !important;
+        box-shadow: none !important;
+    }
+
+    /* checkout: "DELIVERY ADDRESS" + a small "+ ADD NEW ADDRESS" on one
+       line, hint text full width under them (the 146x46 button squeezed
+       the hint into a narrow column) */
+    html body .checkout-page-root .saved-addresses-header {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        grid-template-areas:
+            "title add"
+            "hint hint" !important;
+        align-items: center !important;
+        column-gap: calc(12 * var(--m)) !important;
+        row-gap: calc(4 * var(--m)) !important;
+        padding: 0 0 calc(12 * var(--m)) !important;
+    }
+
+    html body .checkout-page-root .saved-addresses-header > div {
+        display: contents !important;
+    }
+
+    html body .checkout-page-root .saved-addresses-title {
+        grid-area: title !important;
+        margin: 0 !important;
+    }
+
+    html body .checkout-page-root .saved-addresses-hint {
+        grid-area: hint !important;
+        margin: 0 !important;
+    }
+
+    html body .checkout-page-root .checkout-add-new-addr-btn {
+        grid-area: add !important;
+        justify-self: end !important;
+        width: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: calc(5 * var(--m)) calc(10 * var(--m)) !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(9.5 * var(--m)) !important;
+        line-height: calc(12 * var(--m)) !important;
+        letter-spacing: 0.08em !important;
+        white-space: nowrap !important;
+    }
+
+    /* orders: compact — one line per step ("01  Order placed") and no big
+       gaps under the order code / between orders */
+    html body .acct-root .acct-order-row {
+        margin-bottom: calc(32 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-order-id-group {
+        margin-bottom: calc(16 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-steps-labels {
+        flex-direction: column !important;
+        gap: calc(10 * var(--m)) !important;
+        margin: 0 !important;
+    }
+
+    html body .acct-root .acct-step-col {
+        flex: none !important;
+        flex-direction: row !important;
+        align-items: baseline !important;
+        gap: calc(12 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-step-num {
+        width: calc(20 * var(--m)) !important;
+        flex: none !important;
+        margin: 0 !important;
+        font-size: calc(10.8 * var(--m)) !important;
+        line-height: calc(16 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-step-title {
+        margin: 0 !important;
+        font-size: calc(13 * var(--m)) !important;
+        line-height: calc(16 * var(--m)) !important;
+    }
+
+    /* account: rows sized to their content (the first row was 29px taller
+       than the menu) and the same 28px from the tab row to every title */
+    html body .acct-root .acct-body {
+        grid-template-rows: auto auto !important;
+        align-content: start !important;
+        align-items: start !important;
+    }
+
+    html body .acct-root .acct-sidebar {
+        align-self: start !important;
+    }
+
+    html body .acct-root .acct-page-header {
+        margin: 0 0 calc(20 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-title-group {
+        margin: 0 !important;
+    }
+
+    /* the line under every account title: same place (title + 14px),
+       same width, thickness and colour on all four pages */
+    html body .acct-root .profile-divider,
+    html body .acct-root .acct-hairline,
+    html body .acct-root .acct-addr-divider,
+    html body .acct-root .acct-col-divider {
+        display: block !important;
+        width: 100% !important;
+        height: max(1px, calc(0.45 * var(--m))) !important;
+        margin: 0 0 calc(20 * var(--m)) !important;
+        padding: 0 !important;
+        border: none !important;
+        background: rgba(0, 0, 0, 0.14) !important;
+        opacity: 1 !important;
+    }
+
+    /* content under the title line starts 20px below it on all four pages */
+    html body .acct-root .acct-address-header,
+    html body .acct-root .acct-collection-header,
+    html body .acct-root .profile-header {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+}

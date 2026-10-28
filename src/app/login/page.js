@@ -43,6 +43,7 @@ export default function LoginPage() {
             <header className="auth-header">
                 <Link href="/" className="auth-logo">
                     <span className="header-logo-text">PINTAARA</span>
+                    <img src="/images/mobile/logo-wordmark.png" alt="" aria-hidden="true" className="header-logo-img-mobile" />
                 </Link>
                 <button type="button" className="auth-globe-btn" aria-label="Select Region" onClick={() => setIsRegionOpen(true)}>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

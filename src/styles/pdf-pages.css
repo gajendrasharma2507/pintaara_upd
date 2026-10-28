@@ -1341,6 +1341,17 @@
         flex: 1 0 auto !important;
     }
 
+    /* checkout: same — a short checkout left the footer mid-screen */
+    html body .checkout-page-root {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 100vh !important;
+    }
+
+    html body .checkout-page-root > .checkout-main-container {
+        flex: 1 0 auto !important;
+    }
+
     html body .bag-page-root .collection-bottom-bar,
     html body .bag-page-root .collection-bottom-bar span,
     html body .checkout-page-root .collection-bottom-bar,

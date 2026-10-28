@@ -32,7 +32,7 @@ export default function AboutPage() {
 
                 <div className="about-main-block">
                     <h1 className="about-title">
-                        A NEW NAME.<br />
+                        A NEW NAME.{' '}<br />
                         DECADES OF CRAFT.
                     </h1>
 

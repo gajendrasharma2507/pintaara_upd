@@ -82,7 +82,7 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
     const currentHeaderReveal = !!currentSlide?.headerReveal;
 
     return (
-        <div className={`slider-root-wrapper ${justEntered ? 'hero-animate-in' : ''}`}>
+        <div className={`slider-root-wrapper ${justEntered ? 'hero-animate-in' : ''}`} data-active-slide={currentSlide?.id}>
             {/* Global Header on Home Page */}
             <Header
                 headerStyle={currentHeaderStyle}
@@ -118,7 +118,8 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
                             className={`slide theme-${slide.theme} ${isActive ? 'active' : ''}`}
                             style={{
                                 backgroundImage: slide.bgImage ? `url('${slide.bgImage}')` : 'none',
-                                backgroundPosition: slide.bgPosition || 'center'
+                                backgroundPosition: slide.bgPosition || 'center',
+                                ...(slide.mobileBgImage ? { '--mobile-bg': `url('${slide.mobileBgImage}')` } : {})
                             }}
                             data-index={idx}
                             ref={el => slideRefs.current[idx] = el}
@@ -178,16 +179,30 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
 
                                         <div className="footer-bottom-bar">
                                             <div className="footer-bottom-brand">
-                                                <img src="/images/logo-butterfly.png" alt="Pintaara Butterfly" className="footer-bottom-butterfly" />
+                                                <picture>
+                                                    <source media="(max-width: 767px)" srcSet="/images/mobile/logo-butterfly.png" />
+                                                    <img src="/images/logo-butterfly.png" alt="Pintaara Butterfly" className="footer-bottom-butterfly" />
+                                                </picture>
                                                 <span className="footer-bottom-logo">P I N T A A R A<span className="footer-bottom-mark">™</span></span>
+                                                <img src="/images/mobile/logo-wordmark.png" alt="" aria-hidden="true" className="footer-bottom-logo-img-mobile" />
                                             </div>
                                             <div className="footer-bottom-center">
-                                                <p className="footer-copy-line">Copyright © 2026 PINTAARA™. All Rights Reserved.</p>
-                                                <p className="footer-copy-sub">PINTAARA and the BUTTERFLY logo are trademarks of PINTAARA™</p>
+                                                <p className="footer-copy-line">
+                                                    <span className="slide-desc-desktop">Copyright © 2026 PINTAARA™. All Rights Reserved.</span>
+                                                    {/* wording from Website Design Mobile.pdf (phones only) */}
+                                                    <span className="slide-desc-mobile">Copyright © 2026. All Rights Reserved.</span>
+                                                </p>
+                                                <p className="footer-copy-sub">
+                                                    <span className="slide-desc-desktop">PINTAARA and the BUTTERFLY logo are trademarks of PINTAARA™</span>
+                                                    <span className="slide-desc-mobile">PINTAARA and the BUTTERFLY logo are registered &amp; trademarks of PINTAARA®</span>
+                                                </p>
                                             </div>
                                             <div className="footer-bottom-right">
                                                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="footer-ig-link" aria-label="Instagram">
-                                                    <img src="/images/instagram-icon.svg" alt="Instagram" className="footer-ig-icon" />
+                                                    <picture>
+                                                        <source media="(max-width: 767px)" srcSet="/images/mobile/instagram.png" />
+                                                        <img src="/images/instagram-icon.svg" alt="Instagram" className="footer-ig-icon" />
+                                                    </picture>
                                                 </a>
                                             </div>
                                         </div>
@@ -210,17 +225,37 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
                                                 slide.id === 'slide-5' ? 'philosophy-title' :
                                                 slide.id === 'slide-6' ? 'story-title' : ''
                                             }`}>
-                                                {slide.title.split('\n').map((line, lineIdx) => (
-                                                    <span key={lineIdx} className="slide-title-line" style={{ display: 'block', whiteSpace: 'nowrap' }}>
-                                                        {line}
-                                                    </span>
-                                                ))}
+                                                <span className="slide-title-desktop">
+                                                    {slide.title.split('\n').map((line, lineIdx) => (
+                                                        <span key={lineIdx} className="slide-title-line" style={{ display: 'block', whiteSpace: 'nowrap' }}>
+                                                            {line}
+                                                        </span>
+                                                    ))}
+                                                </span>
+                                                {/* Line breaks from Website Design Mobile.pdf (shown on phones only) */}
+                                                <span className="slide-title-mobile">
+                                                    {(slide.mobileTitle || slide.title).split('\n').map((line, lineIdx) => (
+                                                        <span key={lineIdx} className="slide-title-mobile-line">{line}</span>
+                                                    ))}
+                                                </span>
                                             </h2>
 
                                             {slide.desc && (
                                                 <>
                                                     <div className="divider hero-divider"></div>
-                                                    <p className="slide-desc hero-description">{slide.desc}</p>
+                                                    <p className="slide-desc hero-description">
+                                                        <span className="slide-desc-desktop">{slide.desc}</span>
+                                                        <span className={`slide-desc-mobile ${slide.mobileDescJustify ? 'is-justified' : ''}`}>
+                                                            {(slide.mobileDesc || slide.desc).split('\n').map((line, lineIdx, lines) => (
+                                                                <span
+                                                                    key={lineIdx}
+                                                                    className={`slide-desc-mobile-line ${!line ? 'is-gap' : ''} ${!lines[lineIdx + 1] ? 'is-last' : ''}`}
+                                                                >
+                                                                    {line}
+                                                                </span>
+                                                            ))}
+                                                        </span>
+                                                    </p>
                                                 </>
                                             )}
                                         </div>

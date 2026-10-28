@@ -158,6 +158,7 @@ export default function RegisterPage() {
             <header className="auth-header">
                 <Link href="/" className="auth-logo">
                     <span className="header-logo-text">PINTAARA</span>
+                    <img src="/images/mobile/logo-wordmark.png" alt="" aria-hidden="true" className="header-logo-img-mobile" />
                 </Link>
                 <button
                     type="button"

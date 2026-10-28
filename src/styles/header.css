@@ -20,14 +20,14 @@
     justify-self: end;
 }
 
-/* The 1976 hero is intentionally dark and textured, so keep its light
-   navigation readable without hiding the artwork underneath. */
+/* 1976: fully transparent header over the artwork (no dark band) */
 .legacy-page-root .main-header.header-light {
-    background: linear-gradient(180deg, rgba(18, 12, 8, 0.72), rgba(18, 12, 8, 0.18)) !important;
+    background: transparent !important;
+    background-color: transparent !important;
     border-bottom-color: rgba(248, 243, 238, 0.2) !important;
-    box-shadow: 0 8px 24px rgba(10, 7, 4, 0.12);
-    backdrop-filter: blur(5px) saturate(105%) !important;
-    -webkit-backdrop-filter: blur(5px) saturate(105%) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 @media (max-width: 767px) {
@@ -132,7 +132,7 @@
     }
 
     .legacy-page-root .main-header.header-light {
-        background: linear-gradient(180deg, rgba(18, 12, 8, 0.88), rgba(18, 12, 8, 0.42)) !important;
+        background: transparent !important;
     }
 
     .legacy-page-root .header-logo-img {
