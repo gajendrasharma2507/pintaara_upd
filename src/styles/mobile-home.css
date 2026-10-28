@@ -498,7 +498,9 @@
         position: absolute !important;
         left: 0 !important;
         right: 0 !important;
-        top: calc((127 + var(--ty-title)) * var(--m)) !important;
+        /* on screens taller than the 390x693 PDF frame, move the title and
+           columns down by 45% of the extra height (bottom bar stays put) */
+        top: calc((127 + var(--ty-title)) * var(--m) + (100% - 693 * var(--m)) * 0.45) !important;
         margin: 0 !important;
         padding: 0 !important;
         text-align: center !important;
@@ -533,7 +535,7 @@
     html body #slider-container .slide .footer-columns {
         position: absolute !important;
         left: calc(30 * var(--m)) !important;
-        top: calc((272 + var(--ty-tiny)) * var(--m)) !important;
+        top: calc((272 + var(--ty-tiny)) * var(--m) + (100% - 693 * var(--m)) * 0.45) !important;
         width: calc(330 * var(--m)) !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -1261,7 +1263,6 @@
         max-width: 100% !important;
     }
 
-    html body .legacy-page-root .legacy-subtitle-text,
     html body .legacy-page-root .future-subtext {
         white-space: normal !important;
         max-width: calc(330 * 100vw / 390) !important;
@@ -1823,5 +1824,201 @@
     html body .acct-root .profile-header {
         margin-bottom: 0 !important;
         padding-bottom: 0 !important;
+    }
+
+    /* ---- 1976 ---------------------------------------------------------
+       Hero like desktop: the huge "1976" fills ~86% of the width (desktop
+       760px on 1920 = 39.6vw, stretched 1.2x tall) and "THE STORY BEFORE
+       PINTAARA" stays one line cutting through its middle (50px / 25px
+       tracking on desktop = 2.6vw / 1.3vw). Replaces the 2-line wrap. */
+    html body .legacy-page-root .legacy-year-display {
+        --k: calc(100vw / 1920);
+        font-family: 'Baskerville-Bold', 'Baskerville', serif !important;
+        font-size: calc(760 * var(--k)) !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        letter-spacing: 0 !important;
+        white-space: nowrap !important;
+        background: linear-gradient(180deg, #C5A265 0%, #7C6347 100%) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        opacity: 1 !important;
+        filter: none !important;
+        transform: translateY(calc(49 * var(--k))) scaleY(1.2) !important;
+        /* same cut as desktop: a gap through the numerals for the subtitle */
+        -webkit-mask-image: linear-gradient(180deg, #000 44.6%, transparent 44.6%, transparent 52.6%, #000 52.6%) !important;
+        mask-image: linear-gradient(180deg, #000 44.6%, transparent 44.6%, transparent 52.6%, #000 52.6%) !important;
+    }
+
+    html body .legacy-page-root .legacy-subtitle-wrap {
+        top: calc(50% + 40 * 100vw / 1920) !important;
+        white-space: nowrap !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    html body .legacy-page-root .legacy-subtitle-text {
+        font-family: 'Maves', var(--font-display) !important;
+        font-size: calc(50 * 100vw / 1920) !important;
+        font-weight: 400 !important;
+        line-height: 1 !important;
+        letter-spacing: 0.5em !important;
+        margin: 0 -0.5em 0 0 !important;
+        color: #F8F3ED !important;
+        white-space: nowrap !important;
+        max-width: none !important;
+        text-align: center !important;
+    }
+
+    /* timeline: stack each chapter — full-width photo, then title, year
+       and text left-aligned on the 30px margins (it was a squeezed
+       desktop 2-column grid with a 74px photo) */
+    html body .legacy-page-root .legacy-container {
+        --m: calc(100vw / 390);
+        width: auto !important;
+        max-width: none !important;
+        margin-left: calc(30 * var(--m)) !important;
+        margin-right: calc(30 * var(--m)) !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        gap: calc(56 * var(--m)) !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .legacy-page-root .timeline-item {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: calc(20 * var(--m)) !important;
+    }
+
+    html body .legacy-page-root .timeline-media-col {
+        order: -1 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .legacy-page-root .timeline-image-wrapper {
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+    }
+
+    html body .legacy-page-root .timeline-img {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 4 / 3 !important;
+        object-fit: cover !important;
+        display: block !important;
+    }
+
+    html body .legacy-page-root .timeline-text-col,
+    html body .legacy-page-root .timeline-text-col * {
+        text-align: left !important;
+    }
+
+    html body .legacy-page-root .timeline-text-col {
+        width: 100% !important;
+        align-items: flex-start !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html body .legacy-page-root .timeline-title {
+        margin: 0 !important;
+        font-size: calc(25.3 * var(--m)) !important;
+        line-height: calc(32 * var(--m)) !important;
+        white-space: normal !important;
+    }
+
+    html body .legacy-page-root .timeline-title-num {
+        font-size: inherit !important;
+    }
+
+    html body .legacy-page-root .timeline-year {
+        margin: calc(6 * var(--m)) 0 calc(16 * var(--m)) !important;
+        font-size: calc(10.8 * var(--m)) !important;
+        letter-spacing: 0.12em !important;
+    }
+
+    html body .legacy-page-root .timeline-desc {
+        gap: calc(14 * var(--m)) !important;
+    }
+
+    html body .legacy-page-root .timeline-desc p {
+        margin: 0 !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        line-height: calc(22 * var(--m)) !important;
+    }
+
+    /* ---- Design Log list: 2 columns, code on one line ----------------- */
+    html body .design-log-page-root .blueprint-grid-4col {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        column-gap: calc(16 * var(--m)) !important;
+        row-gap: calc(28 * var(--m)) !important;
+    }
+
+    html body .design-log-page-root .blueprint-card-item {
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+    html body .design-log-page-root .blueprint-img-frame {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 3 / 4 !important;
+    }
+
+    html body .design-log-page-root .blueprint-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    html body .design-log-page-root .blueprint-code-tag {
+        display: block !important;
+        margin-top: calc(10 * var(--m)) !important;
+        font-size: calc(12 * var(--m)) !important;
+        line-height: calc(16 * var(--m)) !important;
+        letter-spacing: 0.06em !important;
+        white-space: nowrap !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        height: auto !important;
+    }
+
+    /* 1976: "BEGIN YOURS" in the same type as "EXPLORE PHILOSOPHY" (About) */
+    html body .legacy-page-root .future-begin-link {
+        font-family: var(--font-body) !important;
+        font-size: calc(10.8 * 100vw / 390) !important;
+        font-weight: 400 !important;
+        line-height: 1 !important;
+        letter-spacing: normal !important;
+        text-transform: uppercase !important;
+        color: #FFFFFF !important;
+    }
+
+    /* footer slide header: the "icons only" style hides the logo until
+       hover — phones can't hover, and PDF p7 shows the logo */
+    html body .slider-root-wrapper .main-header.header-icons-only .logo {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    html body .slider-root-wrapper .main-header.header-icons-only .mobile-menu-toggle {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    html body .slider-root-wrapper .main-header.header-icons-only .header-container {
+        display: flex !important;
+        justify-content: space-between !important;
     }
 }
