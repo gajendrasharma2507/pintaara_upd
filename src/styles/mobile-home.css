@@ -34,6 +34,26 @@ html body .auth-root > .auth-center {
     flex: 1 0 auto !important;
 }
 
+/* SIGN IN and CREATE ACCOUNT: one size (they were 49 vs 47px on desktop,
+   70 vs 47px on tablets, and different type) */
+html body .auth-root .auth-btn-primary,
+html body .auth-root .auth-btn-secondary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 48px !important;
+    min-height: 0 !important;
+    padding: 0 16px !important;
+    font-size: 13.1px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.12em !important;
+    line-height: 1 !important;
+    text-transform: uppercase !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+}
+
 html body .auth-root > .auth-footer {
     flex: 0 0 auto !important;
     color: #1A1A1A !important;
@@ -1750,7 +1770,13 @@ html body .auth-root > .auth-footer span {
     /* about: an older page rule kept the header 70px tall with its own
        faint bottom border — a second line under "ABOUT US". One line only. */
     html body .about-page .main-header,
-    html body .about-page .main-header.header-light {
+    html body .about-page .main-header.header-light,
+    html body .about-normal-page-root .main-header,
+    html body .about-normal-page-root .main-header.header-light,
+    html body .about-normal-page-root .main-header.header-dark {
+        /* same side margins as the page (an older About rule padded the
+           header 60-80px on tablets, so the logo sat right of "ABOUT US") */
+        padding: 0 calc(31 * var(--m)) 0 calc(30 * var(--m)) !important;
         height: calc(44 * var(--m)) !important;
         border: none !important;
         border-bottom: none !important;
@@ -2243,12 +2269,250 @@ html body .auth-root > .auth-footer span {
         bottom: calc((46.5 + 14) * var(--u)) !important;
         right: calc(31 * var(--u)) !important;
     }
+
+    /* design log article: its labels were fixed px (9-27px), the same on a
+       phone and a tablet. Tie them to the layout unit: phones keep these
+       sizes, upright tablets get them ~1.6x like the rest of the page. */
+    html body .dl-subpage-root .dl-back-link {
+        font-size: calc(9 * var(--u)) !important;
+    }
+
+    html body .dl-subpage-root .dl-label-sm {
+        font-size: calc(9 * var(--u)) !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-label {
+        font-size: calc(9 * var(--u)) !important;
+    }
+
+    html body .dl-subpage-root .dl-credit-item {
+        font-size: calc(9 * var(--u)) !important;
+    }
+
+    html body .dl-subpage-root .dl-spec-label {
+        font-size: calc(10 * var(--u)) !important;
+    }
+
+    html body .dl-subpage-root .dl-spec-value {
+        font-size: calc(10 * var(--u)) !important;
+    }
+
+    html body .dl-subpage-root .dl-collection-btn {
+        font-size: calc(11.5 * var(--u)) !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-value {
+        font-size: calc(12.5 * var(--u)) !important;
+    }
+
+    html body .dl-subpage-root .dl-design-code {
+        font-size: calc(27 * var(--u)) !important;
+    }
+
+    html body .auth-root .auth-btn-primary,
+    html body .auth-root .auth-btn-secondary {
+        height: calc(44 * var(--m)) !important;
+        padding: 0 calc(14 * var(--m)) !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(12 * var(--m)) !important;
+    }
+
+    /* design log article: STATUS / COLLECTION / RELEASE and the button sat
+       on 20px margins (rest of the page: 30); button now full width */
+    html body .dl-subpage-root .dl-meta {
+        padding: calc(20 * var(--m)) calc(30 * var(--m)) !important;
+        column-gap: calc(16 * var(--m)) !important;
+        row-gap: calc(16 * var(--m)) !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-col--btn {
+        grid-column: 1 / -1 !important;
+        margin-top: calc(6 * var(--m)) !important;
+    }
+
+    html body .dl-subpage-root .dl-collection-btn {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: calc(44 * var(--m)) !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* the design sheet was 137px wide — show it at 220 */
+    html body .dl-subpage-root .dl-sheet-img {
+        width: calc(220 * var(--m)) !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    html body .dl-subpage-root .dl-sheet-frame {
+        height: auto !important;
+    }
+
+    /* spec rows: readable label + value */
+    html body .dl-subpage-root .dl-spec-label {
+        font-size: calc(11 * var(--u)) !important;
+        line-height: calc(15 * var(--u)) !important;
+    }
+
+    html body .dl-subpage-root .dl-spec-value {
+        font-size: calc(12 * var(--u)) !important;
+        line-height: calc(17 * var(--u)) !important;
+        color: rgba(237, 233, 228, 0.78) !important;
+    }
+
+    /* design log article, phones + upright tablets: one column, top to
+       bottom (on tablets an older rule made a fixed 824px, 3-column grid
+       that squeezed the code into 4 lines), and a meta block that grows
+       with its button (it was 76px tall, so the button ran into the
+       footer) */
+    html body .dl-subpage-root .dl-hero {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        height: auto !important;
+        min-height: 0 !important;
+        gap: calc(24 * var(--m)) !important;
+    }
+
+    html body .dl-subpage-root .dl-identity,
+    html body .dl-subpage-root .dl-sheet-frame,
+    html body .dl-subpage-root .dl-spec-panel {
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        grid-column: auto !important;
+        grid-row: auto !important;
+    }
+
+    html body .dl-subpage-root .dl-sheet-frame {
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    html body .dl-subpage-root .dl-spec-panel > div {
+        height: auto !important;
+    }
+
+    html body .dl-subpage-root .dl-design-code {
+        white-space: nowrap !important;
+    }
+
+    html body .dl-subpage-root .dl-meta {
+        height: auto !important;
+        min-height: 0 !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        align-items: start !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-col {
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    html body .dl-subpage-root .dl-meta-col--btn {
+        align-items: stretch !important;
+    }
+
+    /* account pages: one column on every phone / upright tablet. Their own
+       CSS only stacks below 900px, so big tablets (960-1099) got the desktop
+       250px sidebar + content and fixed-width inner grids — wider than the
+       screen (addresses 1143px, my collection 1069px on a 1032 screen) */
+    html body .acct-root .acct-body {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    html body .acct-root .acct-main,
+    html body .acct-root .acct-main > * {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    html body .acct-root .acct-addr-columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        column-gap: calc(16 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-addr-col {
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+    html body .acct-root .acct-piece-row {
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1fr) !important;
+        column-gap: calc(14 * var(--m)) !important;
+    }
+
+    html body .acct-root .acct-piece-row > * {
+        min-width: 0 !important;
+        width: auto !important;
+    }
+
+    /* philosophy + our story: fill the screen so the footer sits at the
+       bottom on tall tablets (Our Story ended 103-155px short) */
+    html body .about-normal-page-root {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 100vh !important;
+        min-height: 100dvh !important;
+    }
+
+    html body .about-normal-page-root > .philosophy-page-container,
+    html body .about-normal-page-root > .story-page-container {
+        flex: 1 0 auto !important;
+        align-self: stretch !important;
+        width: auto !important;
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 1976: closing banner + "EXPLORE LEGACY" were fixed px (18 / 12 / 10),
+       the same on a phone and a 13" tablet — tie them to the layout unit */
+    html body .legacy-page-root .future-headline {
+        font-size: calc(18 * var(--u)) !important;
+        letter-spacing: 0.18em !important;
+    }
+
+    html body .legacy-page-root .future-subtext {
+        font-size: calc(12 * var(--u)) !important;
+        line-height: calc(18 * var(--u)) !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    html body .legacy-page-root .legacy-scroll-indicator span {
+        font-size: calc(10 * var(--u)) !important;
+        letter-spacing: 0.22em !important;
+    }
+
+    /* about: both links on the same left edge (story sat 6px right) */
+    html body .about-page .about-actions {
+        align-items: flex-start !important;
+    }
+
+    html body .about-page .about-action,
+    html body .about-page .action-story,
+    html body .about-page .action-philosophy {
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        align-self: flex-start !important;
+    }
 }
 
 /* ---- Tablets held upright (768-1099 wide, portrait) -------------------- */
 @media (min-width: 768px) and (max-width: 1099px) and (orientation: portrait) {
+    /* 480-wide frame, capped at 1.6x (the iPad Mini 768 scale) so large
+       tablets (iPad Pro 13" 1032x1376, Surface Pro 960x1440) keep
+       comfortable type instead of a blown-up phone layout */
     :root {
-        --u: calc(100vw / 480);
+        --u: min(calc(100vw / 480), 1.6px);
     }
 
     /* the phone header: menu button instead of the inline desktop links
@@ -2271,6 +2535,12 @@ html body .auth-root > .auth-footer span {
         width: 100% !important;
         height: max(1px, calc(1.1 * var(--m))) !important;
         background: currentColor !important;
+    }
+
+    /* 1976 timeline photos: 16:9 on tablets (4:3 full width was ~690px
+       tall on a 13" iPad) */
+    html body .legacy-page-root .timeline-img {
+        aspect-ratio: 16 / 9 !important;
     }
 
     /* tablet artwork (3:4) where it exists, else the phone artwork */

@@ -78,15 +78,11 @@ export default function DesignLogSubPage({ params }) {
     return () => { isMounted = false; };
   }, [resolvedParams.id, fallbackBp]);
 
-  // Prevent body scroll — on small screens the page itself is position:fixed.
-  // From 1100px the Website Design.pdf layout (src/styles/pdf-pages.css) is a
-  // normal 1080px-tall page, so shorter windows must be able to scroll.
-  useEffect(() => {
-    if (window.matchMedia('(min-width: 1100px)').matches) return undefined;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, []);
+  // No scroll lock: phones and tablets now use a normal, scrolling one-column
+  // layout (src/styles/mobile-home.css), and from 1100px the Website
+  // Design.pdf layout is a normal 1080px-tall page. (The old small-screen
+  // design was position:fixed and locked body scroll below 1100px, which
+  // froze the page for touch and mouse-wheel scrolling.)
 
 
 
