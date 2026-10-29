@@ -48,7 +48,8 @@ export default function EnterPage({ onEnter, isExiting, config }) {
                 style={{
                     backgroundImage: `url('${config?.bgImage || "/images/concept-enter.png"}')`,
                     backgroundPosition: config?.bgPosition || 'center',
-                    ...(config?.mobileBgImage ? { '--mobile-bg': `url('${config.mobileBgImage}')` } : {})
+                    ...(config?.mobileBgImage ? { '--mobile-bg': `url('${config.mobileBgImage}')` } : {}),
+                    ...(config?.tabletBgImage ? { '--tablet-bg': `url('${config.tabletBgImage}')` } : {})
                 }}
             />
             <div className="enter-page-shimmer" />

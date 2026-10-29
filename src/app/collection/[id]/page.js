@@ -1174,6 +1174,10 @@ export default function DynamicCollectionPage({ params }) {
                         <div className="pintaara-shimmer shimmer-line" style={{ width: '40%', height: '32px', marginTop: '1rem' }} />
                     </div>
                 </div>
+                <footer className="collection-bottom-bar light-theme">
+                    <span className="bottom-brand">PINTAARA™</span>
+                    <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
+                </footer>
             </div>
         );
     }

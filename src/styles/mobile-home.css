@@ -21,6 +21,28 @@ html body .enter-page-overlay {
     height: 100dvh !important;
 }
 
+/* Sign-in pages (login, register, forgot password) end with the same footer
+   as every other page: fill the screen so it sits at the bottom. */
+html body .auth-root {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+}
+
+html body .auth-root > .auth-center {
+    flex: 1 0 auto !important;
+}
+
+html body .auth-root > .auth-footer {
+    flex: 0 0 auto !important;
+    color: #1A1A1A !important;
+}
+
+html body .auth-root > .auth-footer span {
+    color: #1A1A1A !important;
+}
+
 /* Mobile-only copies of the slide titles / descriptions, and the PDF
    logo images that replace the typed logos on phones */
 .slide-title-mobile,
@@ -31,12 +53,18 @@ html body .enter-page-overlay {
     display: none;
 }
 
-@media (max-width: 767px) {
+/* Phones, and tablets held upright (iPad Mini 768x1024, iPad Air, iPad
+   Pro 11"...): the same PDF-based layout. --u is one PDF px: the phone frame
+   is 390 wide; tablets use a 480-wide frame so type grows ~1.6x, not 2x. */
+@media (max-width: 767px), (max-width: 1099px) and (orientation: portrait) {
+    :root {
+        --u: calc(100vw / 390);
+    }
 
     .slider-root-wrapper,
     .enter-page-overlay,
     .about-page {
-        --m: calc(100vw / 390);
+        --m: calc(var(--u));
         /* vertical nudges so the text glyphs land on the PDF's y values */
         --ty-title: -2.5;
         --ty-body: 0.6;
@@ -94,7 +122,7 @@ html body .enter-page-overlay {
 
     /* logo = PDF image, never typed text (text kept for screen readers) */
     html body .main-header {
-        --m: calc(100vw / 390);
+        --m: calc(var(--u));
     }
 
     html body .main-header .header-logo-text {
@@ -133,8 +161,8 @@ html body .enter-page-overlay {
     html body .appointment-brand-logo .header-logo-img-mobile,
     html body .auth-logo .header-logo-img-mobile {
         display: block !important;
-        width: calc(107.85 * 100vw / 390) !important;
-        height: calc(13.39 * 100vw / 390) !important;
+        width: calc(107.85 * var(--u)) !important;
+        height: calc(13.39 * var(--u)) !important;
         max-width: none !important;
         margin: 0 !important;
     }
@@ -162,6 +190,23 @@ html body .enter-page-overlay {
         width: calc(17 * var(--m)) !important;
         height: calc(17 * var(--m)) !important;
         padding: calc(2.5 * var(--m)) 0 !important;
+    }
+
+    /* menu button lines: 17px button, lines 5.45px apart -> a centred X */
+    html body .main-header .mobile-menu-toggle span {
+        transition: transform 0.2s ease, opacity 0.2s ease !important;
+    }
+
+    html body .main-header .mobile-menu-toggle.open span:nth-child(1) {
+        transform: translateY(calc(5.45 * var(--m))) rotate(45deg) !important;
+    }
+
+    html body .main-header .mobile-menu-toggle.open span:nth-child(2) {
+        opacity: 0 !important;
+    }
+
+    html body .main-header .mobile-menu-toggle.open span:nth-child(3) {
+        transform: translateY(calc(-5.45 * var(--m))) rotate(-45deg) !important;
     }
 
     /* the home header stays visible on every slide (no hover on phones) */
@@ -545,7 +590,7 @@ html body .enter-page-overlay {
     /* columns: MEMBERSHIP | CUSTOMER SERVICE at y 272, ABOUT | LEGAL at y 380 */
     html body #slider-container .slide .footer-columns {
         position: absolute !important;
-        left: calc(30 * var(--m)) !important;
+        left: calc((100% - 330 * var(--m)) / 2) !important;
         top: calc((272 + var(--ty-tiny)) * var(--m) + (100% - 693 * var(--m)) * 0.45) !important;
         width: calc(330 * var(--m)) !important;
         margin: 0 !important;
@@ -627,7 +672,7 @@ html body .enter-page-overlay {
        starts at y 614 and stays 34px off the bottom on taller phones. */
     html body #slider-container .slide .footer-bottom-bar {
         position: absolute !important;
-        left: calc(30 * var(--m)) !important;
+        left: calc((100% - 330 * var(--m)) / 2) !important;
         bottom: calc(34 * var(--m)) !important;
         top: auto !important;
         right: auto !important;
@@ -898,14 +943,14 @@ html body .enter-page-overlay {
     /* design log article: the floating header covered the
        "BACK TO DESIGN LOG" link (it sat at y 16); start below the header */
     html body .dl-subpage-root .dl-hero {
-        padding-top: calc(44 * 100vw / 390 + 16px) !important;
+        padding-top: calc(44 * var(--u) + 16px) !important;
     }
 
     /* bag: the footer floated mid-screen on an empty/short bag and its
        text sat on the line. Pin it to the bottom and use the mobile PDF
        footer (p8): rule 29 -> 358, text 7.2px 13.5px under it, 46.5px tall */
     html body .bag-page-root {
-        --m: calc(100vw / 390);
+        --m: calc(var(--u));
         display: flex !important;
         flex-direction: column !important;
         min-height: 100svh !important;
@@ -949,14 +994,14 @@ html body .enter-page-overlay {
 
     /* terms / privacy: the page title sat at y 24, under the header */
     html body .terms-page-root .terms-main-container {
-        padding-top: calc(44 * 100vw / 390 + 24px) !important;
+        padding-top: calc(44 * var(--u) + 24px) !important;
     }
 
     /* every inner page: the mobile PDF footer (p8) instead of the cramped
        14px bar — rule 29 -> 358, text 7.2px 13.5px under it, 46.5px tall,
        line in the page's own text colour */
     html body .collection-bottom-bar {
-        --m: calc(100vw / 390);
+        --m: calc(var(--u));
         width: auto !important;
         max-width: none !important;
         height: calc(46.5 * var(--m)) !important;
@@ -1090,14 +1135,14 @@ html body .enter-page-overlay {
     /* design log article: its own footer, same spacing as the others */
     html body .dl-subpage-root .dl-footer-rule {
         width: auto !important;
-        height: max(1px, calc(0.45 * 100vw / 390)) !important;
-        margin: calc(40 * 100vw / 390) calc(32 * 100vw / 390) 0 calc(29 * 100vw / 390) !important;
+        height: max(1px, calc(0.45 * var(--u))) !important;
+        margin: calc(40 * var(--u)) calc(32 * var(--u)) 0 calc(29 * var(--u)) !important;
     }
 
     html body .dl-subpage-root .dl-footer {
-        height: calc(45.5 * 100vw / 390) !important;
-        margin: 0 calc(32 * 100vw / 390) 0 calc(29 * 100vw / 390) !important;
-        padding: calc(13.2 * 100vw / 390) 0 0 calc(1 * 100vw / 390) !important;
+        height: calc(45.5 * var(--u)) !important;
+        margin: 0 calc(32 * var(--u)) 0 calc(29 * var(--u)) !important;
+        padding: calc(13.2 * var(--u)) 0 0 calc(1 * var(--u)) !important;
         display: flex !important;
         justify-content: space-between !important;
         align-items: flex-start !important;
@@ -1107,9 +1152,9 @@ html body .enter-page-overlay {
     html body .dl-subpage-root .dl-footer-brand,
     html body .dl-subpage-root .dl-footer-copy {
         font-family: var(--font-body) !important;
-        font-size: calc(7.2 * 100vw / 390) !important;
+        font-size: calc(7.2 * var(--u)) !important;
         font-weight: 400 !important;
-        line-height: calc(9.2 * 100vw / 390) !important;
+        line-height: calc(9.2 * var(--u)) !important;
         letter-spacing: 0 !important;
     }
 
@@ -1140,7 +1185,7 @@ html body .enter-page-overlay {
     html body .appointment-page-root,
     html body .dl-subpage-root,
     html body .atelier-page-root {
-        --m: calc(100vw / 390);
+        --m: calc(var(--u));
     }
 
     /* measured nudges (text box of a 14.4px label vs. its container) */
@@ -1276,7 +1321,7 @@ html body .enter-page-overlay {
 
     html body .legacy-page-root .future-subtext {
         white-space: normal !important;
-        max-width: calc(330 * 100vw / 390) !important;
+        max-width: calc(330 * var(--u)) !important;
         margin-left: auto !important;
         margin-right: auto !important;
         text-align: center !important;
@@ -1287,7 +1332,7 @@ html body .enter-page-overlay {
        start at the same place as every other page — x 30, y 73 */
     html body .acct-root,
     html body .checkout-page-root {
-        --m: calc(100vw / 390);
+        --m: calc(var(--u));
     }
 
     html body .acct-root .acct-greeting-sub,
@@ -1361,7 +1406,7 @@ html body .enter-page-overlay {
        Same 44px PDF header as every page, card from x 30 to x 360 starting
        at y 73, one type scale (PDF fonts) on all three pages. */
     html body .auth-root {
-        --m: calc(100vw / 390);
+        --m: calc(var(--u));
     }
 
     html body .auth-root .auth-header {
@@ -1886,7 +1931,7 @@ html body .enter-page-overlay {
        and text left-aligned on the 30px margins (it was a squeezed
        desktop 2-column grid with a 74px photo) */
     html body .legacy-page-root .legacy-container {
-        --m: calc(100vw / 390);
+        --m: calc(var(--u));
         width: auto !important;
         max-width: none !important;
         margin-left: calc(30 * var(--m)) !important;
@@ -2006,7 +2051,7 @@ html body .enter-page-overlay {
     /* 1976: "BEGIN YOURS" in the same type as "EXPLORE PHILOSOPHY" (About) */
     html body .legacy-page-root .future-begin-link {
         font-family: var(--font-body) !important;
-        font-size: calc(10.8 * 100vw / 390) !important;
+        font-size: calc(10.8 * var(--u)) !important;
         font-weight: 400 !important;
         line-height: 1 !important;
         letter-spacing: normal !important;
@@ -2166,5 +2211,76 @@ html body .enter-page-overlay {
 
     html body .main-header .nav-menu.open .nav-link.active-underlined {
         color: #C9A58A !important;
+    }
+
+    /* design log article: solid white footer line like the other dark pages
+       (it was 10% white) */
+    html body .dl-subpage-root .dl-footer-rule {
+        background: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+
+    html body .dl-subpage-root .dl-footer-brand,
+    html body .dl-subpage-root .dl-footer-copy {
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+
+    /* sign-in pages: footer 40px under the card */
+    html body .auth-root > .auth-footer {
+        margin-top: calc(40 * var(--m, 1px)) !important;
+    }
+
+    /* 1976: the footer sat under the banner's photo overlay (both stacked
+       "auto", overlay later in the page) and the fixed SOUND button covered
+       "© ALL RIGHTS RESERVED." — lift the footer above the overlay and park
+       the button just above the footer, on the 31px right margin */
+    html body .legacy-page-root .legacy-future-banner > .collection-bottom-bar {
+        z-index: 6 !important;
+    }
+
+    html body .legacy-page-root .legacy-audio-toggle {
+        bottom: calc((46.5 + 14) * var(--u)) !important;
+        right: calc(31 * var(--u)) !important;
+    }
+}
+
+/* ---- Tablets held upright (768-1099 wide, portrait) -------------------- */
+@media (min-width: 768px) and (max-width: 1099px) and (orientation: portrait) {
+    :root {
+        --u: calc(100vw / 480);
+    }
+
+    /* the phone header: menu button instead of the inline desktop links
+       (the site's own phone rules stop at 767px) */
+    html body .main-header .nav-menu:not(.open) {
+        display: none !important;
+    }
+
+    html body .main-header .mobile-menu-toggle {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        background: none !important;
+        border: none !important;
+        cursor: pointer !important;
+    }
+
+    html body .main-header .mobile-menu-toggle span {
+        display: block !important;
+        width: 100% !important;
+        height: max(1px, calc(1.1 * var(--m))) !important;
+        background: currentColor !important;
+    }
+
+    /* tablet artwork (3:4) where it exists, else the phone artwork */
+    html body #slider-container .slide[style*="--tablet-bg"] {
+        background-image: var(--tablet-bg) !important;
+        background-position: center !important;
+    }
+
+    html body .enter-page-overlay .enter-page-bg[style*="--tablet-bg"] {
+        background-image: var(--tablet-bg) !important;
+        background-position: center !important;
     }
 }

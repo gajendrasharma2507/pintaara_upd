@@ -418,6 +418,12 @@ export default function RegisterPage() {
                 </div>
             </main>
 
+            {/* Bottom Footer bar (same footer as every page) */}
+            <footer className="collection-bottom-bar auth-footer">
+                <span className="bottom-brand">PINTAARA™</span>
+                <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
+            </footer>
+
             {/* OTP VERIFICATION MODAL */}
             {showOtpModal && (
                 <div className="otp-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowOtpModal(false); }}>

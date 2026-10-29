@@ -90,6 +90,12 @@ export default function LoginPage() {
                 </div>
             </main>
 
+            {/* Bottom Footer bar (same footer as every page) */}
+            <footer className="collection-bottom-bar auth-footer">
+                <span className="bottom-brand">PINTAARA™</span>
+                <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
+            </footer>
+
             <style jsx global>{`
                 /* Chrome & Safari Autofill Reset to prevent pale blue background */
                 input:-webkit-autofill,

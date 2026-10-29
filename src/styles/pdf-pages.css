@@ -26,7 +26,8 @@
     .legacy-page-root,
     .terms-page-root,
     .contact-root,
-    .appointment-page-root {
+    .appointment-page-root,
+    .auth-root {
         container-type: inline-size;
         --p: calc(100cqw / 1920);
     }
@@ -486,7 +487,8 @@
     html body .legacy-page-root .collection-bottom-bar,
     html body .terms-page-root .collection-bottom-bar,
     html body .contact-root .collection-bottom-bar,
-    html body .appointment-page-root .collection-bottom-bar {
+    html body .appointment-page-root .collection-bottom-bar,
+    html body .auth-root .collection-bottom-bar {
         margin: 0 calc(66 * var(--p)) !important;
         padding: calc(34 * var(--p)) calc(4 * var(--p)) 0 !important;
         width: auto !important;
@@ -512,7 +514,8 @@
     html body .terms-page-root .collection-bottom-bar span,
     html body .contact-root .collection-bottom-bar span,
     html body .appointment-page-root .collection-bottom-bar span,
-    html body .appointment-page-root .collection-bottom-bar .bottom-brand {
+    html body .appointment-page-root .collection-bottom-bar .bottom-brand,
+    html body .auth-root .collection-bottom-bar span {
         font-family: var(--font-body) !important;
         font-size: calc(18 * var(--p)) !important;
         font-weight: 400 !important;
@@ -533,7 +536,9 @@
     html body .contact-root .collection-bottom-bar span,
     html body .appointment-page-root .collection-bottom-bar,
     html body .appointment-page-root .collection-bottom-bar span,
-    html body .appointment-page-root .collection-bottom-bar .bottom-brand {
+    html body .appointment-page-root .collection-bottom-bar .bottom-brand,
+    html body .auth-root .collection-bottom-bar,
+    html body .auth-root .collection-bottom-bar span {
         color: #000 !important;
     }
 
@@ -3760,8 +3765,9 @@
 /* ---- Home slides p3–p5 (Collection, Design Log, Philosophy) --------------
    Website Design.pdf uses one full-slide artwork per slide (1920x1080), not
    a cut-out on the right over a gradient. Show it full-bleed like the PDF;
-   the text stays where it is. Phones use their own mobile artwork. */
-@media (min-width: 768px) {
+   the text stays where it is. Phones and upright tablets use their own
+   portrait artwork. */
+@media (min-width: 1100px), (min-width: 768px) and (orientation: landscape) {
     html body #slider-container .slide[style*="--desktop-bg"] {
         background-image: var(--desktop-bg) !important;
         background-size: cover !important;
