@@ -10,6 +10,17 @@
    p6 Our Story · p7 Footer slide · p8 About (/about)
    ================================================================== */
 
+/* Home slides fill the *visible* screen. 100vh on phones ignores the
+   browser's address / tool bars, so the bottom of every slide (on the last
+   slide: logo, copyright, Instagram) sat hidden behind them. 100dvh follows
+   the bars; 100vh stays as the fallback. Same on desktop (vh = dvh there). */
+html body .slider-container,
+html body #slider-container .slide,
+html body .enter-page-overlay {
+    height: 100vh !important;
+    height: 100dvh !important;
+}
+
 /* Mobile-only copies of the slide titles / descriptions, and the PDF
    logo images that replace the typed logos on phones */
 .slide-title-mobile,
@@ -2020,5 +2031,140 @@
     html body .slider-root-wrapper .main-header.header-icons-only .header-container {
         display: flex !important;
         justify-content: space-between !important;
+    }
+
+    /* ---- Collection + category pages: 2 columns, like Design Log -------- */
+    html body .collection-page-root .collection-grid-4col {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        column-gap: calc(16 * var(--m)) !important;
+        row-gap: calc(28 * var(--m)) !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    html body .collection-page-root .collection-card-item,
+    html body .collection-page-root .category-product-card {
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        gap: 0 !important;
+    }
+
+    html body .collection-page-root .card-media-frame {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 3 / 4 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+
+    html body .collection-page-root .card-media-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    html body .collection-page-root .card-item-title {
+        margin: calc(10 * var(--m)) 0 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(12 * var(--m)) !important;
+        line-height: calc(16 * var(--m)) !important;
+        letter-spacing: 0.06em !important;
+        white-space: nowrap !important;
+    }
+
+    html body .collection-page-root .category-product-info {
+        margin-top: calc(10 * var(--m)) !important;
+        padding: 0 !important;
+        gap: calc(3 * var(--m)) !important;
+        min-width: 0 !important;
+    }
+
+    html body .collection-page-root .cat-prod-collection {
+        font-size: calc(9 * var(--m)) !important;
+        line-height: calc(12 * var(--m)) !important;
+        letter-spacing: 0.06em !important;
+        display: block !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    html body .collection-page-root .cat-prod-code {
+        margin: 0 !important;
+        font-size: calc(12 * var(--m)) !important;
+        line-height: calc(16 * var(--m)) !important;
+        letter-spacing: 0.06em !important;
+        white-space: nowrap !important;
+    }
+
+    html body .collection-page-root .cat-prod-price {
+        font-size: calc(12 * var(--m)) !important;
+        line-height: calc(16 * var(--m)) !important;
+        white-space: nowrap !important;
+    }
+
+    /* ---- Mobile menu: one panel on every page ----------------------------
+       It used to be dark on some pages, cream on others, and a narrow 143px
+       box on Home / Collection / Bag. Now: full width under the header line,
+       dark, cream links on the 30px margin. */
+    html body .main-header .header-container {
+        position: relative !important;
+    }
+
+    html body .main-header .nav-menu.open {
+        display: flex !important;
+        flex-direction: column !important;
+        position: absolute !important;
+        top: calc(44 * var(--m)) !important;
+        left: calc(-30 * var(--m)) !important;
+        right: auto !important;
+        width: 100vw !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: calc(6 * var(--m)) calc(31 * var(--m)) calc(18 * var(--m)) calc(30 * var(--m)) !important;
+        gap: 0 !important;
+        background: rgba(14, 11, 9, 0.98) !important;
+        background-color: rgba(14, 11, 9, 0.98) !important;
+        border: none !important;
+        box-shadow: 0 calc(12 * var(--m)) calc(24 * var(--m)) rgba(0, 0, 0, 0.25) !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        z-index: 1001 !important;
+    }
+
+    html body .main-header .nav-menu.open .nav-link {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: calc(15 * var(--m)) 0 !important;
+        font-family: var(--font-body) !important;
+        font-size: calc(14.4 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: calc(19.8 * var(--m)) !important;
+        letter-spacing: 0.1em !important;
+        text-transform: uppercase !important;
+        text-align: left !important;
+        color: #F8F3EE !important;
+        border-bottom: max(1px, calc(0.45 * var(--m))) solid rgba(248, 243, 238, 0.16) !important;
+        opacity: 1 !important;
+    }
+
+    html body .main-header .nav-menu.open .nav-link:last-child {
+        border-bottom: none !important;
+    }
+
+    /* no underline bars from the desktop "active" style inside the panel */
+    html body .main-header .nav-menu.open .nav-link::before,
+    html body .main-header .nav-menu.open .nav-link::after {
+        display: none !important;
+    }
+
+    html body .main-header .nav-menu.open .nav-link.active-underlined {
+        color: #C9A58A !important;
     }
 }

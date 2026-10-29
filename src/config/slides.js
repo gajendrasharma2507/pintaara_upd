@@ -44,6 +44,7 @@ export const PINTAARA_CONFIG = {
             bgImage: "", // Gradient applied via CSS
             contentImage: "/images/concept-collection2.png", // Rendered as <img> on right side — same artwork as Website Design.pdf page 3
             mobileBgImage: "/images/mobile/collection.jpg", // Website Design Mobile.pdf page 3
+            desktopBgImage: "/images/desktop/collection.jpg", // Website Design.pdf page 3 (full-slide artwork)
             mobileTitle: "RARE FORMS.\nTIMELESS\nPRESENCE.",
             mobileDesc: "A collection of original designs\ncreated to carry identity,\nemotion, and presence. Some\nare inspired by stories. Others\nby the pursuit of a form that\nsimply deserved to exist.",
             mobileDescJustify: true,
@@ -62,6 +63,7 @@ export const PINTAARA_CONFIG = {
             bgImage: "", // Gradient applied via CSS
             contentImage: "/images/concept-designlog1.png", // Rendered as <img> on right side — same artwork as Website Design.pdf page 4
             mobileBgImage: "/images/mobile/design-log.jpg", // Website Design Mobile.pdf page 4
+            desktopBgImage: "/images/desktop/design-log.jpg", // Website Design.pdf page 4 (full-slide artwork)
             mobileDesc: "Every piece begins long before\nit becomes jewellery.\n\nA record of original designs,\ndimensions and development\nbefore they become jewellery.",
             mobileDescJustify: true,
             bgPosition: "right center",
@@ -79,6 +81,7 @@ export const PINTAARA_CONFIG = {
             bgImage: "", // Gradient applied via CSS
             contentImage: "/images/concept-philosophy.png", // Rendered as <img> on right side
             mobileBgImage: "/images/mobile/philosophy.jpg", // Website Design Mobile.pdf page 5
+            desktopBgImage: "/images/desktop/philosophy.jpg", // Website Design.pdf page 5 (full-slide artwork)
             mobileTitle: "OTHERS FOLLOW\nWHAT ALREADY\nEXISTS.\nPINTAARA SEARCHES\nFOR FORMS THAT\nDON'T.",
             mobileDesc: "Originality begins with a\ndifferent question:\n\"What is yet to be explored?\"",
             bgPosition: "right center",

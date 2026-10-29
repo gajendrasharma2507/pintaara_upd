@@ -3756,3 +3756,29 @@
         height: 0;
     }
 }
+
+/* ---- Home slides p3–p5 (Collection, Design Log, Philosophy) --------------
+   Website Design.pdf uses one full-slide artwork per slide (1920x1080), not
+   a cut-out on the right over a gradient. Show it full-bleed like the PDF;
+   the text stays where it is. Phones use their own mobile artwork. */
+@media (min-width: 768px) {
+    html body #slider-container .slide[style*="--desktop-bg"] {
+        background-image: var(--desktop-bg) !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+    }
+
+    html body #slider-container .slide[style*="--desktop-bg"] .slide-content-img {
+        display: none !important;
+    }
+
+    /* the old cut-out design drew a cream panel on the right (::after on
+       the Design Log slide) — it covered a third of the full artwork */
+    html body #slider-container .slide[style*="--desktop-bg"]::before,
+    html body #slider-container .slide[style*="--desktop-bg"]::after {
+        display: none !important;
+        content: none !important;
+    }
+}
+

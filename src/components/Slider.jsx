@@ -119,7 +119,8 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
                             style={{
                                 backgroundImage: slide.bgImage ? `url('${slide.bgImage}')` : 'none',
                                 backgroundPosition: slide.bgPosition || 'center',
-                                ...(slide.mobileBgImage ? { '--mobile-bg': `url('${slide.mobileBgImage}')` } : {})
+                                ...(slide.mobileBgImage ? { '--mobile-bg': `url('${slide.mobileBgImage}')` } : {}),
+                                ...(slide.desktopBgImage ? { '--desktop-bg': `url('${slide.desktopBgImage}')` } : {})
                             }}
                             data-index={idx}
                             ref={el => slideRefs.current[idx] = el}
