@@ -30,6 +30,7 @@ export const PINTAARA_CONFIG = {
             id: "slide-2",
             bgImage: "/images/concept-hero12.png", // Golden particle butterfly — same artwork as Website Design.pdf page 2
             mobileBgImage: "/images/mobile/hero.jpg", // Website Design Mobile.pdf page 2
+            tabletBgImage: "/images/tablet/hero.jpg", // iPad (portrait) artwork
             mobileTitle: "FORMS THAT\nARRIVE ON\nTHEIR OWN\nTERMS.",
             bgPosition: "center",
             theme: "dark",

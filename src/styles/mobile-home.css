@@ -2553,4 +2553,11 @@ html body .auth-root > .auth-footer span {
         background-image: var(--tablet-bg) !important;
         background-position: center !important;
     }
+
+    /* iPad Hero art has bright light rays top-right: keep the header
+       icons readable over them */
+    html body .slider-root-wrapper[data-active-slide="slide-2"] .main-header .header-icons,
+    html body .slider-root-wrapper[data-active-slide="slide-2"] .main-header .mobile-menu-toggle {
+        filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.9));
+    }
 }
