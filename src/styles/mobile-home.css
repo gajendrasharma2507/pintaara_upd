@@ -2561,3 +2561,19 @@ html body .auth-root > .auth-footer span {
         filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.9));
     }
 }
+
+/* iOS Safari (iPhone and iPad) does not support background-attachment:
+   fixed: it sizes a `cover` background to the whole scroll height, so
+   the slide artwork (slides 3–5) came out hugely zoomed and the page
+   gradients (1976, Story, Philosophy, Collection) looked stretched.
+   Touch screens get normal scrolling backgrounds; mouse desktops keep
+   the fixed ones. */
+@media (hover: none) and (pointer: coarse) {
+    /* :is() takes its strongest argument's specificity (two ids), so
+       this beats rules like `#slide-3 { … fixed !important }` */
+    html body :is(*, #ios-bg#ios-bg),
+    html body :is(*, #ios-bg#ios-bg)::before,
+    html body :is(*, #ios-bg#ios-bg)::after {
+        background-attachment: scroll !important;
+    }
+}
