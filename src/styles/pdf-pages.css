@@ -1204,6 +1204,23 @@
         border: none !important;
     }
 
+    /* Total column: the header, each row total and the grand total share
+       one right edge (just left of the ✕ column); ✕ sits on the row line */
+    html body .bag-page-root .th-col.col-total,
+    html body .bag-page-root .td-col.col-total {
+        grid-column: 7 / 9 !important;
+        justify-content: flex-end !important;
+        text-align: right !important;
+    }
+
+    html body .bag-page-root .td-col.col-action {
+        align-self: center !important;
+    }
+
+    html body .bag-page-root .remove-item-btn {
+        margin: 0 !important;
+    }
+
     /* Totals left (x 154 / 694), grand total + buttons right */
     html body .bag-page-root .bag-summary-totals-wrapper {
         display: grid !important;
@@ -1256,7 +1273,10 @@
         display: flex !important;
         flex-direction: column !important;
         align-items: stretch !important;
-        width: calc(350 * var(--p)) !important;
+        /* fill the 350px grid cell: globals.css gives it min-width 320px,
+           which pushed it 28px past the table edge on smaller screens */
+        width: 100% !important;
+        min-width: 0 !important;
         gap: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -1267,7 +1287,8 @@
     html body .bag-page-root .grand-total-display {
         text-align: right !important;
         margin: 0 !important;
-        padding: 0 calc(4 * var(--p)) 0 0 !important;
+        /* right edge = the Total column's: the ✕ column is 25 of 350px */
+        padding: 0 calc(100% * 25 / 350) 0 0 !important;
     }
 
     html body .bag-page-root .grand-total-amount {
@@ -3788,3 +3809,19 @@
     }
 }
 
+
+/* Bag, landscape tablets / small laptops (768–1099, the globals.css
+   table): same one-column Total as desktop — header, row totals and the
+   grand total share the Total column's right edge (✕ column 40px + 1.5rem
+   grid gap to its right) */
+@media (min-width: 768px) and (max-width: 1099px) and (orientation: landscape) {
+    html body .bag-page-root .th-col.col-total,
+    html body .bag-page-root .td-col.col-total {
+        text-align: right !important;
+        justify-content: flex-end !important;
+    }
+
+    html body .bag-page-root .grand-total-display {
+        padding-right: calc(40px + 1.5rem) !important;
+    }
+}

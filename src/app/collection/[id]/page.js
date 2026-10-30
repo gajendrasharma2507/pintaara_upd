@@ -232,7 +232,7 @@ const finishBarsData = [
     {
         name: 'Yellow Gold',
         code: 'YG',
-        label: 'YELLOW',
+        label: 'YELLOW GOLD',
         style: {
             background: 'linear-gradient(180deg, #8B6508 0%, #C99700 15%, #E5B824 35%, #FBE580 50%, #C99700 80%, #7D5A02 100%)',
         }
@@ -240,7 +240,7 @@ const finishBarsData = [
     {
         name: 'White Gold',
         code: 'WG',
-        label: 'WHITE',
+        label: 'WHITE GOLD',
         style: {
             background: 'linear-gradient(180deg, #55585B 0%, #8A8E93 15%, #C2C6CC 35%, #F0F2F5 50%, #8A8E93 80%, #484A4D 100%)',
         }
@@ -248,7 +248,7 @@ const finishBarsData = [
     {
         name: 'Rose Gold',
         code: 'RG',
-        label: 'ROSE',
+        label: 'ROSE GOLD',
         style: {
             background: 'linear-gradient(180deg, #874112 0%, #BA6222 15%, #DB7F3E 35%, #F5B37B 50%, #BA6222 80%, #75360B 100%)',
         }
@@ -256,7 +256,7 @@ const finishBarsData = [
     {
         name: 'Black Ruthenium',
         code: 'BLK',
-        label: 'BLACK',
+        label: 'BLACK RUTHENIUM',
         labelLight: true,
         style: {
             background: 'linear-gradient(180deg, #111315 0%, #2A2E33 15%, #4C525A 35%, #828A94 50%, #2A2E33 80%, #111315 100%)',
@@ -1367,7 +1367,7 @@ export default function DynamicCollectionPage({ params }) {
                                         const matchedBar = finishBarsData.find((b) => b.code === code || b.name.toLowerCase() === valLower) || {
                                             name: valStr,
                                             code: code,
-                                            label: String(valStr || '').split(' ')[0].toUpperCase(),
+                                            label: String(valStr || '').toUpperCase(),
                                             style: fVal.hex_color ? { background: fVal.hex_color } : { background: '#D4AF37' }
                                         };
                                         const isSelected = selectedFinishCode === code || selectedFinishCode === valStr;
@@ -2001,6 +2001,11 @@ export default function DynamicCollectionPage({ params }) {
                     user-select: none;
                     line-height: 1;
                     text-align: center;
+                    /* full names (YELLOW GOLD, BLACK RUTHENIUM) stay on one line */
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: calc(100% - 8px);
                 }
 
                 /* SIZE + GEM: two equal columns side by side */

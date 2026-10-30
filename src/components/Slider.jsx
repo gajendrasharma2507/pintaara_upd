@@ -79,7 +79,20 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
             clearTimeout(scrollTimer);
             scrollTimer = setTimeout(snapToNearest, 180);
         };
+        // the slider fills only what is actually visible (see --visible-h
+        // in mobile-home.css): iOS 26 Safari lays fixed elements out behind
+        // its floating toolbar
+        const root = document.documentElement;
+        const setVisibleHeight = () => {
+            const vv = window.visualViewport;
+            // ignore pinch-zoom (the visual viewport shrinks while zoomed)
+            if (vv && vv.height && vv.scale <= 1.01) {
+                root.style.setProperty('--visible-h', `${Math.round(vv.height)}px`);
+            }
+        };
+        setVisibleHeight();
         const onResize = () => {
+            setVisibleHeight();
             pending = true;
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(schedule, 120);
@@ -95,6 +108,7 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
             clearTimeout(scrollTimer);
             window.removeEventListener('resize', onResize);
             window.visualViewport?.removeEventListener('resize', onResize);
+            root.style.removeProperty('--visible-h');
             container.removeEventListener('scroll', onScroll);
         };
     }, []);

@@ -2597,7 +2597,10 @@ html body .auth-root > .auth-footer span {
     html body .slider-root-wrapper .slider-container {
         position: fixed !important;
         inset: 0 !important;
-        height: auto !important;
+        /* --visible-h = window.visualViewport.height (set by Slider.jsx):
+           on iOS 26 Safari a fixed inset:0 layer reaches behind the
+           floating bottom toolbar, which hid the last footer line */
+        height: var(--visible-h, auto) !important;
         overscroll-behavior-y: contain !important;
     }
 
