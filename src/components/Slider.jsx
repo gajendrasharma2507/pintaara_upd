@@ -52,6 +52,53 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
         }
     }, [scrollToSlideRef]);
 
+    // 2b. Re-snap after the screen changes size (iOS toolbars showing or
+    // hiding, rotation): the slides change height but WebKit keeps the old
+    // scroll position, which left a slide part-way under the header.
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+        let resizeTimer;
+        let scrollTimer;
+        let pending = false;
+        const snapToNearest = () => {
+            pending = false;
+            const top = container.scrollTop;
+            let nearest = null;
+            slideRefs.current.forEach((node) => {
+                if (node && (nearest === null || Math.abs(node.offsetTop - top) < Math.abs(nearest.offsetTop - top))) {
+                    nearest = node;
+                }
+            });
+            if (nearest && Math.abs(nearest.offsetTop - top) > 1) {
+                container.scrollTo({ top: nearest.offsetTop, behavior: 'instant' });
+            }
+        };
+        // wait until the finger is off and scrolling has stopped
+        const schedule = () => {
+            clearTimeout(scrollTimer);
+            scrollTimer = setTimeout(snapToNearest, 180);
+        };
+        const onResize = () => {
+            pending = true;
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(schedule, 120);
+        };
+        const onScroll = () => {
+            if (pending) schedule();
+        };
+        window.addEventListener('resize', onResize);
+        window.visualViewport?.addEventListener('resize', onResize);
+        container.addEventListener('scroll', onScroll, { passive: true });
+        return () => {
+            clearTimeout(resizeTimer);
+            clearTimeout(scrollTimer);
+            window.removeEventListener('resize', onResize);
+            window.visualViewport?.removeEventListener('resize', onResize);
+            container.removeEventListener('scroll', onScroll);
+        };
+    }, []);
+
     // 3. Arrow Keys and Enter navigation between content slides
     useEffect(() => {
         const handleKeyDown = (e) => {

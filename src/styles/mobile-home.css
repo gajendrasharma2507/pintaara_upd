@@ -2577,3 +2577,44 @@ html body .auth-root > .auth-footer span {
         background-attachment: scroll !important;
     }
 }
+
+/* iOS (iPhone / iPad): when a swipe reached the end of the slider it
+   carried on to the page itself, so the whole page moved up ~40px under
+   the fixed header (the COLLECTION label slid under the logo and a black
+   strip showed at the bottom). On touch screens the home slider is now a
+   fixed full-screen layer, the page behind it cannot scroll, and the
+   slides take the slider's real height instead of 100dvh (which iOS
+   updates late when its toolbars change). Slider.jsx re-snaps to the
+   current slide when the screen size changes. */
+@media (hover: none) and (pointer: coarse) {
+    html:has(.slider-root-wrapper),
+    html:has(.slider-root-wrapper) body {
+        height: 100% !important;
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
+    }
+
+    html body .slider-root-wrapper .slider-container {
+        position: fixed !important;
+        inset: 0 !important;
+        height: auto !important;
+        overscroll-behavior-y: contain !important;
+    }
+
+    html body .slider-root-wrapper #slider-container .slide {
+        height: 100% !important;
+    }
+}
+
+/* Phones: slides 3–5 have top-anchored `cover` art, which scales by
+   max(width / 390, height / 693). The CTA was pinned to the bottom, so on
+   phones shorter than the PDF frame (e.g. iPhone with browser bars) it
+   rose into the artwork (EXPLORE OUR COLLECTION sat on the ring). It now
+   follows the art: same spot as the PDF at 390 x 693, never closer than
+   20px to the bottom edge. */
+@media (max-width: 767px) {
+    html body #slider-container .slide:is(#slide-3, #slide-4, #slide-5) .action-btn {
+        top: min(max(calc((579 + var(--ty-small)) * var(--m)), calc(100% * 579 / 693)), calc(100% - 13 * var(--m) - 20px)) !important;
+        bottom: auto !important;
+    }
+}
