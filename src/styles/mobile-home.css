@@ -2824,3 +2824,56 @@ html body .auth-header {
     -webkit-backdrop-filter: none !important;
     box-shadow: none !important;
 }
+
+/* ── iOS Safari (iPhone + iPad) ───────────────────────────────────────
+   1. Safari zooms the page when a text field under 16px gets focus and
+      leaves it zoomed. Form fields are 11–15px on login, register,
+      checkout, appointment and addresses. -webkit-touch-callout only
+      exists in iOS Safari, so other browsers keep the designed size. */
+@supports (-webkit-touch-callout: none) {
+    html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    html body select,
+    html body textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* 2. iOS counts 100vh as the screen height with Safari's bars hidden, so
+      one-screen pages sized with it slid their bottom (footer) under the
+      toolbar on iPad. 100dvh is the height actually visible. */
+@supports (height: 100dvh) {
+    @media (min-width: 1100px) {
+        html body .about-page {
+            --p: min(calc(100cqw / 1920), calc(100dvh / 1080));
+            height: 100dvh !important;
+        }
+        html body .legacy-page-root .legacy-hero {
+            --h: min(calc(100cqw / 1920), calc(100dvh / 1080));
+        }
+        html body .bag-page-root,
+        html body .checkout-page-root {
+            min-height: 100dvh !important;
+        }
+    }
+    @media (min-width: 901px) {
+        html body .contact-root {
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+        }
+    }
+    html body .appointment-page-root,
+    html body .terms-page-root,
+    html body .acct-root,
+    html body .auth-root {
+        min-height: 100dvh !important;
+    }
+}
+
+/* iPad landscape / small desktop (1100–1300px): two labels scaled below
+   10px (design log ORIGIN 9.8px, account GOOD MORNING 9.2px) */
+@media (min-width: 1100px) and (max-width: 1300px) {
+    html body .dl-subpage-root .dl-label-sm,
+    html body .acct-root .acct-greeting-sub {
+        font-size: 11px !important;
+    }
+}
