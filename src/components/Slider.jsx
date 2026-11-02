@@ -86,8 +86,12 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
         const setVisibleHeight = () => {
             const vv = window.visualViewport;
             // ignore pinch-zoom (the visual viewport shrinks while zoomed)
-            if (vv && vv.height && vv.scale <= 1.01) {
-                root.style.setProperty('--visible-h', `${Math.round(vv.height)}px`);
+            if (vv && vv.scale > 1.01) return;
+            // browsers disagree on which of these excludes their toolbars
+            // (iOS 26 Safari, Android Chrome), so take the smallest
+            const heights = [vv?.height, window.innerHeight, root.clientHeight].filter((h) => h > 0);
+            if (heights.length) {
+                root.style.setProperty('--visible-h', `${Math.floor(Math.min(...heights))}px`);
             }
         };
         setVisibleHeight();

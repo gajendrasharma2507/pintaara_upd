@@ -118,7 +118,7 @@ export default function LoginPage() {
                     background-color: #DDD4C6;
                     display: flex;
                     flex-direction: column;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                 }
                 .auth-header {
                     display: flex;
@@ -169,7 +169,7 @@ export default function LoginPage() {
                     justify-content: center;
                 }
                 .auth-title {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                     font-size: 2.1rem;
                     font-weight: 400;
                     letter-spacing: 0.12em;

@@ -1682,7 +1682,7 @@ export default function DynamicCollectionPage({ params }) {
                     min-height: 100vh;
                     background-color: #F6F4EE !important;
                     color: #1A1A1A;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                     display: flex;
                     flex-direction: column;
                 }

@@ -529,7 +529,7 @@ export default function RegisterPage() {
                     background-color: #DDD4C6;
                     display: flex;
                     flex-direction: column;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                 }
 
                 .auth-header {
@@ -595,7 +595,7 @@ export default function RegisterPage() {
                 }
 
                 .auth-title {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                     font-size: 1.85rem;
                     font-weight: 400;
                     letter-spacing: 0.12em;

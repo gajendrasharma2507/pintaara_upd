@@ -1042,9 +1042,9 @@ html body .auth-root > .auth-footer span {
     html body .collection-bottom-bar .bottom-brand,
     html body .collection-bottom-bar .bottom-copyright {
         font-family: var(--font-body) !important;
-        font-size: calc(7.2 * var(--m)) !important;
+        font-size: max(10px, calc(7.2 * var(--m))) !important;
         font-weight: 400 !important;
-        line-height: calc(9.2 * var(--m)) !important;
+        line-height: max(13px, calc(9.2 * var(--m))) !important;
         letter-spacing: 0 !important;
         text-decoration: none !important;
     }
@@ -1328,7 +1328,7 @@ html body .auth-root > .auth-footer span {
 
     html body .contact-root .contact-inner,
     html body .appointment-page-root .appointment-main-container {
-        padding-top: calc((73 - 44) * var(--m) + var(--pg-contact, 0px)) !important;
+        padding-top: calc(73 * var(--m) + var(--pg-contact, 0px)) !important;
         padding-left: calc(30 * var(--m)) !important;
         padding-right: calc(30 * var(--m)) !important;
     }
@@ -2341,9 +2341,9 @@ html body .auth-root > .auth-footer span {
         box-sizing: border-box !important;
     }
 
-    /* the design sheet was 137px wide — show it at 220 */
+    /* the design sheet: full content width, like the product page image */
     html body .dl-subpage-root .dl-sheet-img {
-        width: calc(220 * var(--m)) !important;
+        width: 100% !important;
         max-width: 100% !important;
         height: auto !important;
     }
@@ -2600,7 +2600,10 @@ html body .auth-root > .auth-footer span {
         /* --visible-h = window.visualViewport.height (set by Slider.jsx):
            on iOS 26 Safari a fixed inset:0 layer reaches behind the
            floating bottom toolbar, which hid the last footer line */
-        height: var(--visible-h, auto) !important;
+        /* never taller than the screen with every browser bar showing
+           (Android Chrome reported ~100px more than it shows) */
+        height: 100svh !important;
+        height: min(var(--visible-h, 100svh), 100svh) !important;
         overscroll-behavior-y: contain !important;
     }
 
@@ -2619,5 +2622,182 @@ html body .auth-root > .auth-footer span {
     html body #slider-container .slide:is(#slide-3, #slide-4, #slide-5) .action-btn {
         top: min(max(calc((579 + var(--ty-small)) * var(--m)), calc(100% * 579 / 693)), calc(100% - 13 * var(--m) - 20px)) !important;
         bottom: auto !important;
+    }
+}
+
+/* Phone + portrait tablet: serif headings, body copy and annotations scale
+   with the page labels (which already use --m), keeping the desktop ratio
+   label : heading : body ≈ 1 : 1.67 : 0.67 */
+@media (max-width: 767px), (max-width: 1099px) and (orientation: portrait) {
+    html body .design-log-page-root .design-process-title,
+    html body .about-normal-page-root .phil-headline-line,
+    html body .about-normal-page-root .story-main-title,
+    html body .about-normal-page-root .story-more-title,
+    html body .about-normal-page-root .butterfly-title {
+        font-family: var(--font-display) !important;
+        font-size: calc(24 * var(--m)) !important;
+        font-weight: 400 !important;
+        line-height: 1.2 !important;
+    }
+
+    html body .design-log-page-root .design-process-intro-text,
+    html body .design-log-page-root .process-card-description,
+    html body .about-normal-page-root .phil-quote-text,
+    html body .about-normal-page-root .phil-body-paragraphs p,
+    html body .about-normal-page-root .story-intro-text,
+    html body .about-normal-page-root .story-etymology p,
+    html body .about-normal-page-root .story-body-paragraphs p,
+    html body .about-normal-page-root .story-more-paragraphs p,
+    html body .about-normal-page-root .butterfly-intro,
+    html body .about-normal-page-root .butterfly-body-paragraphs p {
+        font-size: max(13px, calc(9.4 * var(--m))) !important;
+        line-height: 1.6 !important;
+    }
+
+    html body .design-log-page-root .process-card-title {
+        font-size: max(12px, calc(9 * var(--m))) !important;
+    }
+
+    /* TAARA / PINNACLE labels on the mountain were ~11px and faint */
+    html body .about-normal-page-root .annotation-label,
+    html body .about-normal-page-root .annotation-desc {
+        font-size: max(11px, calc(8.6 * var(--m))) !important;
+    }
+    html body .about-normal-page-root .annotation-desc {
+        color: rgba(248, 243, 238, 0.9) !important;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7) !important;
+    }
+
+    /* philosophy artworks have different padding inside the files; use the
+       desktop size ratios (1177 / 877 / 752) so the objects read equally */
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(2) .phil-media-frame {
+        max-width: min(620px, 75%) !important;
+    }
+    html body .about-normal-page-root .philosophy-grid-row:nth-of-type(3) .phil-media-frame {
+        max-width: min(620px, 64%) !important;
+    }
+}
+
+/* Landscape tablet (768–1099px): fall-through styles left labels at 12–16px
+   and headings at 26–41px depending on the page; align them */
+@media (min-width: 768px) and (max-width: 1099px) and (orientation: landscape) {
+    html body .design-log-page-root .design-process-label,
+    html body .about-normal-page-root .phil-header-subtitle,
+    html body .about-normal-page-root .story-label {
+        font-size: 17px !important;
+    }
+
+    html body .design-log-page-root .design-process-title,
+    html body .about-normal-page-root .phil-headline-line,
+    html body .about-normal-page-root .story-main-title,
+    html body .about-normal-page-root .story-more-title,
+    html body .about-normal-page-root .butterfly-title {
+        font-family: var(--font-display) !important;
+        font-size: 30px !important;
+        font-weight: 400 !important;
+        line-height: 1.2 !important;
+    }
+
+    html body .design-log-page-root .design-process-intro-text,
+    html body .design-log-page-root .process-card-description,
+    html body .about-normal-page-root .phil-quote-text,
+    html body .about-normal-page-root .phil-body-paragraphs p,
+    html body .about-normal-page-root .story-intro-text,
+    html body .about-normal-page-root .story-etymology p,
+    html body .about-normal-page-root .story-body-paragraphs p,
+    html body .about-normal-page-root .story-more-paragraphs p,
+    html body .about-normal-page-root .butterfly-intro,
+    html body .about-normal-page-root .butterfly-body-paragraphs p {
+        font-size: 14px !important;
+    }
+
+    html body .about-normal-page-root .annotation-label,
+    html body .about-normal-page-root .annotation-desc {
+        font-size: 12px !important;
+    }
+}
+
+/* Small desktop / iPad landscape (1100–1300px): the PDF scale shrinks body
+   copy to ~12px and the mountain annotations to ~10px; keep them readable */
+@media (min-width: 1100px) and (max-width: 1300px) {
+    html body .design-log-page-root .design-process-intro-text,
+    html body .design-log-page-root .process-card-description,
+    html body .about-normal-page-root .phil-quote-text,
+    html body .about-normal-page-root .phil-body-paragraphs p,
+    html body .about-normal-page-root .story-intro-text,
+    html body .about-normal-page-root .story-etymology p,
+    html body .about-normal-page-root .story-body-paragraphs p,
+    html body .about-normal-page-root .story-more-paragraphs p,
+    html body .about-normal-page-root .butterfly-intro,
+    html body .about-normal-page-root .butterfly-body-paragraphs p {
+        font-size: 13px !important;
+    }
+
+    html body .about-normal-page-root .annotation-label,
+    html body .about-normal-page-root .annotation-desc {
+        font-size: 11px !important;
+    }
+}
+
+/* Desktop (≥1100px): pages built with their own inline styles (contact,
+   appointment, legal, account orders) used 24–26px system-font titles and
+   13px body copy; match the PDF scale the other pages use
+   (label 30/1920, body 20/1920 of the viewport) */
+@media (min-width: 1100px) {
+    html body .contact-root .contact-page-title,
+    html body .appointment-page-root .appointment-page-title,
+    html body .acct-page-title {
+        font-family: var(--font-body) !important;
+        font-size: calc(30 * 100vw / 1920) !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        text-transform: uppercase !important;
+    }
+
+    html body .contact-root .contact-col-primary,
+    html body .contact-root .contact-col-link,
+    html body .contact-root .contact-col-secondary,
+    html body .appointment-page-root p,
+    html body .terms-page-root .terms-section-text,
+    html body .terms-page-root .terms-clause-list-item {
+        font-size: max(13px, calc(20 * 100vw / 1920)) !important;
+    }
+
+    html body .contact-root .contact-col-label,
+    html body .terms-page-root .terms-section-title {
+        font-size: max(12px, calc(17 * 100vw / 1920)) !important;
+    }
+
+    html body .terms-page-root .terms-sidebar-link {
+        font-size: max(13px, calc(18 * 100vw / 1920)) !important;
+    }
+}
+
+/* Text that dropped below ~10px on some screens */
+html body .dl-subpage-root .dl-back-link,
+html body .dl-back-link {
+    font-size: max(11px, calc(9 * var(--u, 1px))) !important;
+}
+html body .legacy-page-root .legacy-scroll-indicator span,
+html body .audio-toggle-label {
+    font-size: max(11px, calc(10 * var(--u, 1px))) !important;
+}
+html body .auth-btn-primary,
+html body .profile-upload-badge {
+    font-family: var(--font-body) !important;
+}
+
+/* home footer slide column headings (MEMBERSHIP etc.) were ~9px on phones */
+@media (max-width: 767px) {
+    html body #slider-container .slide .footer-col h3 {
+        font-size: 10px !important;
+    }
+}
+
+/* sign-in pages: WELCOME / CREATE ACCOUNT / FORGOT PASSWORD? were
+   34 / 30 / 26px on desktop; one size for all three */
+@media (min-width: 1100px) {
+    html body .auth-title {
+        font-size: calc(40 * 100vw / 1920) !important;
     }
 }

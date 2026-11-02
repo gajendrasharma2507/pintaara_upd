@@ -2,13 +2,19 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useCart } from '@/context/CartContext';
-import RegionModal from '@/components/RegionModal';
+import { useRouter } from 'next/navigation';
+import Header from '@/components/Header';
 import { apiFetch } from '@/lib/api';
 
 export default function BookAppointmentPage() {
-    const { cartCount } = useCart();
-    const [isRegionOpen, setIsRegionOpen] = useState(false);
+    const router = useRouter();
+
+    const handleNavigate = (index) => {
+        const slideIds = ['slide-1', 'slide-2', 'slide-3', 'slide-4', 'slide-5', 'slide-6', 'slide-7'];
+        if (slideIds[index]) {
+            router.push(`/#${slideIds[index]}`);
+        }
+    };
     const [formData, setFormData] = useState({
         fullName: '',
         contact: '',
@@ -36,54 +42,7 @@ export default function BookAppointmentPage() {
 
     return (
         <div className="appointment-page-root">
-            {/* Header */}
-            <header className="appointment-header">
-                <div className="appointment-header-inner">
-                    <Link href="/" className="appointment-brand-logo">
-                        <span className="header-logo-text">PINTAARA</span>
-                        <img src="/images/mobile/logo-wordmark.png" alt="" aria-hidden="true" className="header-logo-img-mobile" />
-                    </Link>
-
-                    <nav className="appointment-nav-links">
-                        <Link href="/collection" className="appointment-nav-item">COLLECTION</Link>
-                        <Link href="/design-log" className="appointment-nav-item">DESIGN LOG</Link>
-                        <Link href="/about" className="appointment-nav-item">ABOUT</Link>
-                        <Link href="/1976" className="appointment-nav-item">1976</Link>
-                    </nav>
-
-                    <div className="appointment-header-actions">
-                        <button
-                            type="button"
-                            className="appointment-icon-btn"
-                            aria-label="Select Region and Language"
-                            onClick={() => setIsRegionOpen(true)}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="2" y1="12" x2="22" y2="12"></line>
-                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                            </svg>
-                        </button>
-                        <Link href="/account" className="appointment-icon-btn" aria-label="Profile">
-                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                        </Link>
-                        <Link href="/bag" className="appointment-icon-btn appointment-cart-btn" aria-label="Shopping Bag">
-                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <path d="M16 10a4 4 0 0 1-8 0"></path>
-                            </svg>
-                            {cartCount > 0 && <span className="appointment-cart-badge">{cartCount}</span>}
-                        </Link>
-                    </div>
-                </div>
-            </header>
-
-            {/* Region Modal */}
-            <RegionModal isOpen={isRegionOpen} onClose={() => setIsRegionOpen(false)} />
+            <Header headerStyle="dark" onNavigate={handleNavigate} />
 
             {/* Main Content Area */}
             <main className="appointment-main-container">
@@ -261,8 +220,8 @@ export default function BookAppointmentPage() {
             </main>
 
             {/* Bottom Footer Bar */}
-            <footer className="collection-bottom-bar light-theme">
-                <Link href="/" className="bottom-brand">PINTAARA™</Link>
+            <footer className="collection-bottom-bar">
+                <span className="bottom-brand">PINTAARA™</span>
                 <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
             </footer>
 
@@ -271,7 +230,7 @@ export default function BookAppointmentPage() {
                     background-color: #F6F4EE;
                     min-height: 100vh;
                     color: #1A1A1A;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
@@ -361,7 +320,7 @@ export default function BookAppointmentPage() {
                 .appointment-main-container {
                     max-width: 1360px;
                     margin: 0 auto;
-                    padding: 2.8rem 2rem 3.5rem 2rem;
+                    padding: calc(var(--header-height) + 2.8rem) 2rem 3.5rem 2rem;
                     width: 100%;
                     flex: 1;
                 }

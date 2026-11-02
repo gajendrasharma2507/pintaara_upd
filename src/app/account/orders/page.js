@@ -224,7 +224,7 @@ export default function AccountOrdersPage() {
                     margin-bottom: 1.2rem;
                 }
                 .acct-page-title {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                     font-size: 1.6rem;
                     font-weight: 400;
                     letter-spacing: 0.04em;

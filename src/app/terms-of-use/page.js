@@ -166,7 +166,7 @@ function LegalContent({ pageType = "terms" }) {
                     background-color: #F6F4EE;
                     min-height: 100vh;
                     color: #1A1A1A;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                     display: flex;
                     flex-direction: column;
                 }

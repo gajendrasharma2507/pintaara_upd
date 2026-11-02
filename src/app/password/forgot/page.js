@@ -436,7 +436,7 @@ export default function ForgotPasswordPage() {
                     background-color: #DDD4C6;
                     display: flex;
                     flex-direction: column;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                 }
                 .auth-header {
                     display: flex;
@@ -495,7 +495,7 @@ export default function ForgotPasswordPage() {
                     align-items: center;
                 }
                 .auth-title {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    font-family: var(--font-body);
                     font-size: 1.65rem;
                     font-weight: 400;
                     letter-spacing: 0.14em;
