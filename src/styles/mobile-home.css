@@ -2568,7 +2568,7 @@ html body .auth-root > .auth-footer span {
    gradients (1976, Story, Philosophy, Collection) looked stretched.
    Touch screens get normal scrolling backgrounds; mouse desktops keep
    the fixed ones. */
-@media (hover: none) and (pointer: coarse) {
+@media (hover: none), (pointer: coarse), (any-pointer: coarse) and (max-width: 1366px) {
     /* :is() takes its strongest argument's specificity (two ids), so
        this beats rules like `#slide-3 { … fixed !important }` */
     html body :is(*, #ios-bg#ios-bg),
@@ -2585,8 +2585,12 @@ html body .auth-root > .auth-footer span {
    fixed full-screen layer, the page behind it cannot scroll, and the
    slides take the slider's real height instead of 100dvh (which iOS
    updates late when its toolbars change). Slider.jsx re-snaps to the
-   current slide when the screen size changes. */
-@media (hover: none) and (pointer: coarse) {
+   current slide when the screen size changes.
+   The query also matches any touch screen up to tablet width: Samsung
+   phones (S Pen) and Samsung Internet report hover/fine pointers, missed
+   this block, and their 100dvh slides came out ~50px shorter than the
+   slider (next slide peeking at the bottom, footer slide cut off). */
+@media (hover: none), (pointer: coarse), (any-pointer: coarse) and (max-width: 1366px) {
     html:has(.slider-root-wrapper),
     html:has(.slider-root-wrapper) body {
         height: 100% !important;
@@ -2600,10 +2604,12 @@ html body .auth-root > .auth-footer span {
         /* --visible-h = window.visualViewport.height (set by Slider.jsx):
            on iOS 26 Safari a fixed inset:0 layer reaches behind the
            floating bottom toolbar, which hid the last footer line */
-        /* never taller than the screen with every browser bar showing
-           (Android Chrome reported ~100px more than it shows) */
+        /* Slider.jsx takes the smallest of the browser's height readings,
+           so this already excludes every toolbar. (A 100svh cap here
+           assumed the address bar is always showing; Samsung Internet hides
+           it, which left a strip at the bottom.) */
         height: 100svh !important;
-        height: min(var(--visible-h, 100svh), 100svh) !important;
+        height: var(--visible-h, 100svh) !important;
         overscroll-behavior-y: contain !important;
     }
 
@@ -2800,4 +2806,21 @@ html body .profile-upload-badge {
     html body .auth-title {
         font-size: calc(40 * 100vw / 1920) !important;
     }
+}
+
+/* Header: transparent on every page, every screen size and scroll position
+   (overrides the per-page backgrounds and the solid "floating" state) */
+html body .main-header,
+html body .main-header.header-dark,
+html body .main-header.header-light,
+html body .main-header.header-page-floating,
+html body .main-header.header-page-floating.header-dark,
+html body .main-header.header-page-floating.header-light,
+html body [class*="-root"] .main-header,
+html body .auth-header {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
 }

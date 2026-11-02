@@ -93,6 +93,23 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
             if (heights.length) {
                 root.style.setProperty('--visible-h', `${Math.floor(Math.min(...heights))}px`);
             }
+            // ?debug=vh shows the measurements on screen (for phone testing)
+            if (window.location.search.includes('debug=vh')) {
+                requestAnimationFrame(() => {
+                    let box = document.getElementById('vh-debug');
+                    if (!box) {
+                        box = document.createElement('pre');
+                        box.id = 'vh-debug';
+                        box.style.cssText = 'position:fixed;left:4px;bottom:4px;z-index:99999;margin:0;padding:6px;font:11px/1.3 monospace;color:#0f0;background:rgba(0,0,0,.8);pointer-events:none';
+                        document.body.appendChild(box);
+                    }
+                    const slide = slideRefs.current[0];
+                    const mq = window.matchMedia('(hover: none), (pointer: coarse), (any-pointer: coarse) and (max-width: 1366px)').matches;
+                    box.textContent = `vv ${vv?.height?.toFixed(1)}  inner ${window.innerHeight}  client ${root.clientHeight}\n` +
+                        `slider ${container.clientHeight}  slide ${slide?.offsetHeight}  touchCSS ${mq}\n` +
+                        `hover:none ${window.matchMedia('(hover: none)').matches}  coarse ${window.matchMedia('(pointer: coarse)').matches}`;
+                });
+            }
         };
         setVisibleHeight();
         const onResize = () => {
