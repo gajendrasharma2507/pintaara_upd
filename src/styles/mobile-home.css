@@ -951,13 +951,35 @@ html body .auth-root > .auth-footer span {
     /* product page: the 12 thumbnails forced the image column to 736px and
        the main image was cut off; let the column fit the screen (the
        thumbnail row already scrolls sideways) */
+    html body .atelier-page-root {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        display: block !important;
+    }
+
     html body .atelier-page-root .atelier-main-container {
         grid-template-columns: minmax(0, 1fr) !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding-bottom: 40px !important;
     }
 
     html body .atelier-page-root .atelier-media-column {
         min-width: 0 !important;
         max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding-bottom: 0 !important;
+    }
+
+    html body .atelier-page-root .atelier-specs-column {
+        position: static !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
     html body .atelier-page-root .atelier-main-preview-box {

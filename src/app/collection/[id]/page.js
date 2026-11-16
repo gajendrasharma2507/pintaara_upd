@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use, useMemo } from 'react';
+import React, { useState, useEffect, use, useMemo, useRef } from 'react';
 import Header from '@/components/Header';
 import Link from 'next/link';
 import Script from 'next/script';
@@ -312,6 +312,26 @@ export default function DynamicCollectionPage({ params }) {
     // Main preview image & thumbnails
     const [activeImgIndex, setActiveImgIndex] = useState(0);
     const [mediaViewMode, setMediaViewMode] = useState('photo'); // 'photo' | '3d'
+    const mediaColRef = useRef(null);
+
+    // Forward mouse wheel anywhere on desktop stage to image gallery column
+    const handleMainContainerWheel = (e) => {
+        if (mediaColRef.current && typeof window !== 'undefined' && window.innerWidth >= 1100) {
+            mediaColRef.current.scrollTop += e.deltaY;
+        }
+    };
+
+    // Hide global scrollbars while on collection PDP
+    useEffect(() => {
+        if (typeof document !== 'undefined') {
+            document.documentElement.classList.add('atelier-active-page');
+            document.body.classList.add('atelier-active-page');
+            return () => {
+                document.documentElement.classList.remove('atelier-active-page');
+                document.body.classList.remove('atelier-active-page');
+            };
+        }
+    }, []);
 
     // Dynamic masters loader with localStorage cache fallback
     useEffect(() => {
@@ -1230,9 +1250,9 @@ export default function DynamicCollectionPage({ params }) {
             <Header headerStyle="dark" onNavigate={handleNavigate} />
 
             {/* Main Product Stage (Two Columns) */}
-            <main className="atelier-main-container">
+            <main className="atelier-main-container" onWheel={handleMainContainerWheel}>
                 {/* Left Column: Product Media & Gallery */}
-                <div className="atelier-media-column">
+                <div className="atelier-media-column" ref={mediaColRef}>
                     <div className="atelier-main-preview-box">
                         {mediaViewMode === '3d' && productDetail.model_3d_url ? (
                             <ThreeDModelViewer

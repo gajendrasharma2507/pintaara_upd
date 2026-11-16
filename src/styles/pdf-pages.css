@@ -639,6 +639,19 @@
     /* ---- PDF p.13: product page (/collection/PD-SG-OR-001) -----
        650x650 photo at x 150, y 159; 100px thumbnails below;
        656px spec column from x 1114 to 1770.                     */
+    /* Atelier Page: Desktop single-screen layout where specs column is fixed on the screen,
+       only the left image column scrolls, and all scrollbars are completely hidden */
+    html body .atelier-page-root {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
     html body .atelier-page-root .atelier-main-container {
         display: grid !important;
         grid-template-columns: calc(650 * var(--p)) calc(656 * var(--p)) !important;
@@ -647,15 +660,32 @@
         max-width: none !important;
         width: auto !important;
         margin: 0 !important;
-        padding: calc(157 * var(--p)) calc(150 * var(--p)) 0 !important;
+        padding: calc(140 * var(--p)) calc(150 * var(--p)) 0 !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
     }
 
     html body .atelier-page-root .atelier-media-column {
         width: calc(650 * var(--p)) !important;
-        max-width: none !important;
-        margin: calc(2 * var(--p)) 0 0 !important;
-        padding: 0 !important;
-        position: static !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 0 calc(80 * var(--p)) 0 !important;
+        height: 100% !important;
+        max-height: calc(100vh - 220 * var(--p)) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        overscroll-behavior: contain !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .atelier-page-root .atelier-media-column::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
     }
 
     html body .atelier-page-root .atelier-main-preview-box {
@@ -731,6 +761,20 @@
         max-width: none !important;
         margin: 0 !important;
         padding: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        align-self: start !important;
+        max-height: calc(100vh - 220 * var(--p)) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    html body .atelier-page-root .atelier-specs-column::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
     }
 
     /* Code 50px, design name 16px, 76x2 rule */
@@ -970,8 +1014,35 @@
     }
 
     html body .atelier-page-root .collection-bottom-bar {
-        margin-top: calc(58 * var(--p)) !important;
+        margin: 0 calc(66 * var(--p)) !important;
+        flex: 0 0 auto !important;
+        height: calc(80 * var(--p)) !important;
+        padding: calc(20 * var(--p)) calc(4 * var(--p)) 0 !important;
+        z-index: 20 !important;
     }
+}
+
+/* Hide all scrollbars on collection product page across all modern and legacy browsers */
+html.atelier-active-page,
+body.atelier-active-page,
+html:has(.atelier-page-root),
+body:has(.atelier-page-root),
+.atelier-page-root,
+.atelier-page-root * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+html.atelier-active-page::-webkit-scrollbar,
+body.atelier-active-page::-webkit-scrollbar,
+html:has(.atelier-page-root)::-webkit-scrollbar,
+body:has(.atelier-page-root)::-webkit-scrollbar,
+.atelier-page-root::-webkit-scrollbar,
+.atelier-page-root *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
 }
 
 @media (min-width: 1100px) {
