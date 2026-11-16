@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use, useMemo, useRef } from 'react';
+import React, { useState, useEffect, use, useMemo } from 'react';
 import Header from '@/components/Header';
 import Link from 'next/link';
 import Script from 'next/script';
@@ -312,17 +312,6 @@ export default function DynamicCollectionPage({ params }) {
     // Main preview image & thumbnails
     const [activeImgIndex, setActiveImgIndex] = useState(0);
     const [mediaViewMode, setMediaViewMode] = useState('photo'); // 'photo' | '3d'
-    // Hide global scrollbars while on collection PDP
-    useEffect(() => {
-        if (typeof document !== 'undefined') {
-            document.documentElement.classList.add('atelier-active-page');
-            document.body.classList.add('atelier-active-page');
-            return () => {
-                document.documentElement.classList.remove('atelier-active-page');
-                document.body.classList.remove('atelier-active-page');
-            };
-        }
-    }, []);
 
     // Dynamic masters loader with localStorage cache fallback
     useEffect(() => {

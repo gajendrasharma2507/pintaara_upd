@@ -639,16 +639,6 @@
     /* ---- PDF p.13: product page (/collection/PD-SG-OR-001) -----
        650x650 photo at x 150, y 159; 100px thumbnails below;
        656px spec column from x 1114 to 1770.                     */
-    /* Atelier Page: Desktop layout with full screen/page scroll for the media gallery,
-       fixed specs column staying strictly in place, and completely hidden scrollbars */
-    html body .atelier-page-root {
-        min-height: 100vh !important;
-        height: auto !important;
-        max-height: none !important;
-        scrollbar-width: none !important;
-        -ms-overflow-style: none !important;
-    }
-
     html body .atelier-page-root .atelier-main-container {
         display: grid !important;
         grid-template-columns: calc(650 * var(--p)) calc(656 * var(--p)) !important;
@@ -657,23 +647,15 @@
         max-width: none !important;
         width: auto !important;
         margin: 0 !important;
-        padding: calc(157 * var(--p)) calc(150 * var(--p)) calc(80 * var(--p)) !important;
-        height: auto !important;
-        min-height: 100vh !important;
-        max-height: none !important;
-        overflow: visible !important;
-        box-sizing: border-box !important;
+        padding: calc(157 * var(--p)) calc(150 * var(--p)) 0 !important;
     }
 
     html body .atelier-page-root .atelier-media-column {
         width: calc(650 * var(--p)) !important;
-        max-width: 100% !important;
+        max-width: none !important;
         margin: calc(2 * var(--p)) 0 0 !important;
-        padding: 0 0 calc(120 * var(--p)) 0 !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
-        box-sizing: border-box !important;
+        padding: 0 !important;
+        position: static !important;
     }
 
     html body .atelier-page-root .atelier-main-preview-box {
@@ -749,21 +731,6 @@
         max-width: none !important;
         margin: 0 !important;
         padding: 0 !important;
-        position: fixed !important;
-        top: calc(157 * var(--p)) !important;
-        right: calc(150 * var(--p)) !important;
-        z-index: 10 !important;
-        height: auto !important;
-        max-height: calc(100vh - 180 * var(--p)) !important;
-        overflow-y: auto !important;
-        scrollbar-width: none !important;
-        -ms-overflow-style: none !important;
-    }
-
-    html body .atelier-page-root .atelier-specs-column::-webkit-scrollbar {
-        display: none !important;
-        width: 0 !important;
-        height: 0 !important;
     }
 
     /* Code 50px, design name 16px, 76x2 rule */
@@ -1003,33 +970,8 @@
     }
 
     html body .atelier-page-root .collection-bottom-bar {
-        margin: calc(58 * var(--p)) calc(66 * var(--p)) 0 !important;
-        position: relative !important;
-        z-index: 20 !important;
+        margin-top: calc(58 * var(--p)) !important;
     }
-}
-
-/* Hide all scrollbars on collection product page across all modern and legacy browsers */
-html.atelier-active-page,
-body.atelier-active-page,
-html:has(.atelier-page-root),
-body:has(.atelier-page-root),
-.atelier-page-root,
-.atelier-page-root * {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-}
-
-html.atelier-active-page::-webkit-scrollbar,
-body.atelier-active-page::-webkit-scrollbar,
-html:has(.atelier-page-root)::-webkit-scrollbar,
-body:has(.atelier-page-root)::-webkit-scrollbar,
-.atelier-page-root::-webkit-scrollbar,
-.atelier-page-root *::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    background: transparent !important;
 }
 
 @media (min-width: 1100px) {
