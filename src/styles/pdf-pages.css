@@ -640,13 +640,11 @@
        650x650 photo at x 150, y 159; 100px thumbnails below;
        656px spec column from x 1114 to 1770.                     */
     /* Atelier Page: Desktop layout with full screen/page scroll for the media gallery,
-       sticky fixed specs column, and completely hidden scrollbars */
+       fixed specs column staying strictly in place, and completely hidden scrollbars */
     html body .atelier-page-root {
         min-height: 100vh !important;
         height: auto !important;
         max-height: none !important;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
     }
@@ -671,7 +669,7 @@
         width: calc(650 * var(--p)) !important;
         max-width: 100% !important;
         margin: calc(2 * var(--p)) 0 0 !important;
-        padding: 0 !important;
+        padding: 0 0 calc(120 * var(--p)) 0 !important;
         height: auto !important;
         max-height: none !important;
         overflow: visible !important;
@@ -751,13 +749,21 @@
         max-width: none !important;
         margin: 0 !important;
         padding: 0 !important;
-        position: sticky !important;
-        top: calc(140 * var(--p)) !important;
-        align-self: start !important;
+        position: fixed !important;
+        top: calc(157 * var(--p)) !important;
+        right: calc(150 * var(--p)) !important;
         z-index: 10 !important;
         height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
+        max-height: calc(100vh - 180 * var(--p)) !important;
+        overflow-y: auto !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    html body .atelier-page-root .atelier-specs-column::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
     }
 
     /* Code 50px, design name 16px, 76x2 rule */
