@@ -55,8 +55,8 @@ const resolveImageUrl = (img) => {
         return img;
     }
     if (img.startsWith('/storage/')) {
-        const apiHost = process.env.NEXT_PUBLIC_API_URL 
-            ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
+        const apiHost = process.env.NEXT_PUBLIC_API_URL
+            ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
             : 'https://api.pintaara.com';
         return `${apiHost}${img}`;
     }
@@ -431,21 +431,21 @@ export default function DynamicCollectionPage({ params }) {
                                     if (resRelated?.status === 'success' && Array.isArray(resRelated.data)) {
                                         const currentCode = String(prod.design_code || prod.code || prod.id).toUpperCase();
                                         const mapRelatedProduct = (item) => {
-                                                let imageUrl = typeof item.primary_image === 'object' && item.primary_image
-                                                    ? item.primary_image.url
-                                                    : item.primary_image;
-                                                if (!imageUrl && Array.isArray(item.images) && item.images.length > 0) {
-                                                    imageUrl = typeof item.images[0] === 'string' ? item.images[0] : item.images[0]?.url;
-                                                }
+                                            let imageUrl = typeof item.primary_image === 'object' && item.primary_image
+                                                ? item.primary_image.url
+                                                : item.primary_image;
+                                            if (!imageUrl && Array.isArray(item.images) && item.images.length > 0) {
+                                                imageUrl = typeof item.images[0] === 'string' ? item.images[0] : item.images[0]?.url;
+                                            }
 
-                                                return {
-                                                    id: item.design_code || item.id,
-                                                    code: item.design_code || String(item.id),
-                                                    name: item.name,
-                                                    collection: item.collection?.name || prod.collection?.name || 'ATELIER PIECE',
-                                                    image: resolveProductImage(item, imageUrl),
-                                                    livePrice: item.live_price?.total_price || item.base_pricing?.total_price || null,
-                                                };
+                                            return {
+                                                id: item.design_code || item.id,
+                                                code: item.design_code || String(item.id),
+                                                name: item.name,
+                                                collection: item.collection?.name || prod.collection?.name || 'ATELIER PIECE',
+                                                image: resolveProductImage(item, imageUrl),
+                                                livePrice: item.live_price?.total_price || item.base_pricing?.total_price || null,
+                                            };
                                         };
 
                                         const sameCollection = resRelated.data
@@ -508,10 +508,10 @@ export default function DynamicCollectionPage({ params }) {
                 // Normalize key to deduplicate e.g. "Metal Purity (KT)" vs "METAL PURITY (KT)"
                 const normKey = lower.includes('purity') ? 'purity'
                     : lower.includes('finish') ? 'finish'
-                    : lower.includes('size') ? 'size'
-                    : lower.includes('gem') || lower.includes('stone') ? 'gem'
-                    : lower.includes('chain') ? 'chain'
-                    : lower;
+                        : lower.includes('size') ? 'size'
+                            : lower.includes('gem') || lower.includes('stone') ? 'gem'
+                                : lower.includes('chain') ? 'chain'
+                                    : lower;
 
                 if (seen.has(normKey)) return;
                 seen.add(normKey);
@@ -938,15 +938,19 @@ export default function DynamicCollectionPage({ params }) {
         let cancelled = false;
         const calculate = async () => {
             try {
-                const purityFraction = purityStr.includes('24') ? 1.0 : purityStr.includes('18') ? 0.75 : purityStr.includes('14') ? 0.585 : purityStr.includes('925') ? 0.925 : 0.916;
+                const isSilver = purityStr.toLowerCase().includes('silver') || purityStr.includes('925');
+                const purityFraction = purityStr.includes('24') ? 1.0 : purityStr.includes('18') ? 0.75 : purityStr.includes('14') ? 0.585 : isSilver ? 0.925 : 0.916;
                 const response = await apiFetch('/price/calculate', {
                     method: 'POST',
                     body: JSON.stringify({
                         weight_grams: totalWeight,
                         purity: purityStr,
                         purity_fraction: purityFraction,
+                        metal_type: isSilver ? 'silver' : 'gold',
                         making_charge_flat: Number(productDetail.making_charge) || 0,
                         making_charge_percent: productDetail.making_charge_percent,
+                        brand_markup_percent: productDetail.brand_markup_percent || 0,
+                        other_charges: productDetail.other_charges || 0,
                         wastage_percent: Number(productDetail.wastage_percent) || 0,
                         gem: gemName,
                         stone_charge: flatGemPrice > 0 ? flatGemPrice : null,
@@ -1260,8 +1264,7 @@ export default function DynamicCollectionPage({ params }) {
                                         background: 'linear-gradient(135deg, #1C2434 0%, #0F172A 100%)',
                                         color: '#D4AF37',
                                         fontWeight: 700,
-                                        fontSize: '11px',
-                                        flex: '0 0 54px'
+                                        fontSize: '11px'
                                     }}
                                     onClick={() => setMediaViewMode('3d')}
                                 >
@@ -1668,7 +1671,7 @@ export default function DynamicCollectionPage({ params }) {
                             </div>
 
                             <div style={{ fontSize: '0.72rem', color: '#777', marginTop: '0.5rem', textAlign: 'center' }}>
-                                Live Spot Rate certified Gujarat Jeweler Association daily bulletin ({priceBreakdown.rate_used?.rate_date || 'Today'}).
+                                Live spot rate certified directly with Aarav Bullion (aaravbullion.in & aaravbullionspot.com) • Real-time bullion stream ({priceBreakdown.rate_used?.rate_date || 'Today'}).
                             </div>
                         </div>
                     </div>
