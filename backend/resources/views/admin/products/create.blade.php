@@ -192,22 +192,22 @@
         }
         $allFinishesConfig = [
           'YG' => [
-            'label' => 'Yellow Gold (YG)',
+            'label' => 'Yellow Gold',
             'badge' => '#D4AF37',
             'gradient' => 'linear-gradient(180deg, #8B6508 0%, #C99700 15%, #E5B824 35%, #FBE580 50%, #C99700 80%, #7D5A02 100%)',
           ],
           'WG' => [
-            'label' => 'White Gold (WG)',
+            'label' => 'White Gold',
             'badge' => '#94A3B8',
             'gradient' => 'linear-gradient(180deg, #55585B 0%, #8A8E93 15%, #C2C6CC 35%, #F0F2F5 50%, #8A8E93 80%, #484A4D 100%)',
           ],
           'RG' => [
-            'label' => 'Rose Gold (RG)',
+            'label' => 'Rose Gold',
             'badge' => '#B76E79',
             'gradient' => 'linear-gradient(180deg, #874112 0%, #BA6222 15%, #DB7F3E 35%, #F5B37B 50%, #BA6222 80%, #75360B 100%)',
           ],
           'BLK' => [
-            'label' => 'Black Ruthenium (BLK)',
+            'label' => 'Black Ruthenium',
             'badge' => '#1E293B',
             'gradient' => 'linear-gradient(180deg, #111315 0%, #2A2E33 15%, #4C525A 35%, #828A94 50%, #2A2E33 80%, #111315 100%)',
           ],
@@ -277,10 +277,7 @@
           <line x1="12" y1="3" x2="12" y2="15"></line>
         </svg>
         <div style="font-size: 13.5px; color: var(--admin-text-primary); font-weight: 700;" id="dropzone_prompt_text">
-          Click to browse or drag & drop images for Yellow Gold (YG)
-        </div>
-        <div style="font-size: 11.5px; color: var(--admin-text-secondary); margin-top: 3px;">
-          Select multiple images at once (PNG, JPG, JPEG, WEBP, SVG up to 20MB each)
+          Drag & drop images
         </div>
         <div id="gallery_spinner" style="display: none; margin-top: 10px; color: var(--admin-primary); font-size: 12px; font-weight: 600;">
           Uploading images to server...
@@ -315,7 +312,7 @@
         </div>
 
         <div id="gallery_empty_notice" style="display: none; padding: 28px 16px; text-align: center; color: var(--admin-text-muted); font-size: 12.5px; border: 1px dashed var(--admin-border); border-radius: 8px; background: var(--admin-surface);">
-          No images uploaded for this finish yet. Click the upload box above to add images for this finish.
+          No images uploaded
         </div>
       </div>
     </div>
@@ -337,10 +334,10 @@
 let galleryImages = [];
 
 const FINISH_CONFIG = [
-  { key: 'YG', name: 'Yellow Gold (YG)', code: 'YG', color: '#D4AF37', desc: 'Gallery images displayed when patron chooses Yellow Gold' },
-  { key: 'WG', name: 'White Gold (WG)', code: 'WG', color: '#94A3B8', desc: 'Gallery images displayed when patron chooses White Gold' },
-  { key: 'RG', name: 'Rose Gold (RG)', code: 'RG', color: '#B76E79', desc: 'Gallery images displayed when patron chooses Rose Gold' },
-  { key: 'BLK', name: 'Black Ruthenium / Black Gold (BLK)', code: 'BLK', color: '#1E293B', desc: 'Gallery images displayed when patron chooses Black Ruthenium / Black Gold' }
+  { key: 'YG', name: 'Yellow Gold', code: 'YG', color: '#D4AF37' },
+  { key: 'WG', name: 'White Gold', code: 'WG', color: '#94A3B8' },
+  { key: 'RG', name: 'Rose Gold', code: 'RG', color: '#B76E79' },
+  { key: 'BLK', name: 'Black Ruthenium', code: 'BLK', color: '#1E293B' }
 ];
 
 let activeFinishKey = 'YG';
@@ -437,7 +434,7 @@ function renderFinishTabs() {
   const dropzonePrompt = document.getElementById('dropzone_prompt_text');
   const gridHeader = document.getElementById('active_grid_header');
 
-  if (dropzonePrompt) dropzonePrompt.textContent = `Click to browse or drag & drop images for ${activeConf.name}`;
+  if (dropzonePrompt) dropzonePrompt.textContent = 'Drag & drop images';
   if (gridHeader) gridHeader.textContent = `${activeConf.name} Images (${activeCount})`;
 }
 
@@ -457,7 +454,7 @@ function renderActiveGallery() {
   if (currentImages.length === 0) {
     if (emptyNotice) {
       emptyNotice.style.display = 'block';
-      emptyNotice.textContent = `No images uploaded for ${activeConf.name} yet. Click the box above to upload images for this finish.`;
+      emptyNotice.textContent = 'No images uploaded';
     }
   } else {
     if (emptyNotice) emptyNotice.style.display = 'none';
@@ -480,7 +477,7 @@ function renderActiveGallery() {
         <!-- Top left finish badge -->
         <div style="position: absolute; top: 6px; left: 6px; z-index: 2;">
           <span style="font-size: 9.5px; font-weight: 700; color: #FFFFFF; background: ${activeConf.color}; padding: 2px 6px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.3);">
-            ${escapeHtml(activeConf.code || activeConf.key)}
+            ${escapeHtml(activeConf.name)}
           </span>
         </div>
 
