@@ -2,23 +2,51 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { safeStorage, safeSessionStorage } from "@/lib/storage";
+import api from "@/lib/api";
 
 export default function PasswordPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (password.trim() === "1") {
-      localStorage.setItem("pintaara_unlocked", "1");
-      document.cookie = "pintaara_unlocked=1; path=/; max-age=2592000";
-      router.push("/");
-    } else {
-      setError("Incorrect atelier passcode. Please try again.");
+    const val = password.trim();
+    if (!val) {
+      setError("Please enter passcode.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await api.verifyStorefrontPasscode(val);
+      if (res && res.success) {
+        const expiresInSec = res.expires_in || 86400; // 24 hours
+        const expiresAt = Date.now() + expiresInSec * 1000;
+
+        safeStorage.setItem("pintaara_unlocked", "1");
+        safeStorage.setItem("pintaara_unlocked_expires_at", String(expiresAt));
+        safeStorage.setItem("pintaara_entered", "true");
+        safeSessionStorage.setItem("pintaara_entered", "true");
+
+        try {
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          document.cookie = `pintaara_unlocked=1; path=/; max-age=${expiresInSec}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+        } catch (err) {}
+
+        router.push("/");
+      } else {
+        throw new Error(res?.message || "Incorrect passcode.");
+      }
+    } catch (err) {
+      setError(err?.message || "Incorrect PINTAARA passcode. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -29,35 +57,13 @@ export default function PasswordPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#C9A961]/5 rounded-full blur-[140px]"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-md bg-[#1D1915]/95 border border-[#C9A961]/30 rounded-2xl p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] backdrop-blur-xl text-center space-y-8">
-        <div className="space-y-4">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#27221C] border border-[#C9A961]/40 shadow-inner">
-            <span className="font-serif text-[#C9A961] font-bold text-2xl tracking-widest">P</span>
-          </div>
-          
-          <div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-[0.25em] text-[#F5EDE4] uppercase">
-              PINTAARA
-            </h1>
-            <p className="text-[11px] font-sans tracking-[0.3em] text-[#C9A961] uppercase mt-1 font-medium">
-              Fine Jewelry Atelier
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center space-x-3 text-[#C9A961]/40">
-          <span className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#C9A961]/40"></span>
-          <span className="text-xs">✦</span>
-          <span className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#C9A961]/40"></span>
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold tracking-wider uppercase text-[#E8DFD3]">
-            Private Access
-          </h2>
-          <p className="text-xs text-[#A69D92] leading-relaxed max-w-xs mx-auto">
-            Please enter your exclusive atelier passcode to enter the boutique.
-          </p>
+      <div className="relative z-10 w-full max-w-sm text-center space-y-6">
+        <div className="flex items-center justify-center py-2">
+          <img
+            src="/images/logo-lockup.png"
+            alt="PINTAARA"
+            className="w-56 max-w-[85%] h-auto object-contain mx-auto"
+          />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -69,36 +75,31 @@ export default function PasswordPage() {
               placeholder="Enter passcode"
               autoFocus
               required
-              className="w-full px-4 py-3.5 bg-[#14120F]/80 border border-[#3D362F] focus:border-[#C9A961] rounded-xl text-center text-lg font-mono text-[#F5EDE4] placeholder:text-[#6E665D] placeholder:font-sans placeholder:text-xs focus:outline-none focus:ring-1 focus:ring-[#C9A961] transition-all shadow-inner"
+              className="w-full px-6 py-4 bg-[#181512] rounded-full text-center text-sm font-mono text-[#F5EDE4] placeholder:text-[#6E665D] placeholder:font-sans placeholder:text-xs focus:outline-none transition-all tracking-wider"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#A69D92] hover:text-[#C9A961] p-1 uppercase tracking-wider"
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-[11px] text-[#8E847A] hover:text-[#C9A961] uppercase tracking-wider"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
 
           {error && (
-            <p className="text-xs text-rose-400 bg-rose-950/30 border border-rose-900/50 py-2 px-3 rounded-lg">
+            <p className="text-xs text-rose-400 bg-rose-950/30 border border-rose-900/50 py-2 px-3 rounded-full">
               {error}
             </p>
           )}
 
           <button
             type="submit"
-            className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-[#C9A961] via-[#DFCA8E] to-[#C9A961] text-[#1C1814] font-semibold text-xs uppercase tracking-[0.2em] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_4px_20px_rgba(201,169,97,0.25)]"
+            disabled={submitting}
+            className="w-full py-4 px-6 rounded-full bg-gradient-to-b from-[#E6C88A] to-[#D4AC64] text-[#181410] font-semibold text-xs uppercase tracking-[0.22em] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_6px_30px_rgba(212,172,100,0.35)] disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Enter Atelier
+            {submitting ? "VERIFYING..." : "ENTER"}
           </button>
         </form>
-
-        <div className="pt-4 border-t border-[#2E2822] text-[11px] text-[#7A7268] flex items-center justify-center space-x-2">
-          <span>Security Protected</span>
-          <span>·</span>
-          <span className="italic font-serif text-[#C9A961]/70">Pintaara Haute Joaillerie</span>
-        </div>
       </div>
     </div>
   );

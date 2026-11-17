@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Slider from '@/components/Slider';
 import EnterPage from '@/components/EnterPage';
 import { PINTAARA_CONFIG, ENTER_PAGE_CONFIG } from '@/config/slides';
-import { safeSessionStorage } from '@/lib/storage';
+import { safeStorage, safeSessionStorage } from '@/lib/storage';
 
 export default function Home() {
   const [hasEntered, setHasEntered] = useState(false);
@@ -18,20 +18,7 @@ export default function Home() {
       const urlParams = new URLSearchParams(window.location.search);
       // Explicit enter page trigger: ?enter=1 or ?enter=true
       if (urlParams.get('enter') === '1' || urlParams.get('enter') === 'true') {
-        safeSessionStorage.removeItem('pintaara_entered');
-        setHasEntered(false);
-        return;
-      }
-
-      // If user refreshes (F5), show enter page for immediate testing
-      let isReload = false;
-      try {
-        const navEntries = performance.getEntriesByType('navigation');
-        isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
-      } catch (e) {
-        // performance API not available in some sandboxed environments
-      }
-      if (isReload) {
+        safeStorage.removeItem('pintaara_entered');
         safeSessionStorage.removeItem('pintaara_entered');
         setHasEntered(false);
         return;
@@ -42,8 +29,13 @@ export default function Home() {
         window.history.scrollRestoration = 'manual';
       } catch (e) {}
 
-      // If already entered in this session (e.g. returning from subpages)
-      if (safeSessionStorage.getItem('pintaara_entered') === 'true') {
+      // If already entered or unlocked via passcode, do not show enter page when going back to home
+      const entered =
+        safeStorage.getItem('pintaara_entered') === 'true' ||
+        safeSessionStorage.getItem('pintaara_entered') === 'true' ||
+        safeStorage.getItem('pintaara_unlocked') === '1';
+
+      if (entered) {
         setHasEntered(true);
       }
     }
@@ -55,6 +47,7 @@ export default function Home() {
     if (scrollToSlideRef.current) {
       scrollToSlideRef.current(0);
     }
+    safeStorage.setItem('pintaara_entered', 'true');
     safeSessionStorage.setItem('pintaara_entered', 'true');
     setTimeout(() => {
       setHasEntered(true);

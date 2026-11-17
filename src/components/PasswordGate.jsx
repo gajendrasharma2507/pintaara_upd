@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { safeStorage } from "@/lib/storage";
+import { safeStorage, safeSessionStorage } from "@/lib/storage";
+import api from "@/lib/api";
 
 export default function PasswordGate({ children }) {
   const pathname = usePathname();
@@ -13,19 +14,47 @@ export default function PasswordGate({ children }) {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [shake, setShake] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // If navigating to /admin or /password, don't lock
+    // If navigating to /admin, don't lock
     if (isAdmin || (typeof window !== "undefined" && window.location.pathname.startsWith("/admin"))) {
       setIsUnlocked(true);
       setLoading(false);
       return;
     }
+
     const unlocked = safeStorage.getItem("pintaara_unlocked");
-    if (unlocked === "1") {
+    const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
+    const now = Date.now();
+
+    // Check if unlocked AND within the 24-hour window
+    if (unlocked === "1" && expiresAt > now) {
       setIsUnlocked(true);
+      setLoading(false);
+
+      // Auto-lock when the 24 hours expire in the current session
+      const remainingTime = expiresAt - now;
+      const timer = setTimeout(() => {
+        safeStorage.removeItem("pintaara_unlocked");
+        safeStorage.removeItem("pintaara_unlocked_expires_at");
+        try {
+          document.cookie = "pintaara_unlocked=; path=/; max-age=0";
+        } catch (err) { }
+        setIsUnlocked(false);
+      }, remainingTime);
+
+      return () => clearTimeout(timer);
+    } else {
+      // 24 hours elapsed or not unlocked — require entering passcode again
+      safeStorage.removeItem("pintaara_unlocked");
+      safeStorage.removeItem("pintaara_unlocked_expires_at");
+      try {
+        document.cookie = "pintaara_unlocked=; path=/; max-age=0";
+      } catch (err) { }
+      setIsUnlocked(false);
+      setLoading(false);
     }
-    setLoading(false);
   }, [isAdmin]);
 
   // Immediately render admin without any password gate or spinner
@@ -33,19 +62,44 @@ export default function PasswordGate({ children }) {
     return <>{children}</>;
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     const val = password.trim();
-    if (val.toLowerCase() === "admin") {
-      // Redirect directly to internal frontend admin panel
-      window.location.href = "/admin";
-    } else {
-      safeStorage.setItem("pintaara_unlocked", "1");
-      try {
-        document.cookie = "pintaara_unlocked=1; path=/; max-age=2592000";
-      } catch (err) {}
-      setIsUnlocked(true);
+
+    if (!val) {
+      setError("Please enter passcode.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Verify passcode against dynamic backend setting
+      const res = await api.verifyStorefrontPasscode(val);
+      if (res && res.success) {
+        const expiresInSec = res.expires_in || 86400; // 24 hours
+        const expiresAt = Date.now() + expiresInSec * 1000;
+
+        safeStorage.setItem("pintaara_unlocked", "1");
+        safeStorage.setItem("pintaara_unlocked_expires_at", String(expiresAt));
+        safeStorage.setItem("pintaara_entered", "true");
+        safeSessionStorage.setItem("pintaara_entered", "true");
+
+        try {
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          document.cookie = `pintaara_unlocked=1; path=/; max-age=${expiresInSec}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+        } catch (err) { }
+
+        setIsUnlocked(true);
+      } else {
+        throw new Error(res?.message || "Incorrect passcode.");
+      }
+    } catch (err) {
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+      setError(err?.message || "Incorrect PINTAARA passcode. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -73,30 +127,20 @@ export default function PasswordGate({ children }) {
 
           {/* Card */}
           <div style={styles.card}>
-            {/* Emblem */}
-            <div style={styles.emblemWrap}>
-              <div style={styles.emblem}>
-                <span style={styles.emblemLetter}>P</span>
-              </div>
-              <div>
-                <h1 style={styles.brandName}>PINTAARA</h1>
-                <p style={styles.brandTagline}>Fine Jewelry Atelier</p>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div style={styles.divider}>
-              <span style={styles.dividerLine}></span>
-              <span style={styles.dividerDiamond}>✦</span>
-              <span style={styles.dividerLine}></span>
-            </div>
-
-            {/* Heading */}
-            <div style={styles.headingWrap}>
-              <h2 style={styles.heading}>Private Access</h2>
-              <p style={styles.subheading}>
-                Please enter your exclusive atelier passcode to enter the boutique.
-              </p>
+            {/* Logo Lockup */}
+            <div style={styles.logoWrap}>
+              <img
+                src="/images/logo-lockup.png"
+                alt="PINTAARA"
+                style={{
+                  width: "220px",
+                  maxWidth: "85%",
+                  height: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                  margin: "0 auto",
+                }}
+              />
             </div>
 
             {/* Form */}
@@ -110,14 +154,6 @@ export default function PasswordGate({ children }) {
                   autoFocus
                   required
                   style={styles.input}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#C9A961";
-                    e.target.style.boxShadow = "0 0 0 2px rgba(201,169,97,0.18)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#3D362F";
-                    e.target.style.boxShadow = "none";
-                  }}
                 />
                 <button
                   type="button"
@@ -138,22 +174,22 @@ export default function PasswordGate({ children }) {
 
               <button
                 type="submit"
-                style={styles.submitBtn}
-                onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.12)")}
-                onMouseLeave={(e) => (e.currentTarget.style.filter = "brightness(1)")}
+                disabled={submitting}
+                style={{
+                  ...styles.submitBtn,
+                  opacity: submitting ? 0.75 : 1,
+                  cursor: submitting ? "not-allowed" : "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  if (!submitting) e.currentTarget.style.filter = "brightness(1.12)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!submitting) e.currentTarget.style.filter = "brightness(1)";
+                }}
               >
-                Enter Atelier
+                {submitting ? "VERIFYING..." : "ENTER"}
               </button>
             </form>
-
-            {/* Footer */}
-            <div style={styles.footer}>
-              <span>Security Protected</span>
-              <span style={{ margin: "0 8px", opacity: 0.5 }}>·</span>
-              <span style={{ fontStyle: "italic", fontFamily: "Cormorant Garamond, serif", color: "rgba(201,169,97,0.75)" }}>
-                Pintaara Haute Joaillerie
-              </span>
-            </div>
           </div>
         </div>
 
@@ -219,26 +255,32 @@ const styles = {
     pointerEvents: "none",
   },
 
-  /* ── Card ── */
+  /* ── Content Container (No Box / No Card Background) ── */
   card: {
     position: "relative",
     zIndex: 1,
     width: "100%",
-    maxWidth: "420px",
-    background: "rgba(29,25,21,0.96)",
-    border: "1px solid rgba(201,169,97,0.3)",
-    borderRadius: "20px",
-    padding: "40px 36px",
-    boxShadow: "0 30px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(201,169,97,0.08)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
+    maxWidth: "380px",
+    background: "transparent",
+    border: "none",
+    borderRadius: "0",
+    padding: "0",
+    boxShadow: "none",
+    backdropFilter: "none",
+    WebkitBackdropFilter: "none",
     textAlign: "center",
     display: "flex",
     flexDirection: "column",
-    gap: "28px",
+    gap: "24px",
   },
 
-  /* ── Emblem row ── */
+  /* ── Logo Lockup ── */
+  logoWrap: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "6px 0 2px 0",
+  },
   emblemWrap: {
     display: "flex",
     flexDirection: "column",
@@ -332,31 +374,30 @@ const styles = {
   },
   input: {
     width: "100%",
-    padding: "14px 56px 14px 16px",
-    background: "rgba(14,12,9,0.7)",
-    border: "1px solid #3D362F",
-    borderRadius: "12px",
+    padding: "16px 64px 16px 24px",
+    background: "#181512",
+    border: "none",
+    borderRadius: "9999px",
     textAlign: "center",
-    fontSize: "18px",
+    fontSize: "15px",
     fontFamily: "monospace",
     color: "#F5EDE4",
     outline: "none",
-    transition: "border-color 0.2s, box-shadow 0.2s",
     boxSizing: "border-box",
-    letterSpacing: "0.15em",
+    letterSpacing: "0.14em",
   },
   showToggle: {
     position: "absolute",
-    right: "12px",
+    right: "22px",
     top: "50%",
     transform: "translateY(-50%)",
     background: "none",
     border: "none",
     cursor: "pointer",
-    fontSize: "10px",
-    color: "#A69D92",
+    fontSize: "11px",
+    color: "#8E847A",
     textTransform: "uppercase",
-    letterSpacing: "0.1em",
+    letterSpacing: "0.14em",
     fontFamily: "'Avenir Next', sans-serif",
     transition: "color 0.2s",
     padding: "4px",
@@ -366,25 +407,25 @@ const styles = {
     color: "#f87171",
     background: "rgba(127,29,29,0.25)",
     border: "1px solid rgba(127,29,29,0.5)",
-    borderRadius: "10px",
+    borderRadius: "16px",
     padding: "10px 14px",
     margin: 0,
   },
   submitBtn: {
     width: "100%",
-    padding: "14px 24px",
-    borderRadius: "12px",
-    background: "linear-gradient(135deg, #C9A961 0%, #DFCA8E 50%, #C9A961 100%)",
-    color: "#1C1814",
+    padding: "16px 24px",
+    borderRadius: "9999px",
+    background: "linear-gradient(180deg, #E6C88A 0%, #D4AC64 100%)",
+    color: "#181410",
     border: "none",
     cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 700,
+    fontSize: "11.5px",
+    fontWeight: 600,
     letterSpacing: "0.22em",
     textTransform: "uppercase",
     fontFamily: "'Avenir Next', sans-serif",
     transition: "filter 0.2s, transform 0.1s",
-    boxShadow: "0 4px 24px rgba(201,169,97,0.28), 0 1px 0 rgba(255,255,255,0.15) inset",
+    boxShadow: "0 6px 30px rgba(212,172,100,0.35)",
   },
 
   /* ── Footer ── */
