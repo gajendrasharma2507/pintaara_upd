@@ -57,13 +57,32 @@ class ProductApiController extends Controller
                 'model_3d_url' => $product->model_3d_url,
                 'base_weight_grams' => $product->base_weight_grams,
                 'designed_by' => $product->designed_by,
+                'is_limited_edition' => (bool) ($product->is_limited_edition ?? true),
+                'edition_prefix' => $product->edition_prefix ?? 'LIMITED EDITION',
+                'edition_limit' => (int) ($product->edition_limit ?? 50),
+                'edition_current' => (int) ($product->edition_current ?? 1),
+                'edition_text' => $product->edition_text,
+                'is_sold_out' => (bool) $product->is_sold_out,
+                'available_purities' => $product->available_purities,
+                'available_finishes' => $product->available_finishes ?? ['YG', 'WG', 'RG', 'BLK'],
                 'primary_image' => $product->primaryImage?->url ?? $product->images->first()?->url,
                 'images' => $product->images->pluck('url'),
                 'live_price' => $pricing,
-                'options' => $product->options->map(fn($o) => [
-                    'name' => $o->name,
-                    'values' => $o->values->pluck('value'),
-                ]),
+                'options' => $product->options->map(function($o) use ($product) {
+                    $isPurity = str_contains(strtolower($o->name), 'purity') || str_contains(strtolower($o->name), 'metal') || str_contains(strtolower($o->name), 'karat');
+                    $vals = $o->values;
+                    if ($isPurity && !empty($product->available_purities) && is_array($product->available_purities)) {
+                        $allowedPurities = array_map(fn($p) => strtoupper(str_replace(' ', '', $p)), $product->available_purities);
+                        $vals = $vals->filter(function($v) use ($allowedPurities) {
+                            $clean = strtoupper(str_replace(' ', '', $v->value));
+                            return in_array($clean, $allowedPurities);
+                        });
+                    }
+                    return [
+                        'name' => $o->name,
+                        'values' => $vals->pluck('value')->values(),
+                    ];
+                }),
             ];
         });
 
@@ -135,15 +154,48 @@ class ProductApiController extends Controller
                 'wastage_percent' => $product->wastage_percent,
                 'designed_by' => $product->designed_by,
                 'release_date' => $product->release_date,
+                'is_limited_edition' => (bool) ($product->is_limited_edition ?? true),
+                'edition_prefix' => $product->edition_prefix ?? 'LIMITED EDITION',
+                'edition_limit' => (int) ($product->edition_limit ?? 50),
+                'edition_current' => (int) ($product->edition_current ?? 1),
+                'edition_text' => $product->edition_text,
+                'is_sold_out' => (bool) $product->is_sold_out,
+                'available_purities' => $product->available_purities,
+                'available_finishes' => $product->available_finishes ?? ['YG', 'WG', 'RG', 'BLK'],
                 'images' => $product->images,
+                'images_by_finish' => $product->images->groupBy(fn($img) => $img->finish_key ?: 'YG'),
                 'base_pricing' => $basePricing,
-                'options' => $product->options->map(function ($o) use ($masters, $allMasterValues) {
+                'options' => $product->options->map(function ($o) use ($masters, $allMasterValues, $product) {
+                    $isPurity = str_contains(strtolower($o->name), 'purity') || str_contains(strtolower($o->name), 'metal') || str_contains(strtolower($o->name), 'karat');
+                    $isFinish = str_contains(strtolower($o->name), 'finish') || str_contains(strtolower($o->name), 'tone') || strtoupper($o->name) === 'FINISH';
                     $isGem = str_contains(strtolower($o->name), 'gem') || str_contains(strtolower($o->name), 'stone');
                     $gems = $masters['gems'] ?? collect();
+
+                    $vals = $o->values;
+                    if ($isPurity && !empty($product->available_purities) && is_array($product->available_purities)) {
+                        $allowedPurities = array_map(fn($p) => strtoupper(str_replace(' ', '', $p)), $product->available_purities);
+                        $vals = $vals->filter(function($v) use ($allowedPurities) {
+                            $clean = strtoupper(str_replace(' ', '', $v->value));
+                            return in_array($clean, $allowedPurities);
+                        });
+                    }
+
+                    if ($isFinish && !empty($product->available_finishes) && is_array($product->available_finishes)) {
+                        $allowedFinishes = $product->available_finishes;
+                        $vals = $vals->filter(function($v) use ($allowedFinishes) {
+                            $valLower = strtolower($v->value);
+                            if (in_array('YG', $allowedFinishes) && str_contains($valLower, 'yellow')) return true;
+                            if (in_array('WG', $allowedFinishes) && str_contains($valLower, 'white')) return true;
+                            if (in_array('RG', $allowedFinishes) && str_contains($valLower, 'rose')) return true;
+                            if ((in_array('BLK', $allowedFinishes) || in_array('BG', $allowedFinishes)) && (str_contains($valLower, 'black') || str_contains($valLower, 'ruthenium'))) return true;
+                            return false;
+                        });
+                    }
+
                     return [
                         'id' => $o->id,
                         'name' => $o->name,
-                        'values' => $o->values->map(function ($v) use ($isGem, $gems, $allMasterValues) {
+                        'values' => $vals->values()->map(function ($v) use ($isGem, $gems, $allMasterValues) {
                             $delta = (float) ($v->price_delta ?? 0);
                             $vLower = strtolower(trim($v->value));
                             $isNoStone = in_array($vLower, ['none', 'no stone', 'solid gold', 'no stone / solid gold', 'no stone/solid gold', '']);
