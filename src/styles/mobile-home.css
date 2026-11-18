@@ -2293,6 +2293,10 @@ html body .auth-root > .auth-footer span {
         font-size: calc(9 * var(--u)) !important;
     }
 
+    html body .dl-subpage-root .dl-limited-edition {
+        font-size: calc(9 * var(--u)) !important;
+    }
+
     html body .dl-subpage-root .dl-meta-label {
         font-size: calc(9 * var(--u)) !important;
     }
