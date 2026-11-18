@@ -43,11 +43,9 @@ const resolveImageUrl = (img) => {
     if (img.startsWith('data:') || img.startsWith('blob:') || img.startsWith('http://') || img.startsWith('https://')) {
         return img;
     }
-    if (img.startsWith('/storage/')) {
-        const apiHost = process.env.NEXT_PUBLIC_API_URL
-            ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
-            : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://api.pintaara.com' : 'http://127.0.0.1:8000');
-        return `${apiHost}${img}`;
+    const backendHost = process.env.NEXT_PUBLIC_ADMIN_URL || (process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') : 'https://admin.pintaara.com');
+    if (img.startsWith('/images/uploads/') || img.startsWith('/storage/')) {
+        return `${backendHost}${img}`;
     }
     return img;
 };
@@ -1052,7 +1050,18 @@ export default function DynamicCollectionPage({ params }) {
             ? finishImages
             : (allImages.length > 0 ? allImages : (productDetail.primary_image ? [productDetail.primary_image] : []));
 
-        const validImages = listToUse
+        // Sort so that is_primary is ALWAYS first (default 1st option image is primary show)
+        const sortedList = [...listToUse].sort((a, b) => {
+            const aPrimary = Boolean(typeof a === 'object' && a?.is_primary);
+            const bPrimary = Boolean(typeof b === 'object' && b?.is_primary);
+            if (aPrimary && !bPrimary) return -1;
+            if (!aPrimary && bPrimary) return 1;
+            const aOrder = Number(typeof a === 'object' ? a?.sort_order ?? 0 : 0);
+            const bOrder = Number(typeof b === 'object' ? b?.sort_order ?? 0 : 0);
+            return aOrder - bOrder;
+        });
+
+        const validImages = sortedList
             .map((img) => (typeof img === 'string' ? img : img?.url))
             .filter((url) => typeof url === 'string' && url.trim().length > 0);
 
