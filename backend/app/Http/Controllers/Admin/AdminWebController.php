@@ -569,7 +569,27 @@ class AdminWebController extends Controller
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition', true);
         $rawSections = $request->input('custom_sections_json') ?: $request->input('custom_sections');
-        $validated['custom_sections'] = $this->cleanCustomSections($rawSections);
+        $cleanedSections = $this->cleanCustomSections($rawSections);
+        $validated['custom_sections'] = $cleanedSections;
+        $foundDesc = null;
+        $foundDeliv = null;
+        foreach ($cleanedSections as $sec) {
+            $t = strtolower(trim($sec['title'] ?? ''));
+            if ($t === 'description' && $foundDesc === null) {
+                $foundDesc = $sec['content'] ?? '';
+            }
+            if ((str_contains($t, 'delivery') || str_contains($t, 'return')) && $foundDeliv === null) {
+                $foundDeliv = $sec['content'] ?? '';
+            }
+        }
+        if ($foundDesc !== null) {
+            $validated['description'] = $foundDesc;
+        } elseif (!empty($cleanedSections)) {
+            $validated['description'] = $cleanedSections[0]['content'] ?? '';
+        }
+        if ($foundDeliv !== null) {
+            $validated['delivery_return'] = $foundDeliv;
+        }
         $product = Product::create($validated);
 
         $this->syncFinishImages($product, $request);
@@ -621,7 +641,27 @@ class AdminWebController extends Controller
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition');
         $rawSections = $request->input('custom_sections_json') ?: $request->input('custom_sections');
-        $validated['custom_sections'] = $this->cleanCustomSections($rawSections);
+        $cleanedSections = $this->cleanCustomSections($rawSections);
+        $validated['custom_sections'] = $cleanedSections;
+        $foundDesc = null;
+        $foundDeliv = null;
+        foreach ($cleanedSections as $sec) {
+            $t = strtolower(trim($sec['title'] ?? ''));
+            if ($t === 'description' && $foundDesc === null) {
+                $foundDesc = $sec['content'] ?? '';
+            }
+            if ((str_contains($t, 'delivery') || str_contains($t, 'return')) && $foundDeliv === null) {
+                $foundDeliv = $sec['content'] ?? '';
+            }
+        }
+        if ($foundDesc !== null) {
+            $validated['description'] = $foundDesc;
+        } elseif (!empty($cleanedSections)) {
+            $validated['description'] = $cleanedSections[0]['content'] ?? '';
+        }
+        if ($foundDeliv !== null) {
+            $validated['delivery_return'] = $foundDeliv;
+        }
         $product->update($validated);
 
         $this->syncFinishImages($product, $request);

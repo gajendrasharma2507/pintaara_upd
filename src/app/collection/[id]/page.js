@@ -1346,27 +1346,30 @@ export default function DynamicCollectionPage({ params }) {
             ? Number(Math.round(productDetail.base_pricing.total_price)).toLocaleString('en-IN')
             : '0');
 
-    const rawDeliveryReturn = productDetail?.delivery_return || "- 24-Hour Cancellation Window - Full Refund\n- 10% Deduction of total Value upon return.";
-    const deliveryReturnLines = (typeof rawDeliveryReturn === 'string' ? rawDeliveryReturn : '')
-        .split(/\r?\n/)
-        .map((l) => l.trim())
-        .filter(Boolean);
-
     const rawCustomSections = productDetail?.custom_sections;
     let customSections = [];
     if (Array.isArray(rawCustomSections)) {
-        customSections = rawCustomSections;
+        customSections = [...rawCustomSections];
     } else if (typeof rawCustomSections === 'string') {
         try {
             const parsed = JSON.parse(rawCustomSections);
-            if (Array.isArray(parsed)) customSections = parsed;
+            if (Array.isArray(parsed)) customSections = [...parsed];
         } catch (e) {
             customSections = [];
         }
     }
 
-    const productDescription = productDetail?.description?.trim() ||
-        'An exploration of independent elements, each brought together through a shared centre. A form defined by its construction, balance and identity.';
+    // Fallback for legacy products that only have productDetail.description or delivery_return
+    if (customSections.length === 0) {
+        const legacyDesc = productDetail?.description?.trim();
+        const legacyDeliv = productDetail?.delivery_return?.trim();
+        if (legacyDesc) {
+            customSections.push({ title: 'DESCRIPTION', content: legacyDesc });
+        }
+        if (legacyDeliv) {
+            customSections.push({ title: 'DELIVERY & RETURN', content: legacyDeliv });
+        }
+    }
 
     return (
         <div className="atelier-page-root">
@@ -1717,36 +1720,8 @@ export default function DynamicCollectionPage({ params }) {
                         </div>
                     </div>
 
-                    {/* PRODUCT DESCRIPTION & DELIVERY / RETURN SECTIONS */}
+                    {/* PRODUCT DYNAMIC INFO SECTIONS */}
                     <div className="atelier-info-sections">
-                        <div className="atelier-info-divider" />
-
-                        {/* 1. DESCRIPTION */}
-                        <div className="atelier-info-section">
-                            <h3 className="atelier-info-heading">DESCRIPTION</h3>
-                            <p className="atelier-info-description">
-                                {productDescription}
-                            </p>
-                        </div>
-
-                        <div className="atelier-info-divider" />
-
-                        {/* 2. DELIVERY & RETURN */}
-                        <div className="atelier-info-section atelier-delivery-section">
-                            <h3 className="atelier-info-heading">DELIVERY &amp; RETURN</h3>
-                            <div className="atelier-info-content">
-                                {deliveryReturnLines.map((line, idx) => {
-                                    const formattedLine = line.startsWith('-') ? line : `- ${line}`;
-                                    return (
-                                        <div key={idx} className="atelier-info-line">
-                                            {formattedLine}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* 3. ADDITIONAL CUSTOM SECTIONS ADDED BY ADMIN */}
                         {customSections.map((sec, sIdx) => {
                             const secTitle = (sec?.title || '').trim();
                             const secContent = (sec?.content || '').trim();

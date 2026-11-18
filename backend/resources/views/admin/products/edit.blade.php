@@ -346,25 +346,13 @@
       </div>
     </div>
 
-    <div>
-      <label class="admin-label">Product Description</label>
-      <textarea name="description" rows="4" class="admin-input">{{ old('description', $product->description) }}</textarea>
-    </div>
-
-    <div>
-      <label class="admin-label">Delivery & Return Policy</label>
-      <textarea name="delivery_return" rows="3" class="admin-input" placeholder="- 24-Hour Cancellation Window - Full Refund&#10;- 10% Deduction of total Value upon return.">{{ old('delivery_return', $product->delivery_return) }}</textarea>
-      <div style="font-size: 11px; color: var(--admin-text-secondary); margin-top: 4px;">
-        Delivery and return conditions (use hyphen - for bullet points, one per line). If left blank, the default policy will be displayed on the product page.
-      </div>
-    </div>
-
+    <!-- Dynamic Product Sections / Text Boxes (Replaces fixed Description & Delivery/Return boxes) -->
     <div style="border: 1px solid var(--admin-border); border-radius: 8px; padding: 18px 20px; background: var(--admin-surface); margin-top: 6px;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; flex-wrap: wrap;">
         <div>
-          <label class="admin-label" style="margin: 0; font-size: 13.5px; font-weight: 600;">Additional Product Sections / Custom Text Boxes</label>
+          <label class="admin-label" style="margin: 0; font-size: 13.5px; font-weight: 600;">Product Sections / Text Boxes</label>
           <div style="font-size: 11.5px; color: var(--admin-text-secondary); margin-top: 3px;">
-            Add multiple custom text boxes as needed (e.g., Materials & Care, Size Guide, Certification, Notes). Displayed on the storefront with the exact same typography and layout.
+            Add multiple text boxes as needed (e.g. Description, Delivery & Return, Materials & Care, Size Guide). Displayed on the storefront with matching typography and styling.
           </div>
         </div>
         <button type="button" id="btn_add_section" class="admin-btn-secondary" style="padding: 7px 15px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
@@ -378,7 +366,7 @@
       </div>
 
       <div id="custom_sections_empty" style="display: none; text-align: center; padding: 22px 12px; color: var(--admin-text-muted); font-size: 12px; border: 1px dashed var(--admin-border); border-radius: 6px; background: #ffffff;">
-        No additional text boxes added yet. Click <strong>"+ Add Text Box"</strong> to create one.
+        No text boxes added yet. Click <strong>"+ Add Text Box"</strong> to create one.
       </div>
     </div>
 
@@ -714,6 +702,19 @@ if (typeof customSectionsData === 'string') {
 }
 if (!Array.isArray(customSectionsData)) {
   customSectionsData = [];
+}
+const legacyDesc = {!! json_encode(old('description', $product->description ?? '')) !!};
+const legacyDeliv = {!! json_encode(old('delivery_return', $product->delivery_return ?? '')) !!};
+const hasDesc = customSectionsData.some(s => (s.title || '').trim().toLowerCase() === 'description');
+const hasDeliv = customSectionsData.some(s => {
+  const t = (s.title || '').trim().toLowerCase();
+  return t.includes('delivery') || t.includes('return');
+});
+if (!hasDesc && legacyDesc && legacyDesc.trim()) {
+  customSectionsData.unshift({ title: 'DESCRIPTION', content: legacyDesc.trim() });
+}
+if (!hasDeliv && legacyDeliv && legacyDeliv.trim()) {
+  customSectionsData.push({ title: 'DELIVERY & RETURN', content: legacyDeliv.trim() });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
