@@ -79,9 +79,7 @@ export default function Home() {
     const isUnlocked = unlocked === "1" && expiresAt > Date.now();
 
     if (!isUnlocked) {
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("pintaara_open_password_gate"));
-      }
+      router.push("/password");
       return;
     }
 
