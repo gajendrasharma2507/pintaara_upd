@@ -2289,7 +2289,8 @@ html body .auth-root > .auth-footer span {
         font-size: calc(9 * var(--u)) !important;
     }
 
-    html body .dl-subpage-root .dl-label-sm {
+    html body .dl-subpage-root .dl-label-sm,
+    html body .dl-subpage-root .dl-limited-edition {
         font-size: calc(9 * var(--u)) !important;
     }
 
@@ -2885,6 +2886,7 @@ html body .auth-header {
    10px (design log ORIGIN 9.8px, account GOOD MORNING 9.2px) */
 @media (min-width: 1100px) and (max-width: 1300px) {
     html body .dl-subpage-root .dl-label-sm,
+    html body .dl-subpage-root .dl-limited-edition,
     html body .acct-root .acct-greeting-sub {
         font-size: 11px !important;
     }
