@@ -98,18 +98,10 @@
 
     <!-- METAL PURITY (KT) SELECTION & LIVE PRICING -->
     <div style="background: var(--admin-surface-elevated); padding: 22px; border-radius: 14px; border: 1px solid var(--admin-border); display: flex; flex-direction: column; gap: 16px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-        <div>
-          <label class="admin-label" style="font-size: 13.5px; font-weight: 800; color: var(--admin-text-primary); margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
-            METAL PURITY (KT)
-          </label>
-          <p style="font-size: 12px; color: var(--admin-text-secondary); margin: 2px 0 0 0;">
-            Select which metal purities this piece is available in.
-          </p>
-        </div>
-        <div style="font-size: 11px; color: var(--admin-text-muted);">
-          Select Multiple Available Purities
-        </div>
+      <div>
+        <label class="admin-label" style="font-size: 13.5px; font-weight: 800; color: var(--admin-text-primary); margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+          METAL PURITY (KT)
+        </label>
       </div>
 
       @php
