@@ -5,6 +5,9 @@ admin
 admin/**
 scratch
 scratch/**
+scripts
+scripts/**
+*.sql
 node_modules
 node_modules/**
 .next
