@@ -322,6 +322,14 @@
       <textarea name="description" rows="4" class="admin-input" placeholder="Crafted with pure architectural precision and comfort fit shank...">{{ old('description') }}</textarea>
     </div>
 
+    <div>
+      <label class="admin-label">Delivery & Return Policy</label>
+      <textarea name="delivery_return" rows="3" class="admin-input" placeholder="- 24-Hour Cancellation Window - Full Refund&#10;- 10% Deduction of total Value upon return.">{{ old('delivery_return') }}</textarea>
+      <div style="font-size: 11px; color: var(--admin-text-secondary); margin-top: 4px;">
+        Delivery and return conditions (use hyphen - for bullet points, one per line). If left blank, the default policy will be displayed on the product page.
+      </div>
+    </div>
+
     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
       <a href="{{ route('admin.products') }}" class="admin-btn-ghost">Cancel</a>
       <button type="submit" class="admin-btn-primary" style="padding: 10px 24px;">Save Piece</button>

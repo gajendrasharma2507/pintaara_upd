@@ -1346,6 +1346,15 @@ export default function DynamicCollectionPage({ params }) {
             ? Number(Math.round(productDetail.base_pricing.total_price)).toLocaleString('en-IN')
             : '0');
 
+    const rawDeliveryReturn = productDetail?.delivery_return || "- 24-Hour Cancellation Window - Full Refund\n- 10% Deduction of total Value upon return.";
+    const deliveryReturnLines = (typeof rawDeliveryReturn === 'string' ? rawDeliveryReturn : '')
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+
+    const productDescription = productDetail?.description?.trim() ||
+        'An exploration of independent elements, each brought together through a shared centre. A form defined by its construction, balance and identity.';
+
     return (
         <div className="atelier-page-root">
             {/* Google Model Viewer for Realtime 3D Jewelry Inspection */}
@@ -1691,6 +1700,36 @@ export default function DynamicCollectionPage({ params }) {
                                 >
                                     VIEW PIECE SPECIFICATION &rarr;
                                 </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* PRODUCT DESCRIPTION & DELIVERY / RETURN SECTIONS */}
+                    <div className="atelier-info-sections">
+                        <div className="atelier-info-divider" />
+
+                        {/* 1. DESCRIPTION */}
+                        <div className="atelier-info-section">
+                            <h3 className="atelier-info-heading">DESCRIPTION</h3>
+                            <p className="atelier-info-description">
+                                {productDescription}
+                            </p>
+                        </div>
+
+                        <div className="atelier-info-divider" />
+
+                        {/* 2. DELIVERY & RETURN */}
+                        <div className="atelier-info-section atelier-delivery-section">
+                            <h3 className="atelier-info-heading">DELIVERY &amp; RETURN</h3>
+                            <div className="atelier-info-content">
+                                {deliveryReturnLines.map((line, idx) => {
+                                    const formattedLine = line.startsWith('-') ? line : `- ${line}`;
+                                    return (
+                                        <div key={idx} className="atelier-info-line">
+                                            {formattedLine}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
@@ -2317,6 +2356,66 @@ export default function DynamicCollectionPage({ params }) {
                 .atelier-btn-view-spec:hover {
                     border-color: #1A1A1A;
                     background-color: #ECEAE4;
+                }
+
+                /* ── PRODUCT DESCRIPTION & DELIVERY / RETURN SECTIONS ── */
+                .atelier-info-sections {
+                    width: 100%;
+                    margin-top: 1.5rem;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .atelier-info-divider {
+                    width: 100%;
+                    height: 1px;
+                    background-color: #BDBDBD;
+                    border: none;
+                    margin: 0;
+                }
+                .atelier-info-section {
+                    padding-top: 17px;
+                    padding-bottom: 17px;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .atelier-delivery-section {
+                    padding-bottom: 0.5rem;
+                }
+                .atelier-info-heading {
+                    font-size: 13px;
+                    font-weight: 400;
+                    text-transform: uppercase;
+                    color: #222222;
+                    margin: 0 0 14px 0;
+                    letter-spacing: normal;
+                    font-family: inherit;
+                    line-height: 1.2;
+                }
+                .atelier-info-description {
+                    font-size: 13px;
+                    font-weight: 400;
+                    line-height: 17px;
+                    color: #333333;
+                    letter-spacing: normal;
+                    max-width: 100%;
+                    margin: 0;
+                    white-space: pre-line;
+                    word-break: break-word;
+                    font-family: inherit;
+                }
+                .atelier-info-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 3px;
+                }
+                .atelier-info-line {
+                    font-size: 13px;
+                    font-weight: 400;
+                    line-height: 17px;
+                    color: #333333;
+                    letter-spacing: normal;
+                    font-family: inherit;
+                    margin: 0;
                 }
 
                 /* ── FOOTER ── */

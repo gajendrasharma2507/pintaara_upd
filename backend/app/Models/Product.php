@@ -15,6 +15,7 @@ class Product extends Model
         'tier',
         'collection_master_id',
         'description',
+        'delivery_return',
         'model_3d_url',
         'base_weight_grams',
         'making_charge',

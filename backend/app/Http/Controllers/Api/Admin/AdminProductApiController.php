@@ -322,6 +322,7 @@ class AdminProductApiController extends Controller
                 ] : null,
                 'collection_name' => $product->collectionMaster?->name ?? 'Unassigned',
                 'description' => $product->description ?? '',
+                'delivery_return' => $product->delivery_return ?? '',
                 'model_3d_url' => $product->model_3d_url,
                 'base_weight_grams' => (float) $product->base_weight_grams,
                 'weight' => (float) $product->base_weight_grams . 'g',
@@ -389,6 +390,11 @@ class AdminProductApiController extends Controller
             'designed_by' => 'nullable|string|max:255',
             'release_date' => 'nullable|string',
             'description' => 'nullable|string',
+            'delivery_return' => 'nullable|string',
+            'is_limited_edition' => 'nullable|boolean',
+            'edition_prefix' => 'nullable|string|max:100',
+            'edition_limit' => 'nullable|integer|min:1',
+            'edition_current' => 'nullable|integer|min:0',
             'model_3d_url' => 'nullable|string',
             'image' => 'nullable|string',
             'images' => 'nullable|array',
@@ -435,6 +441,7 @@ class AdminProductApiController extends Controller
                 'tier' => $validated['tier'] ?? 'Signature',
                 'collection_master_id' => $validated['collection_master_id'] ?? null,
                 'description' => $validated['description'] ?? '',
+                'delivery_return' => $validated['delivery_return'] ?? null,
                 'model_3d_url' => $model3dUrl,
                 'base_weight_grams' => (float) $validated['base_weight_grams'],
                 'making_charge' => isset($validated['making_charge']) && $validated['making_charge'] !== '' ? (float) $validated['making_charge'] : null,
@@ -579,6 +586,7 @@ class AdminProductApiController extends Controller
                     'slug' => $product->collectionMaster->slug,
                 ] : null,
                 'description' => $product->description,
+                'delivery_return' => $product->delivery_return,
                 'base_weight_grams' => (float) $product->base_weight_grams,
                 'making_charge' => $product->making_charge,
                 'making_charge_percent' => $product->making_charge_percent,
@@ -650,6 +658,11 @@ class AdminProductApiController extends Controller
             'designed_by' => 'nullable|string|max:255',
             'release_date' => 'nullable|string',
             'description' => 'nullable|string',
+            'delivery_return' => 'nullable|string',
+            'is_limited_edition' => 'nullable|boolean',
+            'edition_prefix' => 'nullable|string|max:100',
+            'edition_limit' => 'nullable|integer|min:1',
+            'edition_current' => 'nullable|integer|min:0',
             'model_3d_url' => 'nullable|string',
             'image' => 'nullable|string',
             'images' => 'nullable|array',
@@ -678,6 +691,9 @@ class AdminProductApiController extends Controller
             $product->tier = $validated['tier'] ?? $product->tier;
             $product->collection_master_id = array_key_exists('collection_master_id', $validated) ? $validated['collection_master_id'] : $product->collection_master_id;
             $product->description = $validated['description'] ?? $product->description;
+            if (array_key_exists('delivery_return', $validated)) {
+                $product->delivery_return = $validated['delivery_return'];
+            }
             if ($request->has('model_3d_url')) {
                 $product->model_3d_url = $this->processMediaUrl($request->model_3d_url, 'models');
             }
