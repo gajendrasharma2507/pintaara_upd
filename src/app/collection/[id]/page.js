@@ -62,12 +62,12 @@ const resolveProductImage = (product, imageUrl) => {
 };
 
 const normalizeFinishKey = (raw) => {
-    if (!raw) return 'YG';
+    if (!raw) return '';
     const s = String(raw).toUpperCase().trim();
-    if (s === 'YG' || s.includes('YELLOW')) return 'YG';
-    if (s === 'WG' || s.includes('WHITE')) return 'WG';
-    if (s === 'RG' || s.includes('ROSE')) return 'RG';
-    if (s === 'BLK' || s === 'BG' || s.includes('BLACK') || s.includes('RUTHENIUM')) return 'BLK';
+    if (s === 'YG' || s.includes('YELLOW') || s === '1' || s === 'YELLOW_GOLD') return 'YG';
+    if (s === 'WG' || s.includes('WHITE') || s === '2' || s === 'WHITE_GOLD') return 'WG';
+    if (s === 'RG' || s.includes('ROSE') || s === '3' || s === 'ROSE_GOLD') return 'RG';
+    if (s === 'BLK' || s === 'BG' || s.includes('BLACK') || s.includes('RUTHENIUM') || s === '4' || s === 'BLACK_GOLD' || s === 'BLACK_RUTHENIUM') return 'BLK';
     if (s.includes('SILVER')) return 'SILVER';
     return s;
 };
@@ -298,7 +298,7 @@ export default function DynamicCollectionPage({ params }) {
     const categoryInfo = liveCollection || staticCategory;
 
     // Atelier specific interactive states matching exact visual specifications
-    const [selectedFinishCode, setSelectedFinishCode] = useState('WG');
+    const [selectedFinishCode, setSelectedFinishCode] = useState('YG');
     const [selectedSize, setSelectedSize] = useState('12');
     const [selectedChain, setSelectedChain] = useState('Box');
     const [selectedGem, setSelectedGem] = useState('diamond');
@@ -857,7 +857,11 @@ export default function DynamicCollectionPage({ params }) {
                 activeOptionGroups.forEach((group) => {
                     const gName = group.name;
                     const currentSelected = next[gName];
-                    const exists = currentSelected && group.values.some((v) => v.value === currentSelected.value);
+                    const exists = currentSelected && group.values.some((v) => {
+                        if (v.value === currentSelected.value) return true;
+                        if (v.code && currentSelected.code && normalizeFinishKey(v.code) === normalizeFinishKey(currentSelected.code)) return true;
+                        return false;
+                    });
                     if (!exists && group.values.length > 0) {
                         const l = gName.toLowerCase();
                         if (l.includes('purity') || l.includes('metal') || l.includes('karat')) {
@@ -1032,23 +1036,48 @@ export default function DynamicCollectionPage({ params }) {
         if (!productDetail) return [];
 
         const allImages = Array.isArray(productDetail.images) ? productDetail.images : [];
-        const currentFinishKey = normalizeFinishKey(selectedFinishCode);
+        const currentFinishKey = normalizeFinishKey(selectedFinishCode) || 'YG';
 
-        // Filter images belonging to the selected finish
-        let finishImages = allImages.filter((img) => {
-            const k = normalizeFinishKey(img.finish_key);
-            return k === currentFinishKey;
+        // Check if any images in the product media specifically carry finish metadata
+        const hasAnyFinishImages = allImages.some((img) => {
+            const rawKey = typeof img === 'object' ? (img?.finish_key || img?.finish_code || img?.finish?.code || (img?.finish_id === 1 ? 'YG' : img?.finish_id === 2 ? 'WG' : img?.finish_id === 3 ? 'RG' : img?.finish_id === 4 ? 'BLK' : '')) : '';
+            return Boolean(normalizeFinishKey(rawKey));
         });
 
-        // If no images uploaded for this finish, try matching images without finish_key if current is YG
-        if (finishImages.length === 0 && currentFinishKey === 'YG') {
-            finishImages = allImages.filter((img) => !img.finish_key || normalizeFinishKey(img.finish_key) === 'YG');
+        // 1. Filter images strictly belonging to the selected finish
+        let finishImages = allImages.filter((img) => {
+            const rawKey = typeof img === 'object' ? (img?.finish_key || img?.finish_code || img?.finish?.code || (img?.finish_id === 1 ? 'YG' : img?.finish_id === 2 ? 'WG' : img?.finish_id === 3 ? 'RG' : img?.finish_id === 4 ? 'BLK' : '')) : '';
+            return normalizeFinishKey(rawKey) === currentFinishKey;
+        });
+
+        // 2. Check dynamic images_by_finish API grouping if flat images array didn't match
+        if (finishImages.length === 0 && productDetail.images_by_finish) {
+            const grouped = productDetail.images_by_finish[currentFinishKey] || productDetail.images_by_finish[selectedFinishCode];
+            if (Array.isArray(grouped) && grouped.length > 0) {
+                finishImages = grouped;
+            }
         }
 
-        // If this finish has images, use them! Otherwise fallback gracefully to all images or primary image
-        const listToUse = finishImages.length > 0
-            ? finishImages
-            : (allImages.length > 0 ? allImages : (productDetail.primary_image ? [productDetail.primary_image] : []));
+        // 3. Fallback logic ensuring NO cross-finish image leakage:
+        // If the product defines finish-specific images, NEVER show images from another finish.
+        // Only if the product has ZERO finish-specific images (generic/legacy piece) can it fall back to allImages.
+        let listToUse = [];
+        if (finishImages.length > 0) {
+            listToUse = finishImages;
+        } else if (!hasAnyFinishImages) {
+            listToUse = allImages.length > 0
+                ? allImages
+                : (productDetail.primary_image ? [productDetail.primary_image] : []);
+        } else {
+            // Find option image for this finish if configured in admin options
+            const matchedFinishVal = availableFinishes?.find((fv) => {
+                const code = fv.code || normalizeFinishKey(typeof fv === 'string' ? fv : fv.value);
+                return normalizeFinishKey(code) === currentFinishKey;
+            });
+            if (matchedFinishVal?.image) {
+                listToUse = [matchedFinishVal.image];
+            }
+        }
 
         // Sort so that is_primary is ALWAYS first (default 1st option image is primary show)
         const sortedList = [...listToUse].sort((a, b) => {
@@ -1081,7 +1110,13 @@ export default function DynamicCollectionPage({ params }) {
         return [
             { id: 't1', src: fallbackImg, alt: productDetail?.name || 'Jewelry Piece', filter: 'none', bgColor: '#CFD9E0' },
         ];
-    }, [productDetail, selectedFinishCode]);
+    }, [productDetail, selectedFinishCode, availableFinishes]);
+
+    // Keep active gallery image index synchronized when finish changes
+    useEffect(() => {
+        setActiveImgIndex(0);
+        setMediaViewMode('photo');
+    }, [selectedFinishCode]);
 
     const handleNavigate = (index) => {
         const slideIds = ['slide-1', 'slide-2', 'slide-3', 'slide-4', 'slide-5', 'slide-6', 'slide-7'];
@@ -1335,11 +1370,11 @@ export default function DynamicCollectionPage({ params }) {
                             />
                         ) : (
                             <img
-                                src={thumbnails[activeImgIndex]?.src || productDetail.primary_image || '/images/products/ring.png'}
-                                alt={thumbnails[activeImgIndex]?.alt || productDetail.name || 'Pintaara Jewelry Piece'}
+                                src={thumbnails[activeImgIndex]?.src || thumbnails[0]?.src || productDetail.primary_image || '/images/products/ring.png'}
+                                alt={thumbnails[activeImgIndex]?.alt || thumbnails[0]?.alt || productDetail.name || 'Pintaara Jewelry Piece'}
                                 className="atelier-main-img"
                                 style={{
-                                    filter: thumbnails[activeImgIndex]?.filter || 'none',
+                                    filter: thumbnails[activeImgIndex]?.filter || thumbnails[0]?.filter || 'none',
                                     objectFit: 'cover'
                                 }}
                             />
@@ -1491,6 +1526,7 @@ export default function DynamicCollectionPage({ params }) {
                                                 onClick={() => {
                                                     setSelectedFinishCode(cleanCode);
                                                     setActiveImgIndex(0);
+                                                    setMediaViewMode('photo');
                                                     const grpName = finishGroup?.name || 'Finish Options';
                                                     handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: fVal.image });
                                                 }}
