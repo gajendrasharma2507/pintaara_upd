@@ -5899,7 +5899,6 @@ h6 {
 }
 
 .dl-back-link {
-    display: none !important;
     font-family: 'Avenir Next', sans-serif !important;
     font-size: 9px !important;
     font-weight: 400 !important;
@@ -5946,26 +5945,6 @@ h6 {
     background: rgba(255, 255, 255, 0.22);
     margin-bottom: 0.65rem;
     flex-shrink: 0;
-}
-
-.dl-limited-edition {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 1.5rem;
-    font-family: var(--font-body), 'Avenir Next', sans-serif;
-    font-size: calc(16 * var(--p, 1px));
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    color: #E87970;
-    text-transform: uppercase;
-    line-height: 1.375;
-    align-self: flex-start;
-}
-
-.dl-limited-sep {
-    font-weight: 300;
-    opacity: 0.85;
 }
 
 /* ── CENTER: BLUEPRINT IMAGE ─────────────────────────────────── */
@@ -6123,8 +6102,7 @@ h6 {
     border: none !important;
 }
 
-.dl-meta-col:nth-child(1)::after,
-.dl-meta-col:nth-child(2)::after {
+.dl-meta-col::after {
     content: '';
     position: absolute;
     right: 2rem;
@@ -6142,9 +6120,7 @@ h6 {
     border: none !important;
 }
 
-.dl-meta-col:nth-child(3)::after,
-.dl-meta-col--btn::after,
-.dl-meta-col--no-border::after {
+.dl-meta-col--btn::after {
     display: none !important;
 }
 
