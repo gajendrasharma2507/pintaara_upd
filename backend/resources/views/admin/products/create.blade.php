@@ -288,6 +288,7 @@
 
       <!-- Hidden fields for submission -->
       <input type="hidden" id="finish_images_json" name="finish_images_json" value="" />
+      <input type="hidden" id="custom_sections_json" name="custom_sections_json" value="" />
       <input type="hidden" id="primary_image_input" name="primary_image" value="" />
       <div id="legacy_hidden_images_container"></div>
 
@@ -633,9 +634,15 @@ function syncFormInputs() {
   const jsonInput = document.getElementById('finish_images_json');
   const primaryInput = document.getElementById('primary_image_input');
   const legacyContainer = document.getElementById('legacy_hidden_images_container');
+  const customSectionsJson = document.getElementById('custom_sections_json');
 
   if (jsonInput) {
     jsonInput.value = JSON.stringify(galleryImages);
+  }
+
+  if (customSectionsJson && typeof customSectionsData !== 'undefined') {
+    const validSections = customSectionsData.filter(s => (s.title && s.title.trim()) || (s.content && s.content.trim()));
+    customSectionsJson.value = JSON.stringify(validSections);
   }
 
   const primaryImg = galleryImages.find(img => img.is_primary) || galleryImages[0];

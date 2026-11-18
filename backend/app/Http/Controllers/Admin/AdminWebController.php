@@ -568,7 +568,8 @@ class AdminWebController extends Controller
         ]);
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition', true);
-        $validated['custom_sections'] = $this->cleanCustomSections($request->input('custom_sections'));
+        $rawSections = $request->input('custom_sections_json') ?: $request->input('custom_sections');
+        $validated['custom_sections'] = $this->cleanCustomSections($rawSections);
         $product = Product::create($validated);
 
         $this->syncFinishImages($product, $request);
@@ -619,7 +620,8 @@ class AdminWebController extends Controller
         ]);
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition');
-        $validated['custom_sections'] = $this->cleanCustomSections($request->input('custom_sections'));
+        $rawSections = $request->input('custom_sections_json') ?: $request->input('custom_sections');
+        $validated['custom_sections'] = $this->cleanCustomSections($rawSections);
         $product->update($validated);
 
         $this->syncFinishImages($product, $request);
