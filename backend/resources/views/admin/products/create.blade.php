@@ -207,7 +207,7 @@
             'gradient' => 'linear-gradient(180deg, #874112 0%, #BA6222 15%, #DB7F3E 35%, #F5B37B 50%, #BA6222 80%, #75360B 100%)',
           ],
           'BLK' => [
-            'label' => 'Black Ruthenium',
+            'label' => 'Black Gold',
             'badge' => '#1E293B',
             'gradient' => 'linear-gradient(180deg, #111315 0%, #2A2E33 15%, #4C525A 35%, #828A94 50%, #2A2E33 80%, #111315 100%)',
           ],
@@ -345,7 +345,7 @@ const FINISH_CONFIG = [
   { key: 'YG', name: 'Yellow Gold', code: 'YG', color: '#D4AF37' },
   { key: 'WG', name: 'White Gold', code: 'WG', color: '#94A3B8' },
   { key: 'RG', name: 'Rose Gold', code: 'RG', color: '#B76E79' },
-  { key: 'BLK', name: 'Black Ruthenium', code: 'BLK', color: '#1E293B' }
+  { key: 'BLK', name: 'Black Gold', code: 'BLK', color: '#1E293B' }
 ];
 
 let activeFinishKey = 'YG';

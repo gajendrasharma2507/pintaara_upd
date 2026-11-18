@@ -10,7 +10,7 @@ const finishColorMap = {
   YG: { color: 0xE5B824, metalness: 0.92, roughness: 0.16 }, // Yellow Gold
   WG: { color: 0xF0F2F5, metalness: 0.95, roughness: 0.14 }, // White Gold / Platinum
   RG: { color: 0xDB7F3E, metalness: 0.90, roughness: 0.18 }, // Rose Gold
-  BLK: { color: 0x2A2E33, metalness: 0.85, roughness: 0.25 }, // Black Ruthenium
+  BLK: { color: 0x2A2E33, metalness: 0.85, roughness: 0.25 }, // Black Gold
 };
 
 export default function ThreeDModelViewer({ 

@@ -263,9 +263,9 @@ const finishBarsData = [
         }
     },
     {
-        name: 'Black Ruthenium',
+        name: 'Black Gold',
         code: 'BLK',
-        label: 'BLACK RUTHENIUM',
+        label: 'BLACK GOLD',
         labelLight: true,
         style: {
             background: 'linear-gradient(180deg, #111315 0%, #2A2E33 15%, #4C525A 35%, #828A94 50%, #2A2E33 80%, #111315 100%)',
@@ -1499,7 +1499,7 @@ export default function DynamicCollectionPage({ params }) {
                         });
                         const activeValStr = activeFinishObj ? (typeof activeFinishObj === 'string' ? activeFinishObj : activeFinishObj.value) : '';
                         const matchedActiveBar = finishBarsData.find(b => b.code === normalizeFinishKey(selectedFinishCode) || (activeValStr && b.name.toLowerCase() === activeValStr.toLowerCase()));
-                        const selectedFinishDisplayName = matchedActiveBar?.name || activeValStr || (normalizeFinishKey(selectedFinishCode) === 'YG' ? 'Yellow Gold' : normalizeFinishKey(selectedFinishCode) === 'WG' ? 'White Gold' : normalizeFinishKey(selectedFinishCode) === 'RG' ? 'Rose Gold' : normalizeFinishKey(selectedFinishCode) === 'BLK' ? 'Black Ruthenium' : '');
+                        const selectedFinishDisplayName = matchedActiveBar?.name || activeValStr || (normalizeFinishKey(selectedFinishCode) === 'YG' ? 'Yellow Gold' : normalizeFinishKey(selectedFinishCode) === 'WG' ? 'White Gold' : normalizeFinishKey(selectedFinishCode) === 'RG' ? 'Rose Gold' : normalizeFinishKey(selectedFinishCode) === 'BLK' ? 'Black Gold' : '');
 
                         return (
                             <div className="atelier-control-group">
@@ -2203,7 +2203,7 @@ export default function DynamicCollectionPage({ params }) {
                     user-select: none;
                     line-height: 1;
                     text-align: center;
-                    /* full names (YELLOW GOLD, BLACK RUTHENIUM) stay on one line */
+                    /* full names (YELLOW GOLD, BLACK GOLD) stay on one line */
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;

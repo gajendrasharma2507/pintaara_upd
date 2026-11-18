@@ -67,7 +67,7 @@ $finishes = [
     ['name' => 'Yellow Gold', 'hex_color' => '#D4AF37', 'sort_order' => 1],
     ['name' => 'White Gold', 'hex_color' => '#E8E8E8', 'sort_order' => 2],
     ['name' => 'Rose Gold', 'hex_color' => '#B76E79', 'sort_order' => 3],
-    ['name' => 'Black Ruthenium', 'hex_color' => '#2B2B2B', 'sort_order' => 4],
+    ['name' => 'Black Gold', 'hex_color' => '#2B2B2B', 'sort_order' => 4],
 ];
 foreach ($finishes as $f) {
     FinishOption::updateOrCreate(['name' => $f['name']], $f);
@@ -556,7 +556,7 @@ foreach ($catalog as $item) {
     $fYG = ProductOptionValue::create(['product_option_id' => $optFinish->id, 'value' => 'Yellow Gold', 'sort_order' => 1]);
     $fWG = ProductOptionValue::create(['product_option_id' => $optFinish->id, 'value' => 'White Gold', 'sort_order' => 2]);
     $fRG = ProductOptionValue::create(['product_option_id' => $optFinish->id, 'value' => 'Rose Gold', 'sort_order' => 3]);
-    $fBLK = ProductOptionValue::create(['product_option_id' => $optFinish->id, 'value' => 'Black Ruthenium', 'sort_order' => 4]);
+    $fBLK = ProductOptionValue::create(['product_option_id' => $optFinish->id, 'value' => 'Black Gold', 'sort_order' => 4]);
 
     // 3. Size / Chain depending on category
     if (in_array($item['slug'], ['rings', 'bangles', 'bracelets'])) {
