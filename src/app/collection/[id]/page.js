@@ -38,6 +38,20 @@ const legacyProductImageFallbacks = {
     'BR-SG-MT-004': '/images/products/bracelet.png',
 };
 
+const resolveImageUrl = (img) => {
+    if (!img || typeof img !== 'string') return '';
+    if (img.startsWith('data:') || img.startsWith('blob:') || img.startsWith('http://') || img.startsWith('https://')) {
+        return img;
+    }
+    if (img.startsWith('/storage/')) {
+        const apiHost = process.env.NEXT_PUBLIC_API_URL
+            ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
+            : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://api.pintaara.com' : 'http://127.0.0.1:8000');
+        return `${apiHost}${img}`;
+    }
+    return img;
+};
+
 const resolveProductImage = (product, imageUrl) => {
     const code = String(product?.design_code || product?.code || '').toUpperCase();
     const normalizedUrl = typeof imageUrl === 'string' ? imageUrl : '';
@@ -46,21 +60,18 @@ const resolveProductImage = (product, imageUrl) => {
         return legacyProductImageFallbacks[code];
     }
 
-    return normalizedUrl || '/images/products/ring.png';
+    return resolveImageUrl(normalizedUrl) || '/images/products/ring.png';
 };
 
-const resolveImageUrl = (img) => {
-    if (!img) return '';
-    if (img.startsWith('data:') || img.startsWith('http://') || img.startsWith('https://')) {
-        return img;
-    }
-    if (img.startsWith('/storage/')) {
-        const apiHost = process.env.NEXT_PUBLIC_API_URL
-            ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
-            : 'https://api.pintaara.com';
-        return `${apiHost}${img}`;
-    }
-    return img;
+const normalizeFinishKey = (raw) => {
+    if (!raw) return 'YG';
+    const s = String(raw).toUpperCase().trim();
+    if (s === 'YG' || s.includes('YELLOW')) return 'YG';
+    if (s === 'WG' || s.includes('WHITE')) return 'WG';
+    if (s === 'RG' || s.includes('ROSE')) return 'RG';
+    if (s === 'BLK' || s === 'BG' || s.includes('BLACK') || s.includes('RUTHENIUM')) return 'BLK';
+    if (s.includes('SILVER')) return 'SILVER';
+    return s;
 };
 
 // 57-Facet Brilliant Cut Gemstone Component (supports custom uploaded image or SVG facet fallback)
@@ -313,6 +324,16 @@ export default function DynamicCollectionPage({ params }) {
     const [activeImgIndex, setActiveImgIndex] = useState(0);
     const [mediaViewMode, setMediaViewMode] = useState('photo'); // 'photo' | '3d'
 
+    // Enable Cartier-style sticky scrolling on collection page
+    useEffect(() => {
+        if (typeof document !== 'undefined') {
+            document.body.classList.add('atelier-body-sticky');
+            return () => {
+                document.body.classList.remove('atelier-body-sticky');
+            };
+        }
+    }, []);
+
     // Dynamic masters loader with localStorage cache fallback
     useEffect(() => {
         try {
@@ -423,6 +444,11 @@ export default function DynamicCollectionPage({ params }) {
                         const prod = resProduct.data || resProduct;
                         if (prod && (prod.id || prod.design_code)) {
                             setProductDetail(prod);
+                            const initialFinish = (Array.isArray(prod.available_finishes) && prod.available_finishes.length > 0)
+                                ? normalizeFinishKey(prod.available_finishes[0])
+                                : 'YG';
+                            setSelectedFinishCode(initialFinish);
+                            setActiveImgIndex(0);
 
                             const collectionSlug = prod.collection?.slug || prod.collection?.name;
                             if (collectionSlug) {
@@ -637,46 +663,37 @@ export default function DynamicCollectionPage({ params }) {
     const hasGem = Boolean(gemGroup && gemGroup.values?.length > 0);
     const hasChain = Boolean(chainGroup && chainGroup.values?.length > 0);
 
-    // Dynamic available finishes filtered by selected purity & product finish matrix
+    // Dynamic available finishes filtered by admin available_finishes & finishGroup
     const availableFinishes = useMemo(() => {
-        if (!finishGroup || !finishGroup.values || finishGroup.values.length === 0) return [];
-        const matrix = productDetail?.finish_purities;
-        if (Array.isArray(matrix) && matrix.length > 0 && selectedPurity) {
-            const cleanSelectedPurity = selectedPurity.replace(/\s+/g, '').toUpperCase();
-            const allowedForPurity = matrix.filter((item) => {
-                const itemPurity = (item.purity_code || item.purity_name || '').replace(/\s+/g, '').toUpperCase();
-                return (
-                    itemPurity === cleanSelectedPurity ||
-                    cleanSelectedPurity.includes(itemPurity) ||
-                    itemPurity.includes(cleanSelectedPurity) ||
-                    (cleanSelectedPurity.includes('SILVER') && (itemPurity.includes('925') || itemPurity.includes('SILVER')))
-                );
-            });
+        const adminFinishes = Array.isArray(productDetail?.available_finishes) && productDetail.available_finishes.length > 0
+            ? productDetail.available_finishes.map(normalizeFinishKey)
+            : ['YG', 'WG', 'RG', 'BLK'];
 
-            if (allowedForPurity.length > 0) {
-                const filtered = finishGroup.values.filter((fVal) => {
-                    const valStr = (typeof fVal === 'string' ? fVal : fVal.value || '').toLowerCase();
-                    const fCode = (fVal.code || '').toUpperCase();
-                    return allowedForPurity.some((item) => {
-                        const mName = (item.finish_name || '').toLowerCase();
-                        const mCode = (item.finish_code || '').toUpperCase();
-                        return (
-                            (fCode && mCode && fCode === mCode) ||
-                            valStr.includes(mName) ||
-                            mName.includes(valStr) ||
-                            (valStr.includes('yellow') && (mName.includes('yellow') || mCode === 'YG')) ||
-                            (valStr.includes('rose') && (mName.includes('rose') || mCode === 'RG')) ||
-                            (valStr.includes('white') && (mName.includes('white') || mCode === 'WG')) ||
-                            (valStr.includes('black') && (mName.includes('black') || mCode === 'BLK' || mCode === 'BG')) ||
-                            (valStr.includes('silver') && (mName.includes('silver') || mCode === 'SILVER'))
-                        );
-                    });
-                });
-                if (filtered.length > 0) return filtered;
-            }
+        const baseGroupValues = Array.isArray(finishGroup?.values) && finishGroup.values.length > 0
+            ? finishGroup.values
+            : [];
+
+        // If finishGroup has values, filter them by adminFinishes
+        if (baseGroupValues.length > 0) {
+            const filtered = baseGroupValues.filter(fv => {
+                const valStr = typeof fv === 'string' ? fv : (fv.value || fv.code || '');
+                const code = fv.code || normalizeFinishKey(valStr);
+                return adminFinishes.includes(normalizeFinishKey(code));
+            });
+            if (filtered.length > 0) return filtered;
         }
-        return finishGroup.values;
-    }, [finishGroup, productDetail?.finish_purities, selectedPurity]);
+
+        // Fallback: construct directly from finishBarsData matching adminFinishes
+        return finishBarsData
+            .filter(b => adminFinishes.includes(b.code))
+            .map(b => ({
+                id: b.code,
+                value: b.name,
+                code: b.code,
+                hex_color: null,
+                price_delta: 0,
+            }));
+    }, [finishGroup, productDetail?.available_finishes]);
 
     // Dynamic available purities derived strictly from product finish matrix when configured, or fallback options
     const availablePurities = useMemo(() => {
@@ -700,8 +717,38 @@ export default function DynamicCollectionPage({ params }) {
             return m ? m[0].replace(/\s+/g, '') : u.replace(/\s+/g, '');
         };
 
-        // 1. When product has finish_purities matrix configured in Admin, use ONLY the purities active in that matrix!
-        if (Array.isArray(matrix) && matrix.length > 0) {
+        // 1. When product has available_purities configured by Admin, use ONLY those exact selected purities!
+        const adminPurities = Array.isArray(productDetail?.available_purities) && productDetail.available_purities.length > 0
+            ? productDetail.available_purities.map(normalizePurity).filter(Boolean)
+            : null;
+
+        if (adminPurities && adminPurities.length > 0) {
+            adminPurities.forEach((cleanCode) => {
+                if (!cleanCode || seenCodes.has(cleanCode)) return;
+                seenCodes.add(cleanCode);
+
+                const matchedGroupVal = groupVals.find((gv) => {
+                    const gRaw = gv.value || gv.code || gv;
+                    return normalizePurity(String(gRaw)) === cleanCode;
+                });
+
+                if (matchedGroupVal) {
+                    allConfigured.push({
+                        ...matchedGroupVal,
+                        code: cleanCode,
+                        value: cleanCode,
+                    });
+                } else {
+                    allConfigured.push({
+                        id: cleanCode,
+                        value: cleanCode,
+                        code: cleanCode,
+                        price_delta: cleanCode === '22KT' ? 12000 : cleanCode === '14KT' ? -10000 : cleanCode.includes('SILVER') ? -45000 : 0,
+                    });
+                }
+            });
+        } else if (Array.isArray(matrix) && matrix.length > 0) {
+            // 2. Fall back to finish_purities matrix configured in Admin
             matrix.forEach((item) => {
                 const rawName = item.purity_code || item.purity_name || '';
                 const cleanCode = normalizePurity(rawName);
@@ -730,7 +777,7 @@ export default function DynamicCollectionPage({ params }) {
                 }
             });
         } else {
-            // 2. Only if NO matrix is configured, fall back to purityGroup.values
+            // 3. Only if NO admin selection or matrix is configured, fall back to purityGroup.values
             groupVals.forEach((gv) => {
                 const gRaw = gv.value || gv.code || gv;
                 const cleanCode = normalizePurity(String(gRaw));
@@ -744,7 +791,7 @@ export default function DynamicCollectionPage({ params }) {
                 }
             });
 
-            // 3. Fallback to productDetail.karat or productDetail.purity if still empty
+            // 4. Fallback to productDetail.karat or productDetail.purity if still empty
             if (allConfigured.length === 0 && (productDetail?.karat || productDetail?.purity)) {
                 const cleanCode = normalizePurity(String(productDetail.karat || productDetail.purity));
                 if (cleanCode) {
@@ -765,7 +812,7 @@ export default function DynamicCollectionPage({ params }) {
             const rB = rankOrder[b.code] || 99;
             return rA - rB;
         });
-    }, [purityGroup, productDetail?.finish_purities, productDetail?.karat, productDetail?.purity]);
+    }, [purityGroup, productDetail?.available_purities, productDetail?.finish_purities, productDetail?.karat, productDetail?.purity]);
 
     // Ensure selected purity is always valid when availablePurities changes
     useEffect(() => {
@@ -788,20 +835,21 @@ export default function DynamicCollectionPage({ params }) {
         if (availableFinishes && availableFinishes.length > 0) {
             const isCurrentAvailable = availableFinishes.some((fVal) => {
                 const valStr = typeof fVal === 'string' ? fVal : fVal.value;
-                const valLower = valStr.toLowerCase();
-                const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : '');
-                return selectedFinishCode === code || selectedFinishCode === valStr;
+                const code = fVal.code || normalizeFinishKey(valStr);
+                return normalizeFinishKey(selectedFinishCode) === normalizeFinishKey(code);
             });
             if (!isCurrentAvailable) {
                 const first = availableFinishes[0];
                 const valStr = typeof first === 'string' ? first : first.value;
-                const valLower = valStr.toLowerCase();
-                const code = first.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : 'YG');
-                setSelectedFinishCode(code);
-                handleSelectOption('FINISH OPTION', { value: valStr, price_delta: 0, image: first.image });
+                const code = first.code || normalizeFinishKey(valStr);
+                const cleanCode = normalizeFinishKey(code);
+                setSelectedFinishCode(cleanCode);
+                setActiveImgIndex(0);
+                const grpName = finishGroup?.name || 'Finish Options';
+                handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: first.image });
             }
         }
-    }, [availableFinishes, selectedFinishCode]);
+    }, [availableFinishes, selectedFinishCode, finishGroup]);
 
     // Synchronize default selections when option groups change
     useEffect(() => {
@@ -822,7 +870,9 @@ export default function DynamicCollectionPage({ params }) {
                         } else if (l.includes('finish')) {
                             const val = group.values.find((v) => v.value.toLowerCase().includes('yellow')) || group.values[0];
                             next[gName] = val;
-                            setSelectedFinishCode(val.code || 'YG');
+                            const cleanCode = normalizeFinishKey(val.code || val.value || 'YG');
+                            setSelectedFinishCode(cleanCode);
+                            setActiveImgIndex(0);
                         } else if (l.includes('size')) {
                             const val = group.values[0];
                             next[gName] = val;
@@ -979,23 +1029,38 @@ export default function DynamicCollectionPage({ params }) {
         return () => { cancelled = true; };
     }, [selectedOptions, rates, productDetail, categoryInfo, hasCustomized]);
 
-    // Product Images & Thumbnails matching real product media
+    // Product Images & Thumbnails matching real product media & selected finish
     const thumbnails = useMemo(() => {
         if (!productDetail) return [];
 
-        const rawList = Array.isArray(productDetail.images) && productDetail.images.length > 0
-            ? productDetail.images
-            : (productDetail.primary_image ? [productDetail.primary_image] : []);
+        const allImages = Array.isArray(productDetail.images) ? productDetail.images : [];
+        const currentFinishKey = normalizeFinishKey(selectedFinishCode);
 
-        const validImages = rawList
+        // Filter images belonging to the selected finish
+        let finishImages = allImages.filter((img) => {
+            const k = normalizeFinishKey(img.finish_key);
+            return k === currentFinishKey;
+        });
+
+        // If no images uploaded for this finish, try matching images without finish_key if current is YG
+        if (finishImages.length === 0 && currentFinishKey === 'YG') {
+            finishImages = allImages.filter((img) => !img.finish_key || normalizeFinishKey(img.finish_key) === 'YG');
+        }
+
+        // If this finish has images, use them! Otherwise fallback gracefully to all images or primary image
+        const listToUse = finishImages.length > 0
+            ? finishImages
+            : (allImages.length > 0 ? allImages : (productDetail.primary_image ? [productDetail.primary_image] : []));
+
+        const validImages = listToUse
             .map((img) => (typeof img === 'string' ? img : img?.url))
             .filter((url) => typeof url === 'string' && url.trim().length > 0);
 
         if (validImages.length > 0) {
             return validImages.map((imgSrc, idx) => ({
-                id: `real-thumb-${idx}`,
+                id: `real-thumb-${currentFinishKey}-${idx}`,
                 src: resolveProductImage(productDetail, imgSrc),
-                alt: `${productDetail.name || 'Jewelry Piece'} view ${idx + 1}`,
+                alt: `${productDetail.name || 'Jewelry Piece'} ${currentFinishKey} view ${idx + 1}`,
                 filter: 'none',
                 bgColor: '#F5F5F3'
             }));
@@ -1006,10 +1071,8 @@ export default function DynamicCollectionPage({ params }) {
             : '/images/products/ring.png';
         return [
             { id: 't1', src: fallbackImg, alt: productDetail?.name || 'Jewelry Piece', filter: 'none', bgColor: '#CFD9E0' },
-            { id: 't2', src: fallbackImg, alt: 'White Gold Finish', filter: 'hue-rotate(280deg) saturate(0.2)', bgColor: '#E6E6E6' },
-            { id: 't3', src: fallbackImg, alt: 'Rose Gold Finish', filter: 'hue-rotate(330deg) saturate(1.2)', bgColor: '#D4BEDF' },
         ];
-    }, [productDetail]);
+    }, [productDetail, selectedFinishCode]);
 
     const handleNavigate = (index) => {
         const slideIds = ['slide-1', 'slide-2', 'slide-3', 'slide-4', 'slide-5', 'slide-6', 'slide-7'];
@@ -1018,7 +1081,20 @@ export default function DynamicCollectionPage({ params }) {
         }
     };
 
+    const isLimited = productDetail?.is_limited_edition !== false;
+    const editionPrefix = (productDetail?.edition_prefix || 'LIMITED EDITION').trim();
+    const editionCurrent = Number(productDetail?.edition_current ?? 1);
+    const editionLimit = Number(productDetail?.edition_limit ?? 50);
+    const currentStr = String(editionCurrent).padStart(2, '0');
+    const limitStr = String(editionLimit).padStart(2, '0');
+    const editionText = productDetail?.edition_text || (isLimited ? `${editionPrefix} ${currentStr}/${limitStr}` : null);
+    const isSoldOut = isLimited && (Boolean(productDetail?.is_sold_out) || editionCurrent >= editionLimit);
+
     const handleAddToBag = () => {
+        if (isSoldOut) {
+            alert(`This piece has reached its limited edition run (${limitStr}/${limitStr}) and is currently unavailable.`);
+            return;
+        }
         const purityEntry = Object.entries(selectedOptions).find(([k]) =>
             k.toLowerCase().includes('purity') || k.toLowerCase().includes('metal') || k.toLowerCase().includes('karat')
         );
@@ -1040,7 +1116,7 @@ export default function DynamicCollectionPage({ params }) {
             code: productDetail?.design_code || String(productDetail?.id || resolvedParams?.id),
             name: productDetail?.name || 'Pintaara Bespoke Piece',
             metal: purityEntry ? purityEntry[1]?.value : '22KT',
-            finish: finishEntry ? finishEntry[1]?.value : 'Yellow Gold',
+            finish: finishEntry ? finishEntry[1]?.value : (finishBarsData.find(b => b.code === normalizeFinishKey(selectedFinishCode))?.name || 'Yellow Gold'),
             gem: gemEntry ? gemEntry[1]?.value : 'Natural Diamond',
             size: sizeEntry ? sizeEntry[1]?.value : 'Standard',
             chain: chainEntry ? chainEntry[1]?.value : 'None',
@@ -1094,7 +1170,7 @@ export default function DynamicCollectionPage({ params }) {
                                 </div>
                             ))
                         ) : categoryProducts.length > 0 ? (
-                            categoryProducts.map((item) => {
+                            categoryProducts.map((item, pIdx) => {
                                 // Calculate live price for each item in grid
                                 const rate22kt_g = (rates?.gold_22kt_per_10g || 100000) / 10;
                                 const metalVal = rate22kt_g * item.defaultWeight;
@@ -1117,7 +1193,7 @@ export default function DynamicCollectionPage({ params }) {
                                 return (
                                     <Link
                                         href={`/collection/${item.code}`}
-                                        key={item.id}
+                                        key={`${item.id || item.code}-${pIdx}`}
                                         className="category-product-card"
                                     >
                                         <div className="card-media-frame">
@@ -1137,9 +1213,17 @@ export default function DynamicCollectionPage({ params }) {
                                 );
                             })
                         ) : (
-                            <div style={{ gridColumn: '1 / -1', padding: '4rem 1rem', textAlign: 'center', color: '#888' }}>
-                                <p style={{ fontSize: '0.95rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                                    No products currently cataloged in this collection.
+                            <div style={{ gridColumn: '1 / -1', padding: '6rem 1rem', textAlign: 'center', width: '100%' }}>
+                                <p style={{
+                                    fontFamily: "var(--font-body), 'Avenir Next', sans-serif",
+                                    fontSize: '1rem',
+                                    fontWeight: 400,
+                                    letterSpacing: '0.12em',
+                                    textTransform: 'uppercase',
+                                    color: '#666666',
+                                    margin: 0
+                                }}>
+                                    No collection currently published.
                                 </p>
                             </div>
                         )}
@@ -1285,9 +1369,6 @@ export default function DynamicCollectionPage({ params }) {
                                     onClick={() => {
                                         setMediaViewMode('photo');
                                         setActiveImgIndex(idx);
-                                        if (idx === 0) setSelectedFinishCode('YG');
-                                        else if (idx === 1) setSelectedFinishCode('WG');
-                                        else if (idx === 2) setSelectedFinishCode('RG');
                                     }}
                                 >
                                     <img
@@ -1311,7 +1392,17 @@ export default function DynamicCollectionPage({ params }) {
                         {String(productDetail?.design_code || resolvedParams?.id || '').toUpperCase()}
                     </h1>
                     <div className="atelier-product-subtitle">
-                        {(productDetail?.name || productDetail?.collection?.name || 'ATELIER PIECE').toUpperCase()}
+                        <span className="atelier-subtitle-name">
+                            {(productDetail?.name || productDetail?.collection?.name || 'ORIGIN').toUpperCase()}
+                        </span>
+                        {isLimited && editionText && (
+                            <>
+                                <span className="atelier-subtitle-separator" aria-hidden="true">|</span>
+                                <span className="atelier-limited-edition">
+                                    {editionText}
+                                </span>
+                            </>
+                        )}
                     </div>
                     <div className="atelier-specs-divider" />
 
@@ -1351,29 +1442,35 @@ export default function DynamicCollectionPage({ params }) {
                             const valStr = typeof fVal === 'string' ? fVal : fVal.value;
                             const valLower = String(valStr || '').toLowerCase();
                             const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
-                            return selectedFinishCode === code || selectedFinishCode === valStr;
+                            return normalizeFinishKey(selectedFinishCode) === normalizeFinishKey(code);
                         });
                         const activeValStr = activeFinishObj ? (typeof activeFinishObj === 'string' ? activeFinishObj : activeFinishObj.value) : '';
-                        const matchedActiveBar = finishBarsData.find(b => b.code === selectedFinishCode || (activeValStr && b.name.toLowerCase() === activeValStr.toLowerCase()));
-                        const selectedFinishDisplayName = matchedActiveBar?.name || activeValStr || (selectedFinishCode === 'YG' ? 'Yellow Gold' : selectedFinishCode === 'WG' ? 'White Gold' : selectedFinishCode === 'RG' ? 'Rose Gold' : selectedFinishCode === 'BLK' ? 'Black Ruthenium' : '');
+                        const matchedActiveBar = finishBarsData.find(b => b.code === normalizeFinishKey(selectedFinishCode) || (activeValStr && b.name.toLowerCase() === activeValStr.toLowerCase()));
+                        const selectedFinishDisplayName = matchedActiveBar?.name || activeValStr || (normalizeFinishKey(selectedFinishCode) === 'YG' ? 'Yellow Gold' : normalizeFinishKey(selectedFinishCode) === 'WG' ? 'White Gold' : normalizeFinishKey(selectedFinishCode) === 'RG' ? 'Rose Gold' : normalizeFinishKey(selectedFinishCode) === 'BLK' ? 'Black Ruthenium' : '');
 
                         return (
                             <div className="atelier-control-group">
                                 <div className="atelier-spec-label">
                                     FINISH OPTIONS
                                 </div>
-                                <div className="atelier-finish-row">
+                                <div
+                                    className="atelier-finish-row"
+                                    style={{
+                                        gridTemplateColumns: `repeat(${Math.max(availableFinishes.length, 1)}, minmax(0, 1fr))`
+                                    }}
+                                >
                                     {availableFinishes.map((fVal, idx) => {
                                         const valStr = typeof fVal === 'string' ? fVal : fVal.value;
                                         const valLower = String(valStr || '').toLowerCase();
                                         const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
-                                        const matchedBar = finishBarsData.find((b) => b.code === code || b.name.toLowerCase() === valLower) || {
+                                        const cleanCode = normalizeFinishKey(code);
+                                        const matchedBar = finishBarsData.find((b) => b.code === cleanCode || b.name.toLowerCase() === valLower) || {
                                             name: valStr,
-                                            code: code,
+                                            code: cleanCode,
                                             label: String(valStr || '').toUpperCase(),
                                             style: fVal.hex_color ? { background: fVal.hex_color } : { background: '#D4AF37' }
                                         };
-                                        const isSelected = selectedFinishCode === code || selectedFinishCode === valStr;
+                                        const isSelected = normalizeFinishKey(selectedFinishCode) === cleanCode;
                                         return (
                                             <button
                                                 key={fVal.id || code}
@@ -1383,19 +1480,10 @@ export default function DynamicCollectionPage({ params }) {
                                                 className={`atelier-finish-bar ${isSelected ? 'active' : ''}`}
                                                 style={matchedBar.style}
                                                 onClick={() => {
-                                                    setSelectedFinishCode(code);
+                                                    setSelectedFinishCode(cleanCode);
+                                                    setActiveImgIndex(0);
                                                     const grpName = finishGroup?.name || 'Finish Options';
-                                                    handleSelectOption(grpName, { value: valStr, price_delta: 0, image: fVal.image });
-                                                    if (fVal.image) {
-                                                        const imgIdx = thumbnails.findIndex(t => t.src === fVal.image);
-                                                        if (imgIdx !== -1) {
-                                                            setActiveImgIndex(imgIdx);
-                                                            return;
-                                                        }
-                                                    }
-                                                    if (code === 'YG' || valLower.includes('yellow')) setActiveImgIndex(0);
-                                                    else if (code === 'WG' || valLower.includes('white')) setActiveImgIndex(1);
-                                                    else if (code === 'RG' || valLower.includes('rose')) setActiveImgIndex(2);
+                                                    handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: fVal.image });
                                                 }}
                                             >
                                                 <span
@@ -1537,10 +1625,20 @@ export default function DynamicCollectionPage({ params }) {
                             <div className="atelier-buttons-block">
                                 <button
                                     type="button"
-                                    className="atelier-btn-add-to-bag"
+                                    className={`atelier-btn-add-to-bag ${isSoldOut ? 'is-sold-out' : ''}`}
                                     onClick={handleAddToBag}
+                                    disabled={isSoldOut}
+                                    title={isSoldOut ? `Edition run complete (${limitStr}/${limitStr}). Piece is sold out.` : undefined}
+                                    style={isSoldOut ? {
+                                        opacity: 0.45,
+                                        cursor: 'not-allowed',
+                                        pointerEvents: 'none',
+                                        backgroundColor: '#3A3A3A',
+                                        color: '#888888',
+                                        border: '1px solid #4A4A4A'
+                                    } : {}}
                                 >
-                                    ADD TO BAG
+                                    {isSoldOut ? `SOLD OUT (${limitStr}/${limitStr})` : 'ADD TO BAG'}
                                 </button>
                                 <Link
                                     href={productDetail?.design_code ? `/design-log/${productDetail.design_code}` : (productDetail?.id ? `/design-log/${productDetail.id}` : "/design-log")}
@@ -1903,6 +2001,23 @@ export default function DynamicCollectionPage({ params }) {
                     color: #888888;
                     text-transform: uppercase;
                     margin-bottom: 0.6rem;
+                    display: flex;
+                    align-items: center;
+                    flex-wrap: nowrap;
+                }
+                .atelier-subtitle-name {
+                    color: inherit;
+                }
+                .atelier-subtitle-separator {
+                    margin-left: 35px;
+                    margin-right: 10px;
+                    color: #E65D4B;
+                    font-weight: 500;
+                }
+                .atelier-limited-edition {
+                    color: #E65D4B;
+                    font-weight: 600;
+                    letter-spacing: inherit;
                 }
 
                 /* Full-width divider under subtitle */
