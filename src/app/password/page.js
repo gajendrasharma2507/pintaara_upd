@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { safeStorage, safeSessionStorage } from "@/lib/storage";
 import api from "@/lib/api";
@@ -9,8 +9,17 @@ export default function PasswordPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [shake, setShake] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const unlocked = safeStorage.getItem("pintaara_unlocked");
+    const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
+    if (unlocked === "1" && expiresAt > Date.now()) {
+      router.replace("/");
+    }
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,11 +48,15 @@ export default function PasswordPage() {
           document.cookie = `pintaara_unlocked=1; path=/; max-age=${expiresInSec}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
         } catch (err) {}
 
-        router.push("/");
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const redirectUrl = urlParams?.get("redirect") || "/";
+        router.push(redirectUrl);
       } else {
         throw new Error(res?.message || "Incorrect passcode.");
       }
     } catch (err) {
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
       setError(err?.message || "Incorrect PINTAARA passcode. Please try again.");
     } finally {
       setSubmitting(false);
@@ -51,23 +64,24 @@ export default function PasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#14120F] text-[#F5EDE4] flex items-center justify-center p-4 selection:bg-[#C9A961] selection:text-[#1C1814]">
-      {/* Ambient background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#C9A961]/5 rounded-full blur-[140px]"></div>
-      </div>
+    <div style={styles.container}>
+      {/* Ambient background glow */}
+      <div style={styles.glowOrb} />
 
-      <div className="relative z-10 w-full max-w-sm text-center space-y-6">
-        <div className="flex items-center justify-center py-2">
+      {/* Card container */}
+      <div style={styles.card}>
+        {/* Logo Lockup */}
+        <div style={styles.logoWrap}>
           <img
             src="/images/logo-lockup.png"
             alt="PINTAARA"
-            className="w-56 max-w-[85%] h-auto object-contain mx-auto"
+            style={styles.logoImg}
           />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
+        {/* Form */}
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <div style={styles.inputWrap}>
             <input
               type={showPassword ? "text" : "password"}
               value={password}
@@ -75,19 +89,21 @@ export default function PasswordPage() {
               placeholder="Enter passcode"
               autoFocus
               required
-              className="w-full px-6 py-4 bg-[#181512] rounded-full text-center text-sm font-mono text-[#F5EDE4] placeholder:text-[#6E665D] placeholder:font-sans placeholder:text-xs focus:outline-none transition-all tracking-wider"
+              style={styles.input}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-5 top-1/2 -translate-y-1/2 text-[11px] text-[#8E847A] hover:text-[#C9A961] uppercase tracking-wider"
+              style={styles.showToggle}
+              onMouseEnter={(e) => (e.target.style.color = "#C9A961")}
+              onMouseLeave={(e) => (e.target.style.color = "#8E847A")}
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
 
           {error && (
-            <p className="text-xs text-rose-400 bg-rose-950/30 border border-rose-900/50 py-2 px-3 rounded-full">
+            <p style={{ ...styles.errorMsg, animation: shake ? "pintShake 0.5s ease" : "none" }}>
               {error}
             </p>
           )}
@@ -95,12 +111,152 @@ export default function PasswordPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 px-6 rounded-full bg-gradient-to-b from-[#E6C88A] to-[#D4AC64] text-[#181410] font-semibold text-xs uppercase tracking-[0.22em] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_6px_30px_rgba(212,172,100,0.35)] disabled:opacity-70 disabled:cursor-not-allowed"
+            style={{
+              ...styles.submitBtn,
+              opacity: submitting ? 0.75 : 1,
+              cursor: submitting ? "not-allowed" : "pointer",
+            }}
+            onMouseEnter={(e) => {
+              if (!submitting) e.currentTarget.style.filter = "brightness(1.12)";
+            }}
+            onMouseLeave={(e) => {
+              if (!submitting) e.currentTarget.style.filter = "brightness(1)";
+            }}
           >
             {submitting ? "VERIFYING..." : "ENTER"}
           </button>
         </form>
       </div>
+
+      <style>{`
+        @keyframes pintShake {
+          0%,100%{transform:translateX(0)}
+          15%{transform:translateX(-6px)}
+          30%{transform:translateX(6px)}
+          45%{transform:translateX(-4px)}
+          60%{transform:translateX(4px)}
+          75%{transform:translateX(-2px)}
+        }
+      `}</style>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    minHeight: "100vh",
+    width: "100vw",
+    backgroundColor: "#14120F",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "24px 16px",
+    position: "relative",
+    overflow: "hidden",
+    boxSizing: "border-box",
+    fontFamily: "'Avenir Next', sans-serif",
+  },
+  glowOrb: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "600px",
+    height: "600px",
+    background: "radial-gradient(circle, rgba(201,169,97,0.08) 0%, transparent 70%)",
+    borderRadius: "50%",
+    pointerEvents: "none",
+  },
+  card: {
+    position: "relative",
+    zIndex: 1,
+    width: "100%",
+    maxWidth: "380px",
+    textAlign: "center",
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
+    margin: "0 auto",
+  },
+  logoWrap: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "6px 0 2px 0",
+  },
+  logoImg: {
+    width: "220px",
+    maxWidth: "85%",
+    height: "auto",
+    objectFit: "contain",
+    display: "block",
+    margin: "0 auto",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "14px",
+    width: "100%",
+  },
+  inputWrap: {
+    position: "relative",
+    width: "100%",
+  },
+  input: {
+    width: "100%",
+    padding: "16px 64px 16px 24px",
+    background: "#181512",
+    border: "none",
+    borderRadius: "9999px",
+    textAlign: "center",
+    fontSize: "15px",
+    fontFamily: "monospace",
+    color: "#F5EDE4",
+    outline: "none",
+    boxSizing: "border-box",
+    letterSpacing: "0.14em",
+  },
+  showToggle: {
+    position: "absolute",
+    right: "22px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "11px",
+    color: "#8E847A",
+    textTransform: "uppercase",
+    letterSpacing: "0.14em",
+    fontFamily: "'Avenir Next', sans-serif",
+    transition: "color 0.2s",
+    padding: "4px",
+  },
+  errorMsg: {
+    fontSize: "12px",
+    color: "#f87171",
+    background: "rgba(127,29,29,0.25)",
+    border: "1px solid rgba(127,29,29,0.5)",
+    borderRadius: "16px",
+    padding: "10px 14px",
+    margin: 0,
+    fontFamily: "'Avenir Next', sans-serif",
+  },
+  submitBtn: {
+    width: "100%",
+    padding: "16px 24px",
+    borderRadius: "9999px",
+    background: "linear-gradient(180deg, #E6C88A 0%, #D4AC64 100%)",
+    color: "#181410",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "11.5px",
+    fontWeight: 600,
+    letterSpacing: "0.22em",
+    textTransform: "uppercase",
+    fontFamily: "'Avenir Next', sans-serif",
+    boxShadow: "0 6px 30px rgba(212,172,100,0.35)",
+    transition: "filter 0.2s, transform 0.1s",
+    boxSizing: "border-box",
+  },
+};

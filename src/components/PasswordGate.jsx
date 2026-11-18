@@ -1,20 +1,46 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import { safeStorage, safeSessionStorage } from "@/lib/storage";
+import { usePathname, useRouter } from "next/navigation";
+import { safeStorage } from "@/lib/storage";
 import api from "@/lib/api";
 
 export default function PasswordGate({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isAdmin = pathname?.startsWith("/admin");
+  const isPasswordPage = pathname === "/password" || pathname?.startsWith("/password");
+  const isHome = pathname === "/" || pathname === "";
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [showGateOnHome, setShowGateOnHome] = useState(false);
   const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [shake, setShake] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Listen for custom trigger to open password gate from homepage enter screen
+    const handleOpenGate = () => {
+      setShowGateOnHome(true);
+    };
+
+    window.addEventListener("pintaara_open_password_gate", handleOpenGate);
+    return () => window.removeEventListener("pintaara_open_password_gate", handleOpenGate);
+  }, []);
+
+  useEffect(() => {
+    // Close modal on Escape if opened over home
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isHome && showGateOnHome) {
+        setShowGateOnHome(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isHome, showGateOnHome]);
 
   useEffect(() => {
     // If navigating to /admin, don't lock
@@ -57,8 +83,8 @@ export default function PasswordGate({ children }) {
     }
   }, [isAdmin]);
 
-  // Immediately render admin without any password gate or spinner
-  if (isAdmin) {
+  // Immediately render admin or password page without any password gate or spinner
+  if (isAdmin || isPasswordPage) {
     return <>{children}</>;
   }
 
@@ -82,8 +108,6 @@ export default function PasswordGate({ children }) {
 
         safeStorage.setItem("pintaara_unlocked", "1");
         safeStorage.setItem("pintaara_unlocked_expires_at", String(expiresAt));
-        safeStorage.setItem("pintaara_entered", "true");
-        safeSessionStorage.setItem("pintaara_entered", "true");
 
         try {
           const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
@@ -91,6 +115,12 @@ export default function PasswordGate({ children }) {
         } catch (err) { }
 
         setIsUnlocked(true);
+        setShowGateOnHome(false);
+
+        // Notify that storefront has been unlocked
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("pintaara_unlocked"));
+        }
       } else {
         throw new Error(res?.message || "Incorrect passcode.");
       }
@@ -104,6 +134,9 @@ export default function PasswordGate({ children }) {
   };
 
   if (loading) {
+    if (isAdmin || isHome || isPasswordPage) {
+      return <>{children}</>;
+    }
     return (
       <div style={styles.overlay}>
         <div style={styles.spinner}></div>
@@ -113,6 +146,15 @@ export default function PasswordGate({ children }) {
   }
 
   if (!isUnlocked) {
+    if (isPasswordPage) {
+      return <>{children}</>;
+    }
+
+    // On home, only display the password popup when triggered from the ENTER screen
+    if (isHome && !showGateOnHome) {
+      return <>{children}</>;
+    }
+
     return (
       <>
         {/* Blurred site preview behind the gate */}
@@ -121,12 +163,42 @@ export default function PasswordGate({ children }) {
         </div>
 
         {/* Frosted overlay */}
-        <div style={styles.overlay}>
+        <div
+          style={styles.overlay}
+          onClick={() => {
+            if (isHome) setShowGateOnHome(false);
+          }}
+        >
           {/* Ambient glow */}
           <div style={styles.glowOrb}></div>
 
           {/* Card */}
-          <div style={styles.card}>
+          <div style={styles.card} onClick={(e) => e.stopPropagation()}>
+            {/* Close button if on home */}
+            {isHome && (
+              <button
+                type="button"
+                onClick={() => setShowGateOnHome(false)}
+                style={{
+                  position: "absolute",
+                  top: "14px",
+                  right: "14px",
+                  background: "none",
+                  border: "none",
+                  color: "#A69D92",
+                  fontSize: "18px",
+                  cursor: "pointer",
+                  padding: "4px 8px",
+                  lineHeight: 1,
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#FFFFFF")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#A69D92")}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            )}
             {/* Logo Lockup */}
             <div style={styles.logoWrap}>
               <img
