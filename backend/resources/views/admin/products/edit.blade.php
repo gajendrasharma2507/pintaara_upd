@@ -285,7 +285,7 @@
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
         <div>
           <h3 style="font-size: 15px; font-weight: 700; color: var(--admin-text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
-            <span>📸 Finish Piece Images Gallery</span>
+            <span>Images Gallery</span>
           </h3>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -439,22 +439,23 @@ function renderFinishTabs() {
     btn.style.whiteSpace = 'nowrap';
 
     if (isActive) {
-      btn.style.background = '#0F172A';
-      btn.style.color = '#FFFFFF';
+      btn.style.background = '#FFFFFF';
+      btn.style.color = 'var(--admin-text-primary)';
       btn.style.border = `2px solid ${f.color}`;
-      btn.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+      btn.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
     } else {
       btn.style.background = 'var(--admin-surface)';
       btn.style.color = 'var(--admin-text-primary)';
       btn.style.border = '1px solid var(--admin-border)';
+      btn.style.boxShadow = 'none';
     }
 
     btn.innerHTML = `
-      <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${f.color}; border: 1px solid rgba(255,255,255,0.4);"></span>
+      <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${f.color}; border: 1px solid rgba(0,0,0,0.15);"></span>
       <span>${escapeHtml(f.name)}</span>
       <span style="font-size: 10.5px; padding: 1px 6px; border-radius: 999px; font-weight: 700; ${
         isActive
-          ? 'background: rgba(255,255,255,0.2); color: #FFFFFF;'
+          ? `background: ${f.color}22; color: var(--admin-text-primary); border: 1px solid ${f.color}66;`
           : 'background: var(--admin-surface-elevated); color: var(--admin-text-secondary); border: 1px solid var(--admin-border);'
       }">
         ${count}
