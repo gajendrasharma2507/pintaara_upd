@@ -358,6 +358,29 @@
       </div>
     </div>
 
+    <div style="border: 1px solid var(--admin-border); border-radius: 8px; padding: 18px 20px; background: var(--admin-surface); margin-top: 6px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; flex-wrap: wrap;">
+        <div>
+          <label class="admin-label" style="margin: 0; font-size: 13.5px; font-weight: 600;">Additional Product Sections / Custom Text Boxes</label>
+          <div style="font-size: 11.5px; color: var(--admin-text-secondary); margin-top: 3px;">
+            Add multiple custom text boxes as needed (e.g., Materials & Care, Size Guide, Certification, Notes). Displayed on the storefront with the exact same typography and layout.
+          </div>
+        </div>
+        <button type="button" id="btn_add_section" class="admin-btn-secondary" style="padding: 7px 15px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Text Box
+        </button>
+      </div>
+
+      <div id="custom_sections_container" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Dynamically rendered custom section cards -->
+      </div>
+
+      <div id="custom_sections_empty" style="display: none; text-align: center; padding: 22px 12px; color: var(--admin-text-muted); font-size: 12px; border: 1px dashed var(--admin-border); border-radius: 6px; background: #ffffff;">
+        No additional text boxes added yet. Click <strong>"+ Add Text Box"</strong> to create one.
+      </div>
+    </div>
+
     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
       <a href="{{ route('admin.products') }}" class="admin-btn-ghost">Cancel</a>
       <button type="submit" class="admin-btn-primary" style="padding: 10px 24px;">Update Piece</button>
@@ -708,7 +731,102 @@ function handleEditionSwitch(enabled) {
 
 document.addEventListener('DOMContentLoaded', () => {
   renderGallery();
+  initCustomSections();
 });
+
+let customSectionsData = {!! json_encode(old('custom_sections', $product->custom_sections ?? [])) !!};
+if (typeof customSectionsData === 'string') {
+  try { customSectionsData = JSON.parse(customSectionsData); } catch (e) { customSectionsData = []; }
+}
+if (!Array.isArray(customSectionsData)) {
+  customSectionsData = [];
+}
+
+function initCustomSections() {
+  const customSectionsContainer = document.getElementById('custom_sections_container');
+  const customSectionsEmpty = document.getElementById('custom_sections_empty');
+  const btnAddSection = document.getElementById('btn_add_section');
+
+  function renderCustomSections() {
+    if (!customSectionsContainer) return;
+    customSectionsContainer.innerHTML = '';
+    if (!customSectionsData || customSectionsData.length === 0) {
+      if (customSectionsEmpty) customSectionsEmpty.style.display = 'block';
+      return;
+    }
+    if (customSectionsEmpty) customSectionsEmpty.style.display = 'none';
+
+    customSectionsData.forEach((sec, idx) => {
+      const card = document.createElement('div');
+      card.className = 'custom-section-card';
+      card.style.cssText = 'border: 1px solid var(--admin-border); border-radius: 8px; padding: 14px 16px; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.03);';
+
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--admin-text-secondary); letter-spacing: 0.6px;">
+            Text Box #${idx + 1}
+          </span>
+          <button type="button" class="btn-remove-section" data-idx="${idx}" style="background: none; border: none; color: #DC2626; cursor: pointer; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            Remove
+          </button>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 4px; text-transform: uppercase;">
+            Section Heading / Title
+          </label>
+          <input type="text" name="custom_sections[${idx}][title]" value="${escapeHtml(sec.title || '')}" class="admin-input sec-title-input" placeholder="e.g. MATERIALS & CARE" style="padding: 8px 12px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 4px; text-transform: uppercase;">
+            Section Content / Description
+          </label>
+          <textarea name="custom_sections[${idx}][content]" rows="3" class="admin-input sec-content-input" placeholder="Enter description or - bullet points (one per line)..." style="padding: 8px 12px; font-size: 13px;">${escapeHtml(sec.content || '')}</textarea>
+        </div>
+      `;
+
+      const titleInput = card.querySelector('.sec-title-input');
+      const contentInput = card.querySelector('.sec-content-input');
+      titleInput.addEventListener('input', (e) => {
+        customSectionsData[idx].title = e.target.value;
+      });
+      contentInput.addEventListener('input', (e) => {
+        customSectionsData[idx].content = e.target.value;
+      });
+
+      const btnRemove = card.querySelector('.btn-remove-section');
+      btnRemove.addEventListener('click', () => {
+        customSectionsData.splice(idx, 1);
+        renderCustomSections();
+      });
+
+      customSectionsContainer.appendChild(card);
+    });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  if (btnAddSection) {
+    btnAddSection.addEventListener('click', () => {
+      customSectionsData.push({ title: '', content: '' });
+      renderCustomSections();
+      const allTitles = customSectionsContainer.querySelectorAll('.sec-title-input');
+      if (allTitles.length > 0) {
+        allTitles[allTitles.length - 1].focus();
+      }
+    });
+  }
+
+  renderCustomSections();
+}
 </script>
 @endsection
 

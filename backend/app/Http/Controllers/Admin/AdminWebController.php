@@ -555,6 +555,7 @@ class AdminWebController extends Controller
             'wastage_percent' => 'nullable|numeric|min:0',
             'description' => 'nullable|string',
             'delivery_return' => 'nullable|string',
+            'custom_sections' => 'nullable',
             'tier' => 'nullable|string',
             'is_limited_edition' => 'nullable',
             'edition_prefix' => 'nullable|string|max:100',
@@ -567,6 +568,7 @@ class AdminWebController extends Controller
         ]);
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition', true);
+        $validated['custom_sections'] = $this->cleanCustomSections($request->input('custom_sections'));
         $product = Product::create($validated);
 
         $this->syncFinishImages($product, $request);
@@ -603,6 +605,7 @@ class AdminWebController extends Controller
             'wastage_percent' => 'nullable|numeric|min:0',
             'description' => 'nullable|string',
             'delivery_return' => 'nullable|string',
+            'custom_sections' => 'nullable',
             'tier' => 'nullable|string',
             'status' => 'nullable|string',
             'is_limited_edition' => 'nullable',
@@ -616,11 +619,37 @@ class AdminWebController extends Controller
         ]);
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition');
+        $validated['custom_sections'] = $this->cleanCustomSections($request->input('custom_sections'));
         $product->update($validated);
 
         $this->syncFinishImages($product, $request);
 
         return redirect()->route('admin.products')->with('success', 'Product updated successfully.');
+    }
+
+    private function cleanCustomSections($rawSections): array
+    {
+        if (is_string($rawSections)) {
+            $decoded = json_decode($rawSections, true);
+            if (is_array($decoded)) {
+                $rawSections = $decoded;
+            }
+        }
+        $cleaned = [];
+        if (is_array($rawSections)) {
+            foreach ($rawSections as $sec) {
+                if (!is_array($sec)) continue;
+                $t = trim($sec['title'] ?? '');
+                $c = trim($sec['content'] ?? '');
+                if ($t !== '' || $c !== '') {
+                    $cleaned[] = [
+                        'title' => $t,
+                        'content' => $c,
+                    ];
+                }
+            }
+        }
+        return $cleaned;
     }
 
     private function syncFinishImages(Product $product, Request $request): void

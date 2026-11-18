@@ -16,6 +16,7 @@ class Product extends Model
         'collection_master_id',
         'description',
         'delivery_return',
+        'custom_sections',
         'model_3d_url',
         'base_weight_grams',
         'making_charge',
@@ -52,6 +53,7 @@ class Product extends Model
         'edition_limit' => 'integer',
         'edition_current' => 'integer',
         'certificates' => 'array',
+        'custom_sections' => 'array',
     ];
 
     protected $appends = [

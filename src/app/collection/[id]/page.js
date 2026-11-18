@@ -1352,6 +1352,19 @@ export default function DynamicCollectionPage({ params }) {
         .map((l) => l.trim())
         .filter(Boolean);
 
+    const rawCustomSections = productDetail?.custom_sections;
+    let customSections = [];
+    if (Array.isArray(rawCustomSections)) {
+        customSections = rawCustomSections;
+    } else if (typeof rawCustomSections === 'string') {
+        try {
+            const parsed = JSON.parse(rawCustomSections);
+            if (Array.isArray(parsed)) customSections = parsed;
+        } catch (e) {
+            customSections = [];
+        }
+    }
+
     const productDescription = productDetail?.description?.trim() ||
         'An exploration of independent elements, each brought together through a shared centre. A form defined by its construction, balance and identity.';
 
@@ -1732,6 +1745,45 @@ export default function DynamicCollectionPage({ params }) {
                                 })}
                             </div>
                         </div>
+
+                        {/* 3. ADDITIONAL CUSTOM SECTIONS ADDED BY ADMIN */}
+                        {customSections.map((sec, sIdx) => {
+                            const secTitle = (sec?.title || '').trim();
+                            const secContent = (sec?.content || '').trim();
+                            if (!secTitle && !secContent) return null;
+
+                            const lines = secContent.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+                            const hasBullets = lines.some((l) => l.startsWith('-'));
+
+                            return (
+                                <React.Fragment key={sIdx}>
+                                    <div className="atelier-info-divider" />
+                                    <div className="atelier-info-section">
+                                        {secTitle && (
+                                            <h3 className="atelier-info-heading">
+                                                {secTitle.toUpperCase()}
+                                            </h3>
+                                        )}
+                                        {hasBullets ? (
+                                            <div className="atelier-info-content">
+                                                {lines.map((line, lIdx) => {
+                                                    const formattedLine = line.startsWith('-') ? line : `- ${line}`;
+                                                    return (
+                                                        <div key={lIdx} className="atelier-info-line">
+                                                            {formattedLine}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <p className="atelier-info-description">
+                                                {secContent}
+                                            </p>
+                                        )}
+                                    </div>
+                                </React.Fragment>
+                            );
+                        })}
                     </div>
                 </div>
             </main>
