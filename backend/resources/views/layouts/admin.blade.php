@@ -210,11 +210,6 @@
           <span>Live Gold Spot Rates</span>
         </a>
 
-        <!-- Pricing Masters -->
-        <a href="{{ route('admin.masters') }}" class="admin-filter-btn {{ request()->routeIs('admin.masters*') ? 'nav-item-active' : '' }}" style="width: 100%; justify-content: flex-start; padding: 10px 14px; border-radius: 8px; border: none; font-size: 13.5px; text-decoration: none; color: var(--admin-text-secondary);">
-          <span>Pricing Masters</span>
-        </a>
-
         <!-- Global Settings -->
         <a href="{{ route('admin.settings') }}" class="admin-filter-btn {{ request()->routeIs('admin.settings*') ? 'nav-item-active' : '' }}" style="width: 100%; justify-content: flex-start; padding: 10px 14px; border-radius: 8px; border: none; font-size: 13.5px; text-decoration: none; color: var(--admin-text-secondary);">
           <span>Global Settings</span>

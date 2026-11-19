@@ -71,8 +71,10 @@ Route::prefix('admin')->group(function () {
         Route::get('/gold-rates/live-feed', [AdminWebController::class, 'liveGoldRatesFeed'])->name('admin.gold-rates.feed');
         Route::post('/gold-rates', [AdminWebController::class, 'updateGoldRates'])->name('admin.gold-rates.update');
 
-        // Masters
-        Route::get('/masters', [AdminWebController::class, 'masters'])->name('admin.masters');
+        // Masters (Hidden and redirected to dynamic Options & Variants)
+        Route::get('/masters', function () {
+            return redirect()->route('admin.product-options');
+        })->name('admin.masters');
 
         // Settings
         Route::get('/settings', [AdminWebController::class, 'settings'])->name('admin.settings');
