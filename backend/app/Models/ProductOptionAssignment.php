@@ -17,12 +17,14 @@ class ProductOptionAssignment extends Model
         'display_type',
         'is_required',
         'selected_values',
+        'value_prices',
         'sort_order',
     ];
 
     protected $casts = [
         'is_required' => 'boolean',
         'selected_values' => 'array',
+        'value_prices' => 'array',
         'sort_order' => 'integer',
     ];
 

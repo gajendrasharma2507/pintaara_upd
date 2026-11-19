@@ -103,6 +103,7 @@ class ProductApiController extends Controller
                 'collectionMaster',
                 'images',
                 'options.values',
+                'optionAssignments',
                 'variants.optionValues.option',
                 'designLog',
                 'productFinishPurities.finish',
@@ -140,6 +141,17 @@ class ProductApiController extends Controller
 
         $allMasterValues = $customizationMasters->pluck('values')->flatten();
 
+        $valPricesMap = [];
+        if ($product->relationLoaded('optionAssignments')) {
+            foreach ($product->optionAssignments as $assign) {
+                if (!empty($assign->value_prices) && is_array($assign->value_prices)) {
+                    foreach ($assign->value_prices as $vId => $p) {
+                        $valPricesMap[$vId] = (float)$p;
+                    }
+                }
+            }
+        }
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -169,7 +181,7 @@ class ProductApiController extends Controller
                 'images' => $product->images,
                 'images_by_finish' => $product->images->groupBy(fn($img) => $img->finish_key ?: 'YG'),
                 'base_pricing' => $basePricing,
-                'options' => $product->options->map(function ($o) use ($masters, $allMasterValues, $product) {
+                'options' => $product->options->map(function ($o) use ($masters, $allMasterValues, $product, $valPricesMap) {
                     $isPurity = str_contains(strtolower($o->name), 'purity') || str_contains(strtolower($o->name), 'metal') || str_contains(strtolower($o->name), 'karat');
                     $isFinish = str_contains(strtolower($o->name), 'finish') || str_contains(strtolower($o->name), 'tone') || strtoupper($o->name) === 'FINISH';
                     $isGem = str_contains(strtolower($o->name), 'gem') || str_contains(strtolower($o->name), 'stone');
@@ -199,8 +211,11 @@ class ProductApiController extends Controller
                     return [
                         'id' => $o->id,
                         'name' => $o->name,
-                        'values' => $vals->values()->map(function ($v) use ($isGem, $gems, $allMasterValues) {
+                        'values' => $vals->values()->map(function ($v) use ($isGem, $gems, $allMasterValues, $valPricesMap) {
                             $delta = (float) ($v->price_delta ?? 0);
+                            if (isset($valPricesMap[$v->id])) {
+                                $delta = (float) $valPricesMap[$v->id];
+                            }
                             $vLower = strtolower(trim($v->value));
                             $isNoStone = in_array($vLower, ['none', 'no stone', 'solid gold', 'no stone / solid gold', 'no stone/solid gold', '']);
 

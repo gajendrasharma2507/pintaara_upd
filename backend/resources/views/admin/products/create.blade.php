@@ -969,11 +969,17 @@ function initOptionsAndVariantsBuilder() {
       }
 
       groupHtml += `
-        <label style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid #E2E8F0; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 12px; user-select: none;">
-          <input type="checkbox" class="opt-val-chk group-val-chk-${group.id}" value="${val.id}" data-val-name="${escapeHtml(val.value)}" data-group-id="${group.id}" checked style="accent-color: #3C50E0;">
-          ${visualBadge}
-          <span style="font-weight: 600; color: var(--admin-text-primary);">${escapeHtml(val.value)}</span>
-        </label>
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid #E2E8F0; border-radius: 6px; background: #ffffff; font-size: 12px;">
+          <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; margin: 0;">
+            <input type="checkbox" class="opt-val-chk group-val-chk-${group.id}" value="${val.id}" data-val-name="${escapeHtml(val.value)}" data-group-id="${group.id}" checked style="accent-color: #3C50E0;">
+            ${visualBadge}
+            <span style="font-weight: 600; color: var(--admin-text-primary);">${escapeHtml(val.value)}</span>
+          </label>
+          <div style="display: inline-flex; align-items: center; gap: 2px; margin-left: 4px; padding-left: 6px; border-left: 1px solid #E2E8F0;" title="Additional price for this piece (e.g. 2000 for Product A, 3000 for Product B)">
+            <span style="font-size: 10.5px; color: #64748B; font-weight: 600;">+₹</span>
+            <input type="number" step="0.01" min="0" class="admin-input opt-val-price-${group.id}" data-val-id="${val.id}" value="" placeholder="0" style="width: 65px; height: 23px; padding: 2px 4px; font-size: 11px; border-radius: 4px; border: 1px solid #CBD5E1;">
+          </div>
+        </div>
       `;
     });
 
@@ -1027,11 +1033,20 @@ function getOptionAssignmentsPayload() {
       const valCheckboxes = document.querySelectorAll(`.group-val-chk-${group.id}:checked`);
       const valIds = Array.from(valCheckboxes).map(c => Number(c.value));
 
+      const valPrices = {};
+      valCheckboxes.forEach(c => {
+        const pInput = document.querySelector(`.opt-val-price-${group.id}[data-val-id="${c.value}"]`);
+        if (pInput && pInput.value !== '' && !isNaN(parseFloat(pInput.value)) && parseFloat(pInput.value) > 0) {
+          valPrices[c.value] = parseFloat(pInput.value);
+        }
+      });
+
       payload.push({
         group_id: group.id,
         display_type: selDisplay ? selDisplay.value : group.display_type,
         is_required: chkReq ? chkReq.checked : false,
         selected_values: valIds,
+        value_prices: valPrices,
         sort_order: idx + 1,
       });
     }
@@ -1134,10 +1149,13 @@ function generateVariantMatrix() {
     if (chk && chk.checked) {
       const checkedVals = [];
       document.querySelectorAll(`.group-val-chk-${g.id}:checked`).forEach(c => {
+        const pInput = document.querySelector(`.opt-val-price-${g.id}[data-val-id="${c.value}"]`);
+        const addPrice = (pInput && pInput.value !== '' && !isNaN(parseFloat(pInput.value))) ? parseFloat(pInput.value) : 0;
         checkedVals.push({
           id: Number(c.value),
           name: c.getAttribute('data-val-name'),
           group_code: g.code,
+          add_price: addPrice,
         });
       });
       if (checkedVals.length > 0) {
@@ -1183,11 +1201,16 @@ function generateVariantMatrix() {
     const skuSuffix = combList.map(v => v.name.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4)).join('-');
     const defaultSku = `${prodCode}-${skuSuffix}`;
 
+    const totalAddPrice = combList.reduce((sum, v) => sum + (v.add_price || 0), 0);
+    const computedPrice = totalAddPrice > 0 ? totalAddPrice : null;
+
     newVariants.push({
       sku: matched?.sku || defaultSku,
       combination: combText,
-      price_override: matched?.price_override ?? null,
-      stock_qty: matched?.stock_qty !== undefined ? matched.stock_qty : 10,
+      price_override: (matched?.price_override !== null && matched?.price_override !== undefined && matched?.price_override !== '')
+        ? matched.price_override
+        : computedPrice,
+      stock_qty: 999,
       variant_image: matched?.variant_image || '',
       enabled: matched?.enabled !== undefined ? matched.enabled : true,
       option_value_ids: valIds,

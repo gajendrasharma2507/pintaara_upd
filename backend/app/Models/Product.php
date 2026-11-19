@@ -138,7 +138,7 @@ class Product extends Model
     public function optionGroups()
     {
         return $this->belongsToMany(ProductOptionGroup::class, 'product_option_assignments', 'product_id', 'group_id')
-            ->withPivot(['display_type', 'is_required', 'selected_values', 'sort_order'])
+            ->withPivot(['display_type', 'is_required', 'selected_values', 'value_prices', 'sort_order'])
             ->withTimestamps()
             ->orderBy('product_option_assignments.sort_order', 'asc');
     }

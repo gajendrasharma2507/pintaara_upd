@@ -871,6 +871,7 @@ class AdminWebController extends Controller
                         'display_type' => $item['display_type'] ?? null,
                         'is_required' => !empty($item['is_required']),
                         'selected_values' => !empty($item['selected_values']) ? (array)$item['selected_values'] : null,
+                        'value_prices' => !empty($item['value_prices']) ? (array)$item['value_prices'] : null,
                         'sort_order' => (int)($item['sort_order'] ?? ($idx + 1)),
                     ]);
                 }
