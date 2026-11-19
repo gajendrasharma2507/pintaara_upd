@@ -24,15 +24,20 @@ class ProductVariant extends Model
         'weight_override_grams',
         'stock_qty',
         'enabled',
+        'variant_image',
+        'price_override',
+        'option_combination',
     ];
 
     protected $casts = [
         'weight' => 'float',
         'price' => 'float',
+        'price_override' => 'float',
         'stock' => 'integer',
         'weight_override_grams' => 'float',
         'stock_qty' => 'integer',
         'enabled' => 'boolean',
+        'option_combination' => 'array',
     ];
 
     // Relationships

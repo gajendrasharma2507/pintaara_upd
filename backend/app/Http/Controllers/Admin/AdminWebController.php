@@ -14,6 +14,10 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PriceMovementLog;
 use App\Models\Product;
+use App\Models\ProductOptionGroup;
+use App\Models\ProductOptionValue;
+use App\Models\ProductOptionAssignment;
+use App\Models\ProductVariant;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\CustomerNotificationService;
@@ -532,9 +536,12 @@ class AdminWebController extends Controller
         $collections = CollectionMaster::orderBy('sort_order')->get();
         $purities = MetalPurity::orderBy('sort_order')->get();
         $finishes = FinishOption::orderBy('sort_order')->get();
+        $optionGroups = ProductOptionGroup::with(['values' => function ($q) {
+            $q->orderBy('sort_order', 'asc');
+        }])->orderBy('sort_order', 'asc')->get();
         $rates = $this->pricingService->getAllPurityRates();
         $gstPercent = (float) Setting::get('gst_percent', 3.0);
-        return view('admin.products.create', compact('collections', 'purities', 'finishes', 'rates', 'gstPercent'));
+        return view('admin.products.create', compact('collections', 'purities', 'finishes', 'optionGroups', 'rates', 'gstPercent'));
     }
 
     public function storeProduct(Request $request)
@@ -593,19 +600,29 @@ class AdminWebController extends Controller
         $product = Product::create($validated);
 
         $this->syncFinishImages($product, $request);
+        $this->syncProductOptionsAndVariants($product, $request);
 
         return redirect()->route('admin.products')->with('success', 'Product created successfully.');
     }
 
     public function editProduct($id)
     {
-        $product = Product::with(['collection', 'images', 'designLog', 'variants.optionValues'])->findOrFail($id);
+        $product = Product::with([
+            'collection', 
+            'images', 
+            'designLog', 
+            'optionAssignments.group.values',
+            'variants.optionValues'
+        ])->findOrFail($id);
         $collections = CollectionMaster::orderBy('sort_order')->get();
         $purities = MetalPurity::orderBy('sort_order')->get();
         $finishes = FinishOption::orderBy('sort_order')->get();
+        $optionGroups = ProductOptionGroup::with(['values' => function ($q) {
+            $q->orderBy('sort_order', 'asc');
+        }])->orderBy('sort_order', 'asc')->get();
         $rates = $this->pricingService->getAllPurityRates();
         $gstPercent = (float) Setting::get('gst_percent', 3.0);
-        return view('admin.products.edit', compact('product', 'collections', 'purities', 'finishes', 'rates', 'gstPercent'));
+        return view('admin.products.edit', compact('product', 'collections', 'purities', 'finishes', 'optionGroups', 'rates', 'gstPercent'));
     }
 
     public function updateProduct(Request $request, $id)
@@ -665,6 +682,7 @@ class AdminWebController extends Controller
         $product->update($validated);
 
         $this->syncFinishImages($product, $request);
+        $this->syncProductOptionsAndVariants($product, $request);
 
         return redirect()->route('admin.products')->with('success', 'Product updated successfully.');
     }
@@ -833,6 +851,81 @@ class AdminWebController extends Controller
             if (!$hasAnyPrimary && $product->images()->count() > 0) {
                 $first = $product->images()->first();
                 $first->update(['is_primary' => true]);
+            }
+        }
+    }
+
+    private function syncProductOptionsAndVariants(Product $product, Request $request): void
+    {
+        // 1. Sync Option Group Assignments
+        $rawAssignments = $request->input('option_assignments_json') ?: $request->input('option_assignments');
+        if ($rawAssignments) {
+            $assignments = is_string($rawAssignments) ? json_decode($rawAssignments, true) : $rawAssignments;
+            if (is_array($assignments)) {
+                ProductOptionAssignment::where('product_id', $product->id)->delete();
+                foreach ($assignments as $idx => $item) {
+                    if (empty($item['group_id'])) continue;
+                    ProductOptionAssignment::create([
+                        'product_id' => $product->id,
+                        'group_id' => $item['group_id'],
+                        'display_type' => $item['display_type'] ?? null,
+                        'is_required' => !empty($item['is_required']),
+                        'selected_values' => !empty($item['selected_values']) ? (array)$item['selected_values'] : null,
+                        'sort_order' => (int)($item['sort_order'] ?? ($idx + 1)),
+                    ]);
+                }
+            }
+        }
+
+        // 2. Sync Variants Matrix
+        $rawVariants = $request->input('variants_matrix_json') ?: $request->input('variants');
+        if ($rawVariants) {
+            $variants = is_string($rawVariants) ? json_decode($rawVariants, true) : $rawVariants;
+            if (is_array($variants)) {
+                $existingIds = [];
+                foreach ($variants as $v) {
+                    $variantId = $v['id'] ?? null;
+                    $sku = !empty($v['sku']) ? trim($v['sku']) : ($product->design_code . '-' . strtoupper(substr(md5(uniqid()), 0, 6)));
+                    $priceOverride = (isset($v['price_override']) && $v['price_override'] !== '') ? (float)$v['price_override'] : null;
+                    $stockQty = isset($v['stock_qty']) ? (int)$v['stock_qty'] : 10;
+                    $enabled = isset($v['enabled']) ? (bool)$v['enabled'] : true;
+                    $combination = $v['combination'] ?? null;
+                    $variantImg = $v['variant_image'] ?? null;
+
+                    $variant = null;
+                    if ($variantId) {
+                        $variant = ProductVariant::where('product_id', $product->id)->find($variantId);
+                    }
+                    if (!$variant) {
+                        $variant = new ProductVariant();
+                        $variant->product_id = $product->id;
+                    }
+
+                    $variant->sku = $sku;
+                    $variant->price_override = $priceOverride;
+                    $variant->price = $priceOverride ?? 0;
+                    $variant->stock_qty = $stockQty;
+                    $variant->stock = $stockQty;
+                    $variant->enabled = $enabled;
+                    $variant->status = $enabled ? 'active' : 'inactive';
+                    $variant->variant_image = $variantImg;
+                    $variant->option_combination = $combination;
+                    $variant->save();
+
+                    $existingIds[] = $variant->id;
+
+                    // Link option value IDs to pivot
+                    if (!empty($v['option_value_ids']) && is_array($v['option_value_ids'])) {
+                        $variant->optionValues()->sync($v['option_value_ids']);
+                    }
+                }
+
+                // If variants were submitted, clean up variants not in matrix
+                if (!empty($existingIds)) {
+                    ProductVariant::where('product_id', $product->id)
+                        ->whereNotIn('id', $existingIds)
+                        ->delete();
+                }
             }
         }
     }

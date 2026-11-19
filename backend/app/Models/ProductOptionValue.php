@@ -10,17 +10,30 @@ class ProductOptionValue extends Model
     use HasFactory;
 
     protected $fillable = [
+        'group_id',
         'product_option_id',
         'value',
+        'code',
+        'color_code',
         'image',
         'price_delta',
+        'sku',
+        'stock_qty',
+        'is_active',
         'sort_order',
     ];
 
     protected $casts = [
         'price_delta' => 'float',
+        'stock_qty' => 'integer',
+        'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];
+
+    public function group()
+    {
+        return $this->belongsTo(ProductOptionGroup::class, 'group_id');
+    }
 
     public function option()
     {

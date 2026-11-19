@@ -129,4 +129,17 @@ class Product extends Model
     {
         return $this->hasMany(ProductFinishPurity::class);
     }
+
+    public function optionAssignments()
+    {
+        return $this->hasMany(ProductOptionAssignment::class)->orderBy('sort_order', 'asc');
+    }
+
+    public function optionGroups()
+    {
+        return $this->belongsToMany(ProductOptionGroup::class, 'product_option_assignments', 'product_id', 'group_id')
+            ->withPivot(['display_type', 'is_required', 'selected_values', 'sort_order'])
+            ->withTimestamps()
+            ->orderBy('product_option_assignments.sort_order', 'asc');
+    }
 }

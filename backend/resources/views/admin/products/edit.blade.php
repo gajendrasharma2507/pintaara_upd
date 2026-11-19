@@ -41,6 +41,68 @@
         $imagesData = collect([['id' => null, 'url' => $url, 'finish_key' => 'YG', 'is_primary' => true, 'sort_order' => 1]]);
       }
     }
+
+    $existingAssignmentsData = [];
+    if (isset($product->optionAssignments)) {
+        foreach ($product->optionAssignments as $assign) {
+            $existingAssignmentsData[] = [
+                'group_id' => $assign->group_id,
+                'display_type' => $assign->display_type,
+                'is_required' => (bool)$assign->is_required,
+                'selected_values' => $assign->selected_values ?? [],
+                'sort_order' => $assign->sort_order,
+            ];
+        }
+    }
+
+    $existingVariantsData = [];
+    if (isset($product->variants)) {
+        foreach ($product->variants as $var) {
+            $valIds = $var->optionValues ? $var->optionValues->pluck('id')->toArray() : [];
+            $comb = $var->option_combination;
+            if (empty($comb) && !empty($valIds) && $var->optionValues) {
+                $comb = $var->optionValues->pluck('value')->implode(' / ');
+            }
+            $existingVariantsData[] = [
+                'id' => $var->id,
+                'sku' => $var->sku,
+                'combination' => is_string($comb) ? $comb : 'Custom Combination',
+                'price_override' => $var->price_override !== null ? $var->price_override : ($var->price > 0 ? $var->price : ''),
+                'stock_qty' => $var->stock_qty ?? $var->stock ?? 10,
+                'variant_image' => $var->variant_image,
+                'enabled' => (bool)($var->enabled ?? ($var->status === 'active')),
+                'option_value_ids' => $valIds,
+            ];
+        }
+    }
+
+    $allOptionGroupsData = [];
+    if (isset($optionGroups)) {
+        foreach ($optionGroups as $og) {
+            $vals = [];
+            foreach ($og->values as $v) {
+                $vals[] = [
+                    'id' => $v->id,
+                    'value' => $v->value,
+                    'code' => $v->code,
+                    'color_code' => $v->color_code,
+                    'image' => $v->image,
+                    'price_delta' => $v->price_delta,
+                    'sku' => $v->sku,
+                    'stock_qty' => $v->stock_qty,
+                    'is_active' => (bool)$v->is_active,
+                ];
+            }
+            $allOptionGroupsData[] = [
+                'id' => $og->id,
+                'name' => $og->name,
+                'code' => $og->code,
+                'display_type' => $og->display_type,
+                'is_required' => (bool)$og->is_required,
+                'values' => $vals,
+            ];
+        }
+    }
   @endphp
 
   <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" onsubmit="syncFormInputs()" class="admin-card" style="padding: 32px; border-radius: 16px; background: var(--admin-surface); border: 1px solid var(--admin-border); display: flex; flex-direction: column; gap: 20px;">
@@ -370,6 +432,86 @@
       </div>
     </div>
 
+    <!-- Dynamic Product Options & Variants System -->
+    <div style="border: 1px solid var(--admin-border); border-radius: 8px; padding: 20px 22px; background: var(--admin-surface); margin-top: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; gap: 12px; flex-wrap: wrap;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label class="admin-label" style="margin: 0; font-size: 14px; font-weight: 700; color: var(--admin-text-primary);">
+              Product Options &amp; Variants
+            </label>
+            <span style="background: #EFF2FE; color: #3C50E0; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase;">
+              Dynamic Options
+            </span>
+          </div>
+          <div style="font-size: 12px; color: var(--admin-text-secondary); margin-top: 4px;">
+            Select which option groups apply to this piece, customize available values, and generate SKU / price / stock variant combinations.
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <a href="{{ route('admin.product-options') }}" target="_blank" class="admin-btn admin-btn-secondary" style="font-size: 11.5px; text-decoration: none;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Manage Global Option Groups
+          </a>
+        </div>
+      </div>
+
+      <!-- Hidden inputs for form submission -->
+      <input type="hidden" name="option_assignments_json" id="option_assignments_json" value="">
+      <input type="hidden" name="variants_matrix_json" id="variants_matrix_json" value="">
+
+      <!-- Option Groups List -->
+      <div id="option_groups_builder_container" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;">
+        <!-- Populated by JavaScript -->
+      </div>
+
+      <!-- Variants Combinations Section -->
+      <div style="border-top: 1px solid var(--admin-border); padding-top: 18px; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h4 style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--admin-text-primary); margin: 0; letter-spacing: 0.04em;">
+              Variant Matrix &amp; Pricing Overrides
+            </h4>
+            <div style="font-size: 11.5px; color: var(--admin-text-secondary); margin-top: 2px;">
+              Manage individual SKUs, stock availability, and optional fixed price overrides per variant combination.
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="btn_generate_variants" class="admin-btn admin-btn-primary" style="padding: 7px 14px; font-size: 12px;">
+              ⚡ Generate Variant Matrix
+            </button>
+            <button type="button" id="btn_add_single_variant" class="admin-btn admin-btn-secondary" style="padding: 7px 12px; font-size: 12px;">
+              + Add Custom Row
+            </button>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto; background: #ffffff; border: 1px solid var(--admin-border); border-radius: 8px;">
+          <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #F8FAFC; border-bottom: 1px solid var(--admin-border); font-size: 11px; text-transform: uppercase; color: var(--admin-text-muted); letter-spacing: 0.05em; text-align: left;">
+                <th style="padding: 9px 14px;">Variant Combination</th>
+                <th style="padding: 9px 14px; width: 180px;">SKU</th>
+                <th style="padding: 9px 14px; width: 140px;">Price Override (₹)</th>
+                <th style="padding: 9px 14px; width: 110px;">Stock Qty</th>
+                <th style="padding: 9px 14px; width: 160px;">Variant Image</th>
+                <th style="padding: 9px 14px; width: 90px;">Status</th>
+                <th style="padding: 9px 14px; width: 60px; text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="variants_matrix_tbody">
+              <!-- Populated by JavaScript -->
+            </tbody>
+          </table>
+          <div id="variants_empty_notice" style="display: none; padding: 24px; text-align: center; color: var(--admin-text-muted); font-size: 12.5px;">
+            No variants generated yet. Click <strong>"⚡ Generate Variant Matrix"</strong> to create combinations from your active options.
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
       <a href="{{ route('admin.products') }}" class="admin-btn-ghost">Cancel</a>
       <button type="submit" class="admin-btn-primary" style="padding: 10px 24px;">Update Piece</button>
@@ -684,6 +826,18 @@ function syncFormInputs() {
       legacyContainer.appendChild(input);
     });
   }
+
+  // Sync Options Assignments
+  const optAssignJson = document.getElementById('option_assignments_json');
+  if (optAssignJson && typeof getOptionAssignmentsPayload === 'function') {
+    optAssignJson.value = JSON.stringify(getOptionAssignmentsPayload());
+  }
+
+  // Sync Variants Matrix
+  const varMatrixJson = document.getElementById('variants_matrix_json');
+  if (varMatrixJson && typeof getVariantsMatrixPayload === 'function') {
+    varMatrixJson.value = JSON.stringify(getVariantsMatrixPayload());
+  }
 }
 
 function escapeHtml(str) {
@@ -831,6 +985,377 @@ function initCustomSections() {
 
   renderCustomSections();
 }
+
+// ==========================================
+// DYNAMIC PRODUCT OPTIONS & VARIANTS BUILDER
+// ==========================================
+const optionGroupsData = {!! json_encode($allOptionGroupsData ?? []) !!};
+const existingAssignments = {!! json_encode($existingAssignmentsData ?? []) !!};
+let currentVariants = {!! json_encode($existingVariantsData ?? []) !!};
+const currentProductCode = {!! json_encode($product->design_code ?? 'PROD') !!};
+
+function initOptionsAndVariantsBuilder() {
+  const container = document.getElementById('option_groups_builder_container');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (!optionGroupsData || optionGroupsData.length === 0) {
+    container.innerHTML = `
+      <div style="padding: 16px; border: 1px dashed var(--admin-border); border-radius: 8px; text-align: center; color: var(--admin-text-muted); font-size: 13px;">
+        No option groups configured in the system yet.
+        <a href="{{ route('admin.product-options') }}" target="_blank" style="color: #3C50E0; font-weight: 600; margin-left: 6px;">+ Create Option Groups</a>
+      </div>
+    `;
+    return;
+  }
+
+  optionGroupsData.forEach((group, gIdx) => {
+    // Determine if assigned
+    const assigned = existingAssignments.find(a => a.group_id === group.id);
+    const isAssigned = !!assigned;
+    const displayType = assigned?.display_type || group.display_type || 'dropdown';
+    const isRequired = assigned ? !!assigned.is_required : !!group.is_required;
+    const selectedValIds = assigned?.selected_values ? assigned.selected_values.map(Number) : [];
+
+    const card = document.createElement('div');
+    card.id = `opt_group_card_${group.id}`;
+    card.style.cssText = `border: 1px solid ${isAssigned ? '#C7D2FE' : 'var(--admin-border)'}; border-radius: 8px; padding: 14px 18px; background: ${isAssigned ? '#F8FAFF' : 'var(--admin-surface)'}; transition: all 0.2s ease;`;
+
+    // Group Header HTML
+    let groupHtml = `
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: ${isAssigned ? '14px' : '0'};">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="chk_group_enable_${group.id}" class="opt-group-enable-chk" data-group-id="${group.id}" ${isAssigned ? 'checked' : ''} style="width: 17px; height: 17px; accent-color: #3C50E0; cursor: pointer;">
+          <label for="chk_group_enable_${group.id}" style="font-size: 13.5px; font-weight: 700; color: var(--admin-text-primary); cursor: pointer; margin: 0;">
+            ${escapeHtml(group.name)}
+          </label>
+          <span style="font-size: 10.5px; font-family: monospace; background: #EEF2F6; color: #475569; padding: 2px 6px; border-radius: 4px;">
+            ${escapeHtml(group.code)}
+          </span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 11.5px; color: var(--admin-text-secondary); font-weight: 500;">Display Type:</label>
+            <select id="sel_group_display_${group.id}" class="admin-input" style="padding: 4px 8px; font-size: 12px; height: 30px; width: auto;" ${!isAssigned ? 'disabled' : ''}>
+              <option value="dropdown" ${displayType === 'dropdown' ? 'selected' : ''}>Dropdown</option>
+              <option value="text_button" ${displayType === 'text_button' ? 'selected' : ''}>Text Button</option>
+              <option value="image_swatch" ${displayType === 'image_swatch' ? 'selected' : ''}>Image Swatch</option>
+            </select>
+          </div>
+
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--admin-text-secondary); cursor: pointer; margin: 0;">
+            <input type="checkbox" id="chk_group_req_${group.id}" ${isRequired ? 'checked' : ''} ${!isAssigned ? 'disabled' : ''} style="accent-color: #3C50E0;">
+            <span>Required</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Values Selection Area -->
+      <div id="opt_group_vals_area_${group.id}" style="display: ${isAssigned ? 'block' : 'none'}; border-top: 1px dashed #CBD5E1; padding-top: 12px; margin-top: 4px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; color: var(--admin-text-muted); letter-spacing: 0.05em;">
+            Available Values for this piece:
+          </span>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn-select-all-vals" data-group-id="${group.id}" style="background: none; border: none; color: #3C50E0; font-size: 11.5px; font-weight: 600; cursor: pointer; padding: 0;">Select All</button>
+            <span style="color: #CBD5E1;">|</span>
+            <button type="button" class="btn-deselect-all-vals" data-group-id="${group.id}" style="background: none; border: none; color: #64748B; font-size: 11.5px; cursor: pointer; padding: 0;">None</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+    `;
+
+    group.values.forEach(val => {
+      // Checked if value is in selectedValIds or if isAssigned without filter
+      const isValChecked = isAssigned ? (selectedValIds.length === 0 || selectedValIds.includes(Number(val.id))) : true;
+      let visualBadge = '';
+      if (val.image) {
+        visualBadge = `<img src="${escapeHtml(val.image)}" style="width: 18px; height: 18px; border-radius: 4px; object-fit: cover; border: 1px solid #CBD5E1;">`;
+      } else if (val.color_code) {
+        visualBadge = `<span style="width: 14px; height: 14px; border-radius: 50%; background: ${escapeHtml(val.color_code)}; border: 1px solid #94A3B8; display: inline-block;"></span>`;
+      }
+
+      let priceDeltaBadge = '';
+      if (val.price_delta > 0) {
+        priceDeltaBadge = `<span style="font-size: 10px; color: #059669; font-weight: 700;">+₹${Number(val.price_delta).toLocaleString('en-IN')}</span>`;
+      } else if (val.price_delta < 0) {
+        priceDeltaBadge = `<span style="font-size: 10px; color: #DC2626; font-weight: 700;">-₹${Math.abs(Number(val.price_delta)).toLocaleString('en-IN')}</span>`;
+      }
+
+      groupHtml += `
+        <label style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid #E2E8F0; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 12px; user-select: none;">
+          <input type="checkbox" class="opt-val-chk group-val-chk-${group.id}" value="${val.id}" data-val-name="${escapeHtml(val.value)}" data-group-id="${group.id}" ${isValChecked ? 'checked' : ''} style="accent-color: #3C50E0;">
+          ${visualBadge}
+          <span style="font-weight: 600; color: var(--admin-text-primary);">${escapeHtml(val.value)}</span>
+          ${priceDeltaBadge}
+        </label>
+      `;
+    });
+
+    groupHtml += `
+        </div>
+      </div>
+    `;
+
+    card.innerHTML = groupHtml;
+    container.appendChild(card);
+
+    // Event listeners for this group card
+    const chkEnable = card.querySelector(`#chk_group_enable_${group.id}`);
+    const selDisplay = card.querySelector(`#sel_group_display_${group.id}`);
+    const chkReq = card.querySelector(`#chk_group_req_${group.id}`);
+    const valsArea = card.querySelector(`#opt_group_vals_area_${group.id}`);
+
+    chkEnable.addEventListener('change', () => {
+      const checked = chkEnable.checked;
+      valsArea.style.display = checked ? 'block' : 'none';
+      selDisplay.disabled = !checked;
+      chkReq.disabled = !checked;
+      card.style.background = checked ? '#F8FAFF' : 'var(--admin-surface)';
+      card.style.borderColor = checked ? '#C7D2FE' : 'var(--admin-border)';
+    });
+
+    const btnSelectAll = card.querySelector(`.btn-select-all-vals[data-group-id="${group.id}"]`);
+    if (btnSelectAll) {
+      btnSelectAll.addEventListener('click', () => {
+        card.querySelectorAll(`.group-val-chk-${group.id}`).forEach(c => c.checked = true);
+      });
+    }
+
+    const btnDeselectAll = card.querySelector(`.btn-deselect-all-vals[data-group-id="${group.id}"]`);
+    if (btnDeselectAll) {
+      btnDeselectAll.addEventListener('click', () => {
+        card.querySelectorAll(`.group-val-chk-${group.id}`).forEach(c => c.checked = false);
+      });
+    }
+  });
+
+  renderVariantsMatrix();
+}
+
+function getOptionAssignmentsPayload() {
+  const payload = [];
+  optionGroupsData.forEach((group, idx) => {
+    const chkEnable = document.getElementById(`chk_group_enable_${group.id}`);
+    if (chkEnable && chkEnable.checked) {
+      const selDisplay = document.getElementById(`sel_group_display_${group.id}`);
+      const chkReq = document.getElementById(`chk_group_req_${group.id}`);
+      const valCheckboxes = document.querySelectorAll(`.group-val-chk-${group.id}:checked`);
+      const valIds = Array.from(valCheckboxes).map(c => Number(c.value));
+
+      payload.push({
+        group_id: group.id,
+        display_type: selDisplay ? selDisplay.value : group.display_type,
+        is_required: chkReq ? chkReq.checked : false,
+        selected_values: valIds,
+        sort_order: idx + 1,
+      });
+    }
+  });
+  return payload;
+}
+
+function getVariantsMatrixPayload() {
+  const tbody = document.getElementById('variants_matrix_tbody');
+  if (!tbody) return currentVariants;
+
+  const rows = tbody.querySelectorAll('tr.variant-row');
+  const payload = [];
+
+  rows.forEach((tr, idx) => {
+    const sku = tr.querySelector('.var-sku-input')?.value || '';
+    const priceOverride = tr.querySelector('.var-price-input')?.value;
+    const stockQty = tr.querySelector('.var-stock-input')?.value || '10';
+    const variantImage = tr.querySelector('.var-image-input')?.value || '';
+    const enabled = tr.querySelector('.var-enabled-chk')?.checked ?? true;
+    const combination = tr.getAttribute('data-combination') || '';
+    const valIdsAttr = tr.getAttribute('data-val-ids') || '';
+    const valIds = valIdsAttr ? valIdsAttr.split(',').map(Number).filter(Boolean) : [];
+    const variantId = tr.getAttribute('data-variant-id') || null;
+
+    payload.push({
+      id: variantId,
+      sku: sku.trim(),
+      combination: combination.trim(),
+      price_override: priceOverride !== '' ? parseFloat(priceOverride) : null,
+      stock_qty: parseInt(stockQty, 10) || 0,
+      variant_image: variantImage.trim(),
+      enabled: enabled,
+      option_value_ids: valIds,
+      sort_order: idx + 1,
+    });
+  });
+
+  currentVariants = payload;
+  return payload;
+}
+
+function renderVariantsMatrix() {
+  const tbody = document.getElementById('variants_matrix_tbody');
+  const emptyNotice = document.getElementById('variants_empty_notice');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (!currentVariants || currentVariants.length === 0) {
+    if (emptyNotice) emptyNotice.style.display = 'block';
+    return;
+  }
+  if (emptyNotice) emptyNotice.style.display = 'none';
+
+  currentVariants.forEach((v, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = 'variant-row';
+    tr.style.cssText = 'border-bottom: 1px solid #F1F5F9; font-size: 12.5px;';
+    tr.setAttribute('data-combination', v.combination || '');
+    tr.setAttribute('data-val-ids', (v.option_value_ids || []).join(','));
+    if (v.id) tr.setAttribute('data-variant-id', v.id);
+
+    tr.innerHTML = `
+      <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">
+        ${escapeHtml(v.combination || 'Custom Variant')}
+      </td>
+      <td style="padding: 8px 14px;">
+        <input type="text" class="admin-input var-sku-input" value="${escapeHtml(v.sku || '')}" placeholder="SKU" style="padding: 5px 8px; font-size: 12px; font-family: monospace;">
+      </td>
+      <td style="padding: 8px 14px;">
+        <input type="number" step="0.01" class="admin-input var-price-input" value="${v.price_override !== null && v.price_override !== undefined ? v.price_override : ''}" placeholder="Base Price" style="padding: 5px 8px; font-size: 12px;">
+      </td>
+      <td style="padding: 8px 14px;">
+        <input type="number" min="0" class="admin-input var-stock-input" value="${v.stock_qty !== undefined ? v.stock_qty : 10}" style="padding: 5px 8px; font-size: 12px;">
+      </td>
+      <td style="padding: 8px 14px;">
+        <input type="text" class="admin-input var-image-input" value="${escapeHtml(v.variant_image || '')}" placeholder="/images/..." style="padding: 5px 8px; font-size: 11.5px;">
+      </td>
+      <td style="padding: 8px 14px; text-align: center;">
+        <input type="checkbox" class="var-enabled-chk" ${v.enabled ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: #10B981; cursor: pointer;" title="Toggle Variant Status">
+      </td>
+      <td style="padding: 8px 14px; text-align: right;">
+        <button type="button" class="btn-remove-variant" data-idx="${idx}" style="background: none; border: none; color: #DC2626; cursor: pointer; padding: 4px;" title="Remove row">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </td>
+    `;
+
+    const btnRemove = tr.querySelector('.btn-remove-variant');
+    btnRemove.addEventListener('click', () => {
+      tr.remove();
+      getVariantsMatrixPayload();
+      if (tbody.children.length === 0 && emptyNotice) {
+        emptyNotice.style.display = 'block';
+      }
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function generateVariantMatrix() {
+  // 1. Gather all active option groups and their checked values
+  const activeGroups = [];
+  optionGroupsData.forEach(g => {
+    const chk = document.getElementById(`chk_group_enable_${g.id}`);
+    if (chk && chk.checked) {
+      const checkedVals = [];
+      document.querySelectorAll(`.group-val-chk-${g.id}:checked`).forEach(c => {
+        checkedVals.push({
+          id: Number(c.value),
+          name: c.getAttribute('data-val-name'),
+          group_code: g.code,
+        });
+      });
+      if (checkedVals.length > 0) {
+        activeGroups.push({ group: g, values: checkedVals });
+      }
+    }
+  });
+
+  if (activeGroups.length === 0) {
+    alert('Please enable at least one Option Group and select at least one value.');
+    return;
+  }
+
+  // 2. Compute Cartesian Product of values
+  function cartesian(arr) {
+    return arr.reduce((acc, curr) => {
+      const res = [];
+      acc.forEach(a => {
+        curr.values.forEach(b => {
+          res.push(a.concat([b]));
+        });
+      });
+      return res;
+    }, [[]]);
+  }
+
+  const combinations = cartesian(activeGroups);
+  const oldVariants = getVariantsMatrixPayload();
+
+  const newVariants = [];
+  combinations.forEach(combList => {
+    const combText = combList.map(v => v.name).join(' / ');
+    const valIds = combList.map(v => v.id).sort((a,b) => a - b);
+
+    // Look for matching existing variant
+    const matched = oldVariants.find(ov => {
+      if (ov.option_value_ids && ov.option_value_ids.length === valIds.length) {
+        const sortedOld = [...ov.option_value_ids].sort((a,b) => a - b);
+        return JSON.stringify(sortedOld) === JSON.stringify(valIds);
+      }
+      return ov.combination === combText;
+    });
+
+    const skuSuffix = combList.map(v => v.name.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4)).join('-');
+    const defaultSku = `${currentProductCode}-${skuSuffix}`;
+
+    newVariants.push({
+      id: matched?.id || null,
+      sku: matched?.sku || defaultSku,
+      combination: combText,
+      price_override: matched?.price_override ?? null,
+      stock_qty: matched?.stock_qty !== undefined ? matched.stock_qty : 10,
+      variant_image: matched?.variant_image || '',
+      enabled: matched?.enabled !== undefined ? matched.enabled : true,
+      option_value_ids: valIds,
+    });
+  });
+
+  currentVariants = newVariants;
+  renderVariantsMatrix();
+}
+
+function addSingleCustomVariant() {
+  const sku = `${currentProductCode}-CUSTOM-${Math.floor(1000 + Math.random() * 9000)}`;
+  currentVariants.push({
+    id: null,
+    sku: sku,
+    combination: 'Custom Variant Option',
+    price_override: null,
+    stock_qty: 10,
+    variant_image: '',
+    enabled: true,
+    option_value_ids: [],
+  });
+  renderVariantsMatrix();
+}
+
+// Bind Matrix Buttons
+const btnGenVariants = document.getElementById('btn_generate_variants');
+if (btnGenVariants) {
+  btnGenVariants.addEventListener('click', generateVariantMatrix);
+}
+
+const btnAddVariant = document.getElementById('btn_add_single_variant');
+if (btnAddVariant) {
+  btnAddVariant.addEventListener('click', addSingleCustomVariant);
+}
+
+// Initialize on DOMContentLoaded
+initOptionsAndVariantsBuilder();
+
 </script>
 @endsection
 
