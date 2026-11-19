@@ -529,13 +529,8 @@ export default function DynamicCollectionPage({ params }) {
                 // Skip certificate standards or empty names
                 if (lower.includes('certificate') || !optName) return;
 
-                // Normalize key to deduplicate e.g. "Metal Purity (KT)" vs "METAL PURITY (KT)"
-                const normKey = lower.includes('purity') ? 'purity'
-                    : lower.includes('finish') ? 'finish'
-                        : lower.includes('size') ? 'size'
-                            : (lower.includes('gem') || (lower.includes('stone') && !lower.includes('clarity'))) ? 'gem'
-                                : lower.includes('chain') ? 'chain'
-                                    : lower;
+                // Deduplicate by group ID or exact internal name, so any custom option groups created by Admin are preserved
+                const normKey = opt.id ? `id_${opt.id}` : optName.toLowerCase();
 
                 if (seen.has(normKey)) return;
                 seen.add(normKey);
