@@ -665,13 +665,22 @@ export default function DynamicCollectionPage({ params }) {
 
     const isBaseGroup = (name) => {
         const l = (name || '').toLowerCase();
-        return l.includes('purity') || l.includes('karat') || l.includes('finish') || l.includes('tone');
+        if (l.includes('gem') || l.includes('stone')) return false;
+        return l.includes('purity') || l.includes('karat') || l.includes('finish') || l === 'tone' || l.includes('hue');
     };
 
     // 100% Dynamic Category Groups strictly derived from Admin Display Type:
     const dropdownGroups = useMemo(() => {
         if (!activeOptionGroups) return [];
-        return activeOptionGroups.filter((g) => !isBaseGroup(g.name) && g.input_type === 'dropdown');
+        const grps = activeOptionGroups.filter((g) => !isBaseGroup(g.name) && g.input_type === 'dropdown');
+        // Sort so CHAIN comes before SIZE to match atelier layout specifications
+        return [...grps].sort((a, b) => {
+            const aName = a.name.toLowerCase();
+            const bName = b.name.toLowerCase();
+            if (aName.includes('chain') && bName.includes('size')) return -1;
+            if (aName.includes('size') && bName.includes('chain')) return 1;
+            return 0;
+        });
     }, [activeOptionGroups]);
 
     const swatchGroups = useMemo(() => {
