@@ -494,10 +494,9 @@
               <tr style="background: #F8FAFC; border-bottom: 1px solid var(--admin-border); font-size: 11px; text-transform: uppercase; color: var(--admin-text-muted); letter-spacing: 0.05em; text-align: left;">
                 <th style="padding: 9px 14px;">Variant Combination</th>
                 <th style="padding: 9px 14px; width: 180px;">SKU</th>
-                <th style="padding: 9px 14px; width: 140px;">Price Override (₹)</th>
-                <th style="padding: 9px 14px; width: 110px;">Stock Qty</th>
-                <th style="padding: 9px 14px; width: 160px;">Variant Image</th>
-                <th style="padding: 9px 14px; width: 90px;">Status</th>
+                <th style="padding: 9px 14px; width: 160px;">Price Override (₹)</th>
+                <th style="padding: 9px 14px; width: 180px;">Variant Image</th>
+                <th style="padding: 9px 14px; width: 90px; text-align: center;">Status</th>
                 <th style="padding: 9px 14px; width: 60px; text-align: right;">Action</th>
               </tr>
             </thead>
@@ -1168,7 +1167,6 @@ function getVariantsMatrixPayload() {
   rows.forEach((tr, idx) => {
     const sku = tr.querySelector('.var-sku-input')?.value || '';
     const priceOverride = tr.querySelector('.var-price-input')?.value;
-    const stockQty = tr.querySelector('.var-stock-input')?.value || '10';
     const variantImage = tr.querySelector('.var-image-input')?.value || '';
     const enabled = tr.querySelector('.var-enabled-chk')?.checked ?? true;
     const combination = tr.getAttribute('data-combination') || '';
@@ -1181,7 +1179,7 @@ function getVariantsMatrixPayload() {
       sku: sku.trim(),
       combination: combination.trim(),
       price_override: priceOverride !== '' ? parseFloat(priceOverride) : null,
-      stock_qty: parseInt(stockQty, 10) || 0,
+      stock_qty: 999,
       variant_image: variantImage.trim(),
       enabled: enabled,
       option_value_ids: valIds,
@@ -1223,9 +1221,6 @@ function renderVariantsMatrix() {
       </td>
       <td style="padding: 8px 14px;">
         <input type="number" step="0.01" class="admin-input var-price-input" value="${v.price_override !== null && v.price_override !== undefined ? v.price_override : ''}" placeholder="Base Price" style="padding: 5px 8px; font-size: 12px;">
-      </td>
-      <td style="padding: 8px 14px;">
-        <input type="number" min="0" class="admin-input var-stock-input" value="${v.stock_qty !== undefined ? v.stock_qty : 10}" style="padding: 5px 8px; font-size: 12px;">
       </td>
       <td style="padding: 8px 14px;">
         <input type="text" class="admin-input var-image-input" value="${escapeHtml(v.variant_image || '')}" placeholder="/images/..." style="padding: 5px 8px; font-size: 11.5px;">
