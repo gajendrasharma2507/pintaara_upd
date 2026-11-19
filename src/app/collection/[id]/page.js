@@ -661,6 +661,31 @@ export default function DynamicCollectionPage({ params }) {
     const hasGem = Boolean(gemGroup && gemGroup.values?.length > 0);
     const hasChain = Boolean(chainGroup && chainGroup.values?.length > 0);
 
+    const extraDropdownGroups = useMemo(() => {
+        if (!activeOptionGroups) return [];
+        return activeOptionGroups.filter((g) => {
+            const l = (g.name || '').toLowerCase();
+            if (l.includes('purity') || l.includes('karat') || l.includes('finish') || l.includes('tone')) return false;
+            if (l.includes('size') || g.code === 'SIZE' || l.includes('chain') || g.code === 'CHAIN') return false;
+            if (l.includes('gem') || l.includes('stone') || l.includes('diamond') || g.code === 'GEM') return false;
+            return g.input_type === 'dropdown';
+        });
+    }, [activeOptionGroups]);
+
+    const extraSwatchGroups = useMemo(() => {
+        if (!activeOptionGroups) return [];
+        return activeOptionGroups.filter((g) => {
+            const l = (g.name || '').toLowerCase();
+            if (l.includes('purity') || l.includes('karat') || l.includes('finish') || l.includes('tone')) return false;
+            if (l.includes('size') || g.code === 'SIZE' || l.includes('chain') || g.code === 'CHAIN') return false;
+            if (l.includes('gem') || l.includes('stone') || l.includes('diamond') || g.code === 'GEM') return false;
+            return g.input_type === 'swatch_image';
+        });
+    }, [activeOptionGroups]);
+
+    const hasDropdowns = Boolean(hasSize || hasChain || extraDropdownGroups.length > 0);
+    const hasSwatches = Boolean(hasGem || extraSwatchGroups.length > 0);
+
     // Dynamic available finishes filtered by admin available_finishes & finishGroup
     const availableFinishes = useMemo(() => {
         const adminFinishes = Array.isArray(productDetail?.available_finishes) && productDetail.available_finishes.length > 0
@@ -909,6 +934,58 @@ export default function DynamicCollectionPage({ params }) {
         }));
     };
 
+    // Dynamic Variant Resolution: find the matching variant from productDetail.variants
+    const activeVariant = useMemo(() => {
+        const variants = productDetail?.variants;
+        if (!variants || !Array.isArray(variants) || variants.length === 0) return null;
+
+        const activeSelections = [];
+        if (selectedPurity) activeSelections.push(selectedPurity.toLowerCase().trim());
+        if (selectedFinishCode) {
+            activeSelections.push(selectedFinishCode.toLowerCase().trim());
+            const finishObj = availableFinishes?.find(f => normalizeFinishKey(f.code || f.value) === normalizeFinishKey(selectedFinishCode));
+            if (finishObj?.value) activeSelections.push(finishObj.value.toLowerCase().trim());
+        }
+        if (hasSize && selectedSize) {
+            activeSelections.push(String(selectedSize).toLowerCase().trim());
+        }
+        if (hasChain && selectedChain) {
+            activeSelections.push(String(selectedChain).toLowerCase().trim());
+        }
+        Object.entries(selectedOptions).forEach(([k, v]) => {
+            const valStr = typeof v === 'object' ? (v?.value || '') : String(v || '');
+            if (valStr) activeSelections.push(valStr.toLowerCase().trim());
+        });
+
+        // 1. Try to find a variant matching all options
+        let matched = variants.find(v => {
+            if (!v.enabled && v.enabled !== undefined) return false;
+
+            // Check option_values pivot
+            if (v.option_values && v.option_values.length > 0) {
+                const matchesAllValues = v.option_values.every(ov => {
+                    const ovVal = (ov.value || '').toLowerCase().trim();
+                    const ovCode = (ov.code || '').toLowerCase().trim();
+                    return activeSelections.some(s => s === ovVal || (ovCode && s === ovCode) || s.includes(ovVal) || ovVal.includes(s));
+                });
+                if (matchesAllValues) return true;
+            }
+
+            // Check option_combination string e.g. "18KT / Yellow Gold / Size 12 / Box"
+            if (v.combination) {
+                const parts = v.combination.split('/').map(p => p.trim().toLowerCase());
+                const matchesAllParts = parts.every(p => {
+                    return activeSelections.some(s => s === p || s.includes(p) || p.includes(s));
+                });
+                if (matchesAllParts) return true;
+            }
+
+            return false;
+        });
+
+        return matched || null;
+    }, [productDetail?.variants, selectedPurity, selectedFinishCode, selectedSize, selectedChain, selectedOptions, availableFinishes, hasSize, hasChain]);
+
     // 2. Use the backend pricing contract so listing and detail MRP stay identical.
     useEffect(() => {
         if (categoryInfo || !productDetail) return;
@@ -1155,9 +1232,16 @@ export default function DynamicCollectionPage({ params }) {
             k.toLowerCase().includes('chain')
         );
 
+        const variantPrice = (activeVariant && (Number(activeVariant.price_override) > 0 || Number(activeVariant.price) > 0))
+            ? Number(activeVariant.price_override || activeVariant.price)
+            : (priceBreakdown?.total || 90640);
+
         const item = {
             id: productDetail?.design_code || productDetail?.id || resolvedParams?.id,
             code: productDetail?.design_code || String(productDetail?.id || resolvedParams?.id),
+            sku: activeVariant?.sku || productDetail?.design_code || '',
+            variant_id: activeVariant?.id || null,
+            variant_title: activeVariant?.combination || null,
             name: productDetail?.name || 'Pintaara Bespoke Piece',
             metal: purityEntry ? purityEntry[1]?.value : '22KT',
             finish: finishEntry ? finishEntry[1]?.value : (finishBarsData.find(b => b.code === normalizeFinishKey(selectedFinishCode))?.name || 'Yellow Gold'),
@@ -1169,11 +1253,11 @@ export default function DynamicCollectionPage({ params }) {
                 value: v.value,
                 price_delta: v.price_delta || 0,
             })),
-            price: priceBreakdown?.total || 90640,
+            price: variantPrice,
             weight_used: priceBreakdown?.weight_grams || 8.5,
             price_breakdown: priceBreakdown,
             qty: 1,
-            image: thumbnails[activeImgIndex]?.src || thumbnails[0]?.src || '/images/products/pendant.png',
+            image: (activeVariant?.variant_image && resolveImageUrl(activeVariant.variant_image)) || thumbnails[activeImgIndex]?.src || thumbnails[0]?.src || '/images/products/pendant.png',
         };
         addToCart(item);
         router.push('/bag');
@@ -1340,11 +1424,18 @@ export default function DynamicCollectionPage({ params }) {
         );
     }
 
-    const displayPrice = priceBreakdown?.total
-        ? Number(Math.round(priceBreakdown.total)).toLocaleString('en-IN')
-        : (productDetail?.base_pricing?.total_price
-            ? Number(Math.round(productDetail.base_pricing.total_price)).toLocaleString('en-IN')
-            : '0');
+    const displayPrice = (() => {
+        if (activeVariant && (Number(activeVariant.price_override) > 0 || Number(activeVariant.price) > 0)) {
+            return Number(Math.round(activeVariant.price_override || activeVariant.price)).toLocaleString('en-IN');
+        }
+        if (priceBreakdown?.total) {
+            return Number(Math.round(priceBreakdown.total)).toLocaleString('en-IN');
+        }
+        if (productDetail?.base_pricing?.total_price) {
+            return Number(Math.round(productDetail.base_pricing.total_price)).toLocaleString('en-IN');
+        }
+        return '0';
+    })();
 
     const rawCustomSections = productDetail?.custom_sections;
     let customSections = [];
@@ -1568,111 +1659,185 @@ export default function DynamicCollectionPage({ params }) {
                         );
                     })()}
 
-                    {/* SIZE and/or GEM: Only render if at least one is enabled */}
-                    {(hasSize || hasGem) && (
-                        <div className={hasSize && hasGem ? "atelier-size-gem-row" : "atelier-single-option-row"}>
-                            {hasSize && (
-                                <div className="atelier-control-group" style={{ marginBottom: 0, maxWidth: hasGem ? '100%' : '50%' }}>
-                                    <div className="atelier-spec-label">SIZE</div>
-                                    <div className="atelier-box-select-wrapper">
-                                        <select
-                                            className="atelier-box-select"
-                                            value={selectedSize}
-                                            onChange={(e) => {
-                                                const chosenVal = e.target.value;
-                                                const foundObj = sizeGroup.values.find((s) => (s.value || s) === chosenVal || (s.value || s).replace(/^(Ring\s*Size|Size)\s*/i, '') === chosenVal);
-                                                setSelectedSize(chosenVal);
-                                                const grpName = sizeGroup?.name || 'Size';
-                                                handleSelectOption(grpName, { value: foundObj ? foundObj.value : chosenVal, price_delta: 0 });
-                                            }}
-                                        >
-                                            {sizeGroup.values.map((szObj) => {
-                                                const szVal = typeof szObj === 'string' ? szObj : szObj.value;
-                                                const cleanSz = szVal.replace(/^(Ring\s*Size|Size)\s*/i, '');
-                                                return (
-                                                    <option key={szObj.id || szVal} value={cleanSz}>
-                                                        {cleanSz}
-                                                    </option>
-                                                );
-                                            })}
-                                        </select>
-                                    </div>
-                                </div>
-                            )}
-
-                            {hasGem && (
-                                <div className="atelier-control-group" style={{ marginBottom: 0 }}>
-                                    <div className="atelier-spec-label">GEM / STONE OPTIONS</div>
-                                    <div className="atelier-gems-row">
-                                        {gemGroup.values.map((gem, idx) => {
-                                            const valLower = (gem.value || '').toLowerCase();
-                                            const codeLower = (gem.code || '').toLowerCase();
-                                            const isNoStone = valLower.includes('no stone') || valLower.includes('solid gold') || valLower.includes('none');
-
-                                            const typeStr = isNoStone ? 'none'
-                                                : codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
-                                                    : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
-                                                        : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
-                                                            : codeLower.includes('rub') || valLower.includes('rub') ? 'ruby'
-                                                                : 'diamond';
-
-                                            const grpName = gemGroup?.name || 'Gem & Stone Options';
-                                            const currentVal = selectedOptions[grpName]?.value || selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value;
-                                            const isSelected = currentVal ? currentVal === gem.value : (idx === 0);
-
-                                            const rawDelta = parseFloat(gem.price_delta) || 0;
-                                            const delta = Math.abs(rawDelta);
-                                            const gemTitle = delta > 0 ? `${gem.value} (+₹${delta.toLocaleString('en-IN')})` : gem.value;
-
-                                            return (
-                                                <FacetedGemstone
-                                                    key={gem.id || gem.code || gem.value || idx}
-                                                    type={typeStr}
-                                                    imageUrl={isNoStone ? null : (gem.image || `/images/gems/${typeStr}.png`)}
-                                                    title={gemTitle}
-                                                    isSelected={isSelected}
-                                                    onClick={() => {
-                                                        setSelectedGem(typeStr);
-                                                        handleSelectOption(grpName, { value: gem.value, price_delta: delta, image: gem.image });
+                    {/* TWO-COLUMN LAYOUT: LEFT = DROPDOWNS (SIZE, CHAIN, etc.) | RIGHT = IMAGE SWATCHES (GEM, etc.) */}
+                    {(hasDropdowns || hasSwatches) && (
+                        <div className={hasDropdowns && hasSwatches ? "atelier-size-gem-row" : "atelier-single-option-row"}>
+                            {/* LEFT COLUMN: All Dropdown selections stacked vertically */}
+                            {hasDropdowns && (
+                                <div className="atelier-dropdowns-col" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                    {hasSize && (
+                                        <div className="atelier-control-group" style={{ marginBottom: 0 }}>
+                                            <div className="atelier-spec-label">SIZE</div>
+                                            <div className="atelier-box-select-wrapper">
+                                                <select
+                                                    className="atelier-box-select"
+                                                    value={selectedSize}
+                                                    onChange={(e) => {
+                                                        const chosenVal = e.target.value;
+                                                        const foundObj = sizeGroup.values.find((s) => (s.value || s) === chosenVal || (s.value || s).replace(/^(Ring\s*Size|Size)\s*/i, '') === chosenVal);
+                                                        setSelectedSize(chosenVal);
+                                                        const grpName = sizeGroup?.name || 'Size';
+                                                        handleSelectOption(grpName, { value: foundObj ? foundObj.value : chosenVal, price_delta: 0 });
                                                     }}
-                                                />
-                                            );
-                                        })}
-                                    </div>
+                                                >
+                                                    {sizeGroup.values.map((szObj) => {
+                                                        const szVal = typeof szObj === 'string' ? szObj : szObj.value;
+                                                        const cleanSz = szVal.replace(/^(Ring\s*Size|Size)\s*/i, '');
+                                                        return (
+                                                            <option key={szObj.id || szVal} value={cleanSz}>
+                                                                {cleanSz}
+                                                            </option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {hasChain && (
+                                        <div className="atelier-control-group" style={{ marginBottom: 0 }}>
+                                            <div className="atelier-spec-label">CHAIN</div>
+                                            <div className="atelier-box-select-wrapper">
+                                                <select
+                                                    className="atelier-box-select"
+                                                    value={selectedChain}
+                                                    onChange={(e) => {
+                                                        const chosenVal = e.target.value;
+                                                        const foundObj = chainGroup.values.find((c) => (c.value || c) === chosenVal || (c.code || '') === chosenVal);
+                                                        setSelectedChain(chosenVal);
+                                                        handleSelectOption('CHAIN', {
+                                                            value: chosenVal,
+                                                            price_delta: Number(foundObj?.price_delta || (chosenVal === 'None' ? -8000 : chosenVal === 'Rope' ? 3000 : 0))
+                                                        });
+                                                    }}
+                                                >
+                                                    {chainGroup.values.map((chObj) => {
+                                                        const chVal = typeof chObj === 'string' ? chObj : chObj.value;
+                                                        const cleanCh = chVal.replace(/\s*Chain\s*/i, ' ').trim();
+                                                        return (
+                                                            <option key={chObj.id || chVal} value={cleanCh}>
+                                                                {cleanCh}
+                                                            </option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {extraDropdownGroups.map(grp => (
+                                        <div key={grp.id || grp.name} className="atelier-control-group" style={{ marginBottom: 0 }}>
+                                            <div className="atelier-spec-label">{grp.name.toUpperCase()}</div>
+                                            <div className="atelier-box-select-wrapper">
+                                                <select
+                                                    className="atelier-box-select"
+                                                    value={selectedOptions[grp.name]?.value || grp.values[0]?.value}
+                                                    onChange={(e) => {
+                                                        const chosenVal = e.target.value;
+                                                        const foundObj = grp.values.find(v => (v.value || v) === chosenVal);
+                                                        handleSelectOption(grp.name, {
+                                                            value: chosenVal,
+                                                            code: foundObj?.code || '',
+                                                            price_delta: Number(foundObj?.price_delta || 0)
+                                                        });
+                                                    }}
+                                                >
+                                                    {grp.values.map(v => (
+                                                        <option key={v.id || v.value} value={v.value}>
+                                                            {v.value} {v.price_delta > 0 ? `(+₹${Number(v.price_delta).toLocaleString('en-IN')})` : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
-                        </div>
-                    )}
 
-                    {/* CHAIN — only render if chain option is enabled for this piece */}
-                    {hasChain && (
-                        <div className="atelier-control-group" style={{ marginTop: '0.9rem' }}>
-                            <div className="atelier-spec-label">CHAIN</div>
-                            <div className="atelier-box-select-wrapper" style={{ maxWidth: '50%' }}>
-                                <select
-                                    className="atelier-box-select"
-                                    value={selectedChain}
-                                    onChange={(e) => {
-                                        const chosenVal = e.target.value;
-                                        const foundObj = chainGroup.values.find((c) => (c.value || c) === chosenVal || (c.code || '') === chosenVal);
-                                        setSelectedChain(chosenVal);
-                                        handleSelectOption('CHAIN', {
-                                            value: chosenVal,
-                                            price_delta: Number(foundObj?.price_delta || (chosenVal === 'None' ? -8000 : chosenVal === 'Rope' ? 3000 : 0))
-                                        });
-                                    }}
-                                >
-                                    {chainGroup.values.map((chObj) => {
-                                        const chVal = typeof chObj === 'string' ? chObj : chObj.value;
-                                        const cleanCh = chVal.replace(/\s*Chain\s*/i, ' ').trim();
-                                        return (
-                                            <option key={chObj.id || chVal} value={cleanCh}>
-                                                {cleanCh}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                            </div>
+                            {/* RIGHT COLUMN: All Image Swatches (GEM / STONE OPTIONS, etc.) */}
+                            {hasSwatches && (
+                                <div className="atelier-swatches-col" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                    {hasGem && (
+                                        <div className="atelier-control-group" style={{ marginBottom: 0 }}>
+                                            <div className="atelier-spec-label">GEM / STONE OPTIONS</div>
+                                            <div className="atelier-gems-row">
+                                                {gemGroup.values.map((gem, idx) => {
+                                                    const valLower = (gem.value || '').toLowerCase();
+                                                    const codeLower = (gem.code || '').toLowerCase();
+                                                    const isNoStone = valLower.includes('no stone') || valLower.includes('solid gold') || valLower.includes('none');
+
+                                                    const typeStr = isNoStone ? 'none'
+                                                        : codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
+                                                            : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
+                                                                : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
+                                                                    : codeLower.includes('rub') || valLower.includes('rub') ? 'ruby'
+                                                                        : 'diamond';
+
+                                                    const grpName = gemGroup?.name || 'Gem & Stone Options';
+                                                    const currentVal = selectedOptions[grpName]?.value || selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value;
+                                                    const isSelected = currentVal ? currentVal === gem.value : (idx === 0);
+
+                                                    const rawDelta = parseFloat(gem.price_delta) || 0;
+                                                    const delta = Math.abs(rawDelta);
+                                                    const gemTitle = delta > 0 ? `${gem.value} (+₹${delta.toLocaleString('en-IN')})` : gem.value;
+
+                                                    return (
+                                                        <FacetedGemstone
+                                                            key={gem.id || gem.code || gem.value || idx}
+                                                            type={typeStr}
+                                                            imageUrl={isNoStone ? null : (gem.image || `/images/gems/${typeStr}.png`)}
+                                                            title={gemTitle}
+                                                            isSelected={isSelected}
+                                                            onClick={() => {
+                                                                setSelectedGem(typeStr);
+                                                                handleSelectOption(grpName, { value: gem.value, price_delta: delta, image: gem.image });
+                                                            }}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {extraSwatchGroups.map(grp => (
+                                        <div key={grp.id || grp.name} className="atelier-control-group" style={{ marginBottom: 0 }}>
+                                            <div className="atelier-spec-label">{grp.name.toUpperCase()}</div>
+                                            <div className="atelier-gems-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                                {grp.values.map((sVal, idx) => {
+                                                    const isSel = (selectedOptions[grp.name]?.value === sVal.value) || (!selectedOptions[grp.name] && idx === 0);
+                                                    return (
+                                                        <button
+                                                            key={sVal.id || sVal.value}
+                                                            type="button"
+                                                            title={sVal.value}
+                                                            onClick={() => handleSelectOption(grp.name, { value: sVal.value, code: sVal.code, price_delta: Number(sVal.price_delta || 0), image: sVal.image })}
+                                                            style={{
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                borderRadius: '50%',
+                                                                border: isSel ? '2px solid #C9A961' : '1px solid #CBD5E1',
+                                                                padding: 0,
+                                                                background: sVal.hex_color || '#fff',
+                                                                cursor: 'pointer',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                overflow: 'hidden',
+                                                                outline: 'none',
+                                                                boxShadow: isSel ? '0 0 0 2px rgba(201,169,97,0.3)' : 'none',
+                                                            }}
+                                                        >
+                                                            {sVal.image && (
+                                                                <img src={sVal.image} alt={sVal.value} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 
