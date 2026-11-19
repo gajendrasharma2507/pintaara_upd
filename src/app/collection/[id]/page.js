@@ -533,16 +533,17 @@ export default function DynamicCollectionPage({ params }) {
                 const normKey = lower.includes('purity') ? 'purity'
                     : lower.includes('finish') ? 'finish'
                         : lower.includes('size') ? 'size'
-                            : lower.includes('gem') || lower.includes('stone') ? 'gem'
+                            : (lower.includes('gem') || (lower.includes('stone') && !lower.includes('clarity'))) ? 'gem'
                                 : lower.includes('chain') ? 'chain'
                                     : lower;
 
                 if (seen.has(normKey)) return;
                 seen.add(normKey);
 
-                let inputType = opt.input_type;
+                let inputType = opt.input_type || opt.display_type;
+                if (inputType === 'image_swatch') inputType = 'swatch_image';
                 if (!inputType) {
-                    if (lower.includes('finish') || lower.includes('gem') || lower.includes('stone') || lower.includes('color')) {
+                    if (lower.includes('finish') || lower.includes('gem') || (lower.includes('stone') && !lower.includes('clarity')) || lower.includes('color')) {
                         inputType = 'swatch_image';
                     } else if (lower.includes('chain') || lower.includes('size')) {
                         inputType = 'dropdown';
@@ -646,7 +647,8 @@ export default function DynamicCollectionPage({ params }) {
     const gemGroup = useMemo(() => {
         return activeOptionGroups?.find((g) => {
             const l = (g.name || '').toLowerCase();
-            return l.includes('gem') || l.includes('stone') || l.includes('diamond') || g.code === 'GEM';
+            if (l.includes('clarity')) return false;
+            return l.includes('gem') || (l.includes('stone') && !l.includes('clarity')) || g.code === 'GEM' || (l.includes('diamond') && !l.includes('clarity'));
         });
     }, [activeOptionGroups]);
 
@@ -667,7 +669,7 @@ export default function DynamicCollectionPage({ params }) {
             const l = (g.name || '').toLowerCase();
             if (l.includes('purity') || l.includes('karat') || l.includes('finish') || l.includes('tone')) return false;
             if (l.includes('size') || g.code === 'SIZE' || l.includes('chain') || g.code === 'CHAIN') return false;
-            if (l.includes('gem') || l.includes('stone') || l.includes('diamond') || g.code === 'GEM') return false;
+            if (l.includes('gem') || (l.includes('stone') && !l.includes('clarity')) || g.code === 'GEM') return false;
             return g.input_type === 'dropdown';
         });
     }, [activeOptionGroups]);
@@ -678,8 +680,19 @@ export default function DynamicCollectionPage({ params }) {
             const l = (g.name || '').toLowerCase();
             if (l.includes('purity') || l.includes('karat') || l.includes('finish') || l.includes('tone')) return false;
             if (l.includes('size') || g.code === 'SIZE' || l.includes('chain') || g.code === 'CHAIN') return false;
-            if (l.includes('gem') || l.includes('stone') || l.includes('diamond') || g.code === 'GEM') return false;
-            return g.input_type === 'swatch_image';
+            if (l.includes('gem') || (l.includes('stone') && !l.includes('clarity')) || g.code === 'GEM') return false;
+            return g.input_type === 'swatch_image' || g.input_type === 'image_swatch';
+        });
+    }, [activeOptionGroups]);
+
+    const extraButtonGroups = useMemo(() => {
+        if (!activeOptionGroups) return [];
+        return activeOptionGroups.filter((g) => {
+            const l = (g.name || '').toLowerCase();
+            if (l.includes('purity') || l.includes('karat') || l.includes('finish') || l.includes('tone')) return false;
+            if (l.includes('size') || g.code === 'SIZE' || l.includes('chain') || g.code === 'CHAIN') return false;
+            if (l.includes('gem') || (l.includes('stone') && !l.includes('clarity')) || g.code === 'GEM') return false;
+            return g.input_type === 'text_button';
         });
     }, [activeOptionGroups]);
 
@@ -1665,35 +1678,6 @@ export default function DynamicCollectionPage({ params }) {
                             {/* LEFT COLUMN: All Dropdown selections stacked vertically */}
                             {hasDropdowns && (
                                 <div className="atelier-dropdowns-col" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                                    {hasSize && (
-                                        <div className="atelier-control-group" style={{ marginBottom: 0 }}>
-                                            <div className="atelier-spec-label">SIZE</div>
-                                            <div className="atelier-box-select-wrapper">
-                                                <select
-                                                    className="atelier-box-select"
-                                                    value={selectedSize}
-                                                    onChange={(e) => {
-                                                        const chosenVal = e.target.value;
-                                                        const foundObj = sizeGroup.values.find((s) => (s.value || s) === chosenVal || (s.value || s).replace(/^(Ring\s*Size|Size)\s*/i, '') === chosenVal);
-                                                        setSelectedSize(chosenVal);
-                                                        const grpName = sizeGroup?.name || 'Size';
-                                                        handleSelectOption(grpName, { value: foundObj ? foundObj.value : chosenVal, price_delta: 0 });
-                                                    }}
-                                                >
-                                                    {sizeGroup.values.map((szObj) => {
-                                                        const szVal = typeof szObj === 'string' ? szObj : szObj.value;
-                                                        const cleanSz = szVal.replace(/^(Ring\s*Size|Size)\s*/i, '');
-                                                        return (
-                                                            <option key={szObj.id || szVal} value={cleanSz}>
-                                                                {cleanSz}
-                                                            </option>
-                                                        );
-                                                    })}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    )}
-
                                     {hasChain && (
                                         <div className="atelier-control-group" style={{ marginBottom: 0 }}>
                                             <div className="atelier-spec-label">CHAIN</div>
@@ -1717,6 +1701,35 @@ export default function DynamicCollectionPage({ params }) {
                                                         return (
                                                             <option key={chObj.id || chVal} value={cleanCh}>
                                                                 {cleanCh}
+                                                            </option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {hasSize && (
+                                        <div className="atelier-control-group" style={{ marginBottom: 0 }}>
+                                            <div className="atelier-spec-label">SIZE</div>
+                                            <div className="atelier-box-select-wrapper">
+                                                <select
+                                                    className="atelier-box-select"
+                                                    value={selectedSize}
+                                                    onChange={(e) => {
+                                                        const chosenVal = e.target.value;
+                                                        const foundObj = sizeGroup.values.find((s) => (s.value || s) === chosenVal || (s.value || s).replace(/^(Ring\s*Size|Size)\s*/i, '') === chosenVal);
+                                                        setSelectedSize(chosenVal);
+                                                        const grpName = sizeGroup?.name || 'Size';
+                                                        handleSelectOption(grpName, { value: foundObj ? foundObj.value : chosenVal, price_delta: 0 });
+                                                    }}
+                                                >
+                                                    {sizeGroup.values.map((szObj) => {
+                                                        const szVal = typeof szObj === 'string' ? szObj : szObj.value;
+                                                        const cleanSz = szVal.replace(/^(Ring\s*Size|Size)\s*/i, '');
+                                                        return (
+                                                            <option key={szObj.id || szVal} value={cleanSz}>
+                                                                {cleanSz}
                                                             </option>
                                                         );
                                                     })}
@@ -1840,6 +1853,32 @@ export default function DynamicCollectionPage({ params }) {
                             )}
                         </div>
                     )}
+
+                    {/* Custom Text Button Groups (e.g. Diamond Clarity, Custom Options) */}
+                    {extraButtonGroups && extraButtonGroups.length > 0 && extraButtonGroups.map(grp => (
+                        <div key={grp.id || grp.name} className="atelier-control-group">
+                            <div className="atelier-spec-label">{grp.name.toUpperCase()}</div>
+                            <div className="atelier-purity-row">
+                                {grp.values.map((v, vIdx) => {
+                                    const isSel = (selectedOptions[grp.name]?.value === v.value) || (!selectedOptions[grp.name] && vIdx === 0);
+                                    return (
+                                        <button
+                                            key={v.id || v.value}
+                                            type="button"
+                                            className={`atelier-purity-btn ${isSel ? 'active' : ''}`}
+                                            onClick={() => handleSelectOption(grp.name, {
+                                                value: v.value,
+                                                code: v.code || '',
+                                                price_delta: Number(v.price_delta || 0)
+                                            })}
+                                        >
+                                            {v.value}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
 
                     {/* BOTTOM ACTION ROW: full-width line, then price left / buttons right */}
                     <div className="atelier-bottom-action-row">
