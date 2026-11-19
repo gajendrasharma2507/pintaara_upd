@@ -968,19 +968,11 @@ function initOptionsAndVariantsBuilder() {
         visualBadge = `<span style="width: 14px; height: 14px; border-radius: 50%; background: ${escapeHtml(val.color_code)}; border: 1px solid #94A3B8; display: inline-block;"></span>`;
       }
 
-      let priceDeltaBadge = '';
-      if (val.price_delta > 0) {
-        priceDeltaBadge = `<span style="font-size: 10px; color: #059669; font-weight: 700;">+₹${Number(val.price_delta).toLocaleString('en-IN')}</span>`;
-      } else if (val.price_delta < 0) {
-        priceDeltaBadge = `<span style="font-size: 10px; color: #DC2626; font-weight: 700;">-₹${Math.abs(Number(val.price_delta)).toLocaleString('en-IN')}</span>`;
-      }
-
       groupHtml += `
         <label style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid #E2E8F0; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 12px; user-select: none;">
           <input type="checkbox" class="opt-val-chk group-val-chk-${group.id}" value="${val.id}" data-val-name="${escapeHtml(val.value)}" data-group-id="${group.id}" checked style="accent-color: #3C50E0;">
           ${visualBadge}
           <span style="font-weight: 600; color: var(--admin-text-primary);">${escapeHtml(val.value)}</span>
-          ${priceDeltaBadge}
         </label>
       `;
     });

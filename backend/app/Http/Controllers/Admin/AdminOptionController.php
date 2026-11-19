@@ -202,16 +202,16 @@ class AdminOptionController extends Controller
 
         $code = !empty($validated['code'])
             ? strtoupper(trim($validated['code']))
-            : $optionValue->code;
+            : ($optionValue->code ?: strtoupper(preg_replace('/[^A-Za-z0-9_]/', '_', trim($validated['value']))));
 
         $optionValue->update([
             'value' => trim($validated['value']),
             'code' => $code,
             'color_code' => $validated['color_code'] ?? null,
             'image' => $imageUrl,
-            'price_delta' => (float)($validated['price_delta'] ?? 0),
-            'sku' => $validated['sku'] ?? null,
-            'stock_qty' => (int)($validated['stock_qty'] ?? 0),
+            'price_delta' => (float)($validated['price_delta'] ?? $optionValue->price_delta ?? 0),
+            'sku' => $validated['sku'] ?? $optionValue->sku,
+            'stock_qty' => (int)($validated['stock_qty'] ?? $optionValue->stock_qty ?? 999),
             'is_active' => $request->boolean('is_active'),
         ]);
 

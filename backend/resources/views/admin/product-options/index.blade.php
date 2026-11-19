@@ -181,10 +181,6 @@
                 <th style="padding: 10px 18px; width: 40px;">#</th>
                 <th style="padding: 10px 18px;">Value Name</th>
                 <th style="padding: 10px 18px;">Visual Swatch / Color</th>
-                <th style="padding: 10px 18px;">Code / Key</th>
-                <th style="padding: 10px 18px;">Price Delta</th>
-                <th style="padding: 10px 18px;">SKU Suffix</th>
-                <th style="padding: 10px 18px;">Stock Qty</th>
                 <th style="padding: 10px 18px;">Status</th>
                 <th style="padding: 10px 18px; text-align: right;">Actions</th>
               </tr>
@@ -214,26 +210,6 @@
                       @endif
                     </div>
                   </td>
-                  <td style="padding: 10px 18px; font-family: monospace; font-size: 12px; color: #475569;">
-                    {{ $val->code ?: '-' }}
-                  </td>
-                  <td style="padding: 10px 18px;">
-                    @if($val->price_delta > 0)
-                      <span style="color: #10B981; font-weight: 600;">+₹{{ number_format($val->price_delta, 2) }}</span>
-                    @elseif($val->price_delta < 0)
-                      <span style="color: #EF4444; font-weight: 600;">-₹{{ number_format(abs($val->price_delta), 2) }}</span>
-                    @else
-                      <span style="color: var(--admin-text-muted);">Base</span>
-                    @endif
-                  </td>
-                  <td style="padding: 10px 18px; font-family: monospace; font-size: 12px; color: var(--admin-text-muted);">
-                    {{ $val->sku ?: '-' }}
-                  </td>
-                  <td style="padding: 10px 18px;">
-                    <span style="font-size: 12px; font-weight: 600; {{ $val->stock_qty > 0 ? 'color: #059669;' : 'color: #DC2626;' }}">
-                      {{ $val->stock_qty }} units
-                    </span>
-                  </td>
                   <td style="padding: 10px 18px;">
                     @if($val->is_active)
                       <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; margin-right: 4px;" title="Active"></span>
@@ -260,7 +236,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="9" style="padding: 24px; text-align: center; color: var(--admin-text-muted); font-size: 13px;">
+                  <td colspan="5" style="padding: 24px; text-align: center; color: var(--admin-text-muted); font-size: 13px;">
                     No values added yet for this option group.
                     <a href="javascript:void(0)" onclick="openAddValueModal({{ $group->id }}, '{{ addslashes($group->name) }}', '{{ $group->display_type }}')" style="color: #3C50E0; font-weight: 600; margin-left: 6px;">
                       + Add the first value
@@ -404,40 +380,16 @@
     </div>
     <form id="addValueForm" method="POST" enctype="multipart/form-data" style="padding: 22px 24px;">
       @csrf
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Value Name *</label>
-          <input type="text" name="value" required placeholder="e.g. 18KT, Emerald, VS1, Size 14" class="admin-input" style="width: 100%;">
-        </div>
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Value Code (Optional)</label>
-          <input type="text" name="code" placeholder="e.g. 18KT, EMERALD" class="admin-input" style="width: 100%; text-transform: uppercase;">
-        </div>
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Value Name *</label>
+        <input type="text" name="value" required placeholder="e.g. 18KT, Emerald, VS1, Size 14, Rose Gold" class="admin-input" style="width: 100%;">
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Price Delta (₹ +/-)</label>
-          <input type="number" step="0.01" name="price_delta" placeholder="0.00" value="0.00" class="admin-input" style="width: 100%;">
-          <span style="font-size: 11px; color: var(--admin-text-muted);">Added to base price (+15000 or -5000)</span>
-        </div>
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">SKU Suffix (Optional)</label>
-          <input type="text" name="sku" placeholder="e.g. -18K, -EMR" class="admin-input" style="width: 100%;">
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Stock Quantity</label>
-          <input type="number" name="stock_qty" value="10" min="0" class="admin-input" style="width: 100%;">
-        </div>
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Hex Color Code (Optional)</label>
-          <div style="display: flex; gap: 6px; align-items: center;">
-            <input type="color" id="add_color_picker" style="height: 36px; width: 44px; padding: 2px; border: 1px solid var(--admin-border); border-radius: 6px; cursor: pointer;" onchange="document.getElementById('add_color_text').value = this.value">
-            <input type="text" id="add_color_text" name="color_code" placeholder="#E5C158" class="admin-input" style="flex: 1;" onchange="document.getElementById('add_color_picker').value = this.value">
-          </div>
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Hex Color Code (Optional)</label>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="color" id="add_color_picker" value="#E5C158" style="height: 36px; width: 44px; padding: 2px; border: 1px solid var(--admin-border); border-radius: 6px; cursor: pointer;" onchange="document.getElementById('add_color_text').value = this.value">
+          <input type="text" id="add_color_text" name="color_code" placeholder="#E5C158" class="admin-input" style="flex: 1;" onchange="document.getElementById('add_color_picker').value = this.value">
         </div>
       </div>
 
@@ -471,39 +423,16 @@
     <form id="editValueForm" method="POST" enctype="multipart/form-data" style="padding: 22px 24px;">
       @csrf
       @method('PUT')
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Value Name *</label>
-          <input type="text" id="edit_val_value" name="value" required class="admin-input" style="width: 100%;">
-        </div>
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Value Code (Optional)</label>
-          <input type="text" id="edit_val_code" name="code" class="admin-input" style="width: 100%; text-transform: uppercase;">
-        </div>
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Value Name *</label>
+        <input type="text" id="edit_val_value" name="value" required class="admin-input" style="width: 100%;">
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Price Delta (₹ +/-)</label>
-          <input type="number" step="0.01" id="edit_val_price_delta" name="price_delta" class="admin-input" style="width: 100%;">
-        </div>
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">SKU Suffix (Optional)</label>
-          <input type="text" id="edit_val_sku" name="sku" class="admin-input" style="width: 100%;">
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Stock Quantity</label>
-          <input type="number" id="edit_val_stock_qty" name="stock_qty" min="0" class="admin-input" style="width: 100%;">
-        </div>
-        <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Hex Color Code (Optional)</label>
-          <div style="display: flex; gap: 6px; align-items: center;">
-            <input type="color" id="edit_color_picker" style="height: 36px; width: 44px; padding: 2px; border: 1px solid var(--admin-border); border-radius: 6px; cursor: pointer;" onchange="document.getElementById('edit_val_color_code').value = this.value">
-            <input type="text" id="edit_val_color_code" name="color_code" class="admin-input" style="flex: 1;" onchange="document.getElementById('edit_color_picker').value = this.value">
-          </div>
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Hex Color Code (Optional)</label>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="color" id="edit_color_picker" style="height: 36px; width: 44px; padding: 2px; border: 1px solid var(--admin-border); border-radius: 6px; cursor: pointer;" onchange="document.getElementById('edit_val_color_code').value = this.value">
+          <input type="text" id="edit_val_color_code" name="color_code" class="admin-input" style="flex: 1;" onchange="document.getElementById('edit_color_picker').value = this.value">
         </div>
       </div>
 
@@ -562,10 +491,6 @@
   function openEditValueModal(val) {
     document.getElementById('editValueForm').action = '/admin/product-options/values/' + val.id;
     document.getElementById('edit_val_value').value = val.value || '';
-    document.getElementById('edit_val_code').value = val.code || '';
-    document.getElementById('edit_val_price_delta').value = val.price_delta !== null ? val.price_delta : '0.00';
-    document.getElementById('edit_val_sku').value = val.sku || '';
-    document.getElementById('edit_val_stock_qty').value = val.stock_qty !== null ? val.stock_qty : '10';
     document.getElementById('edit_val_color_code').value = val.color_code || '';
     if (val.color_code && val.color_code.startsWith('#')) {
       document.getElementById('edit_color_picker').value = val.color_code;
