@@ -848,55 +848,42 @@ export default function DynamicCollectionPage({ params }) {
         });
     }, [purityGroup, productDetail?.available_purities, productDetail?.finish_purities, productDetail?.karat, productDetail?.purity]);
 
-    // Ensure selected purity is always valid when availablePurities changes (default to FIRST option)
+    // Ensure selected purity is always valid when availablePurities changes
     useEffect(() => {
         if (availablePurities && availablePurities.length > 0) {
-            const first = availablePurities[0];
-            const cleanFirst = first.code || first.value;
-            if (!hasCustomized) {
-                setSelectedPurity(cleanFirst);
+            const isCurrentAvailable = availablePurities.some((pVal) => {
+                return selectedPurity === pVal.code || selectedPurity === pVal.value;
+            });
+            if (!isCurrentAvailable) {
+                const first = availablePurities[0];
+                const clean = first.code || first.value;
+                setSelectedPurity(clean);
                 const grpName = purityGroup?.name || 'Metal Colors & Purities';
-                handleSelectOption(grpName, { value: cleanFirst, price_delta: Number(first.price_delta) || 0 });
-            } else {
-                const isCurrentAvailable = availablePurities.some((pVal) => {
-                    return selectedPurity === pVal.code || selectedPurity === pVal.value;
-                });
-                if (!isCurrentAvailable) {
-                    setSelectedPurity(cleanFirst);
-                    const grpName = purityGroup?.name || 'Metal Colors & Purities';
-                    handleSelectOption(grpName, { value: cleanFirst, price_delta: Number(first.price_delta) || 0 });
-                }
+                handleSelectOption(grpName, { value: clean, price_delta: Number(first.price_delta) || 0 });
             }
         }
-    }, [availablePurities]);
+    }, [availablePurities, selectedPurity]);
 
-    // Ensure selected finish is always valid when availableFinishes changes (default to FIRST option)
+    // Ensure selected finish is always valid when availableFinishes changes
     useEffect(() => {
         if (availableFinishes && availableFinishes.length > 0) {
-            const first = availableFinishes[0];
-            const valStr = typeof first === 'string' ? first : first.value;
-            const code = first.code || normalizeFinishKey(valStr);
-            const cleanCode = normalizeFinishKey(code);
-            if (!hasCustomized) {
+            const isCurrentAvailable = availableFinishes.some((fVal) => {
+                const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                const code = fVal.code || normalizeFinishKey(valStr);
+                return normalizeFinishKey(selectedFinishCode) === normalizeFinishKey(code);
+            });
+            if (!isCurrentAvailable) {
+                const first = availableFinishes[0];
+                const valStr = typeof first === 'string' ? first : first.value;
+                const code = first.code || normalizeFinishKey(valStr);
+                const cleanCode = normalizeFinishKey(code);
                 setSelectedFinishCode(cleanCode);
                 setActiveImgIndex(0);
                 const grpName = finishGroup?.name || 'Finish Options';
                 handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: first.image });
-            } else {
-                const isCurrentAvailable = availableFinishes.some((fVal) => {
-                    const vStr = typeof fVal === 'string' ? fVal : fVal.value;
-                    const c = fVal.code || normalizeFinishKey(vStr);
-                    return normalizeFinishKey(selectedFinishCode) === normalizeFinishKey(c);
-                });
-                if (!isCurrentAvailable) {
-                    setSelectedFinishCode(cleanCode);
-                    setActiveImgIndex(0);
-                    const grpName = finishGroup?.name || 'Finish Options';
-                    handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: first.image });
-                }
             }
         }
-    }, [availableFinishes]);
+    }, [availableFinishes, selectedFinishCode, finishGroup]);
 
     // Synchronize default selections: ALWAYS default select the FIRST option for every group
     useEffect(() => {
@@ -911,7 +898,7 @@ export default function DynamicCollectionPage({ params }) {
                         if (v.code && currentSelected.code && normalizeFinishKey(v.code) === normalizeFinishKey(currentSelected.code)) return true;
                         return false;
                     });
-                    if ((!hasCustomized || !exists) && group.values.length > 0) {
+                    if (!exists && group.values.length > 0) {
                         const firstVal = group.values[0];
                         next[gName] = firstVal;
                         const l = gName.toLowerCase();
@@ -935,7 +922,7 @@ export default function DynamicCollectionPage({ params }) {
                 return next;
             });
         }
-    }, [activeOptionGroups, hasCustomized]);
+    }, [activeOptionGroups]);
 
     const handleSelectOption = (groupName, valueObj) => {
         setHasCustomized(true);
