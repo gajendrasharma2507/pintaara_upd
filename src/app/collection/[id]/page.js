@@ -996,78 +996,40 @@ export default function DynamicCollectionPage({ params }) {
         return matched || null;
     }, [productDetail?.variants, selectedPurity, selectedFinishCode, selectedSize, selectedChain, selectedOptions, availableFinishes, hasSize, hasChain]);
 
-    // 2. Use the backend pricing contract so listing and detail MRP stay identical.
+    // 2. Exact Pricing Formula:
+    // Net Weight (g) (22K, 18K, 14K, 925 SILVER) + Making Charge (%) + Brand Markup (%) + Other Charge (₹) + Product Options as user selection (e.g. GEM + SIZE) = Total (Subtotal) + GST 3% = Final Price
     useEffect(() => {
         if (categoryInfo || !productDetail) return;
-
-        if (!hasCustomized && productDetail.base_pricing) {
-            const base = productDetail.base_pricing;
-            setPriceBreakdown({
-                ...base,
-                gst: Number(base.gst_amount || 0),
-                total: Number(base.total_price || 0),
-                option_breakdowns: [],
-                rate_used: {
-                    purity: '22KT',
-                    rate_per_gram: base.rate_per_gram,
-                    rate_per_10g: Number(base.rate_per_gram || 0) * 10,
-                    rate_date: rates?.effective_date || new Date().toISOString().split('T')[0],
-                },
-            });
-            return;
-        }
 
         const purityEntry = Object.entries(selectedOptions).find(([k]) =>
             (purityGroup && k === purityGroup.name) ||
             k.toLowerCase().includes('purity') || k.toLowerCase().includes('metal') || k.toLowerCase().includes('karat')
         );
-        const purityStr = selectedPurity || purityEntry?.[1]?.value || '22KT';
-        const gemEntry = Object.entries(selectedOptions).find(([k]) =>
-            k.toLowerCase().includes('gem') || k.toLowerCase().includes('stone')
-        );
-        const gemName = gemEntry?.[1]?.value || '';
+        const purityStr = selectedPurity || purityEntry?.[1]?.value || (availablePurities?.[0]?.value || '22KT');
+
+        // Sum ALL selected product options price adjustments (e.g. SIZE +₹1,000, GEM +₹5,000, CHAIN, etc.)
+        let totalOptionsDelta = 0;
         const optionBreakdowns = [];
-        let optionDelta = 0;
-        let extraGrams = 0;
-        let flatGemPrice = 0;
 
         Object.entries(selectedOptions).forEach(([optName, valObj]) => {
             const lowerName = optName.toLowerCase();
+            // Purity and Finish are metal/image specs
+            if (lowerName.includes('purity') || lowerName.includes('metal') || lowerName.includes('karat') || lowerName.includes('finish')) {
+                return;
+            }
+
             const valStr = typeof valObj === 'object' ? (valObj?.value || '') : String(valObj || '');
-            const delta = Number(valObj?.price_delta) || 0;
+            const delta = typeof valObj === 'object' ? (Number(valObj?.price_delta) || 0) : 0;
 
-            // 1. Gram-based Size: check if value has grams e.g. "Size 12 (2.0g)" or "2g"
-            if (lowerName.includes('size')) {
-                const match = valStr.match(/(\d+(?:\.\d+)?)\s*g(?:ram)?/i);
-                if (match) {
-                    extraGrams += parseFloat(match[1]);
-                    optionBreakdowns.push({ name: optName, value: valStr, charge: `+${match[1]}g (metal)` });
-                }
+            if (delta !== 0) {
+                totalOptionsDelta += delta;
             }
-
-            // 2. Gram-based Chain: check if chain has grams e.g. "Box Chain (5.0g)" or "5g"
-            if (lowerName.includes('chain')) {
-                const match = valStr.match(/(\d+(?:\.\d+)?)\s*g(?:ram)?/i);
-                if (match) {
-                    extraGrams += parseFloat(match[1]);
-                    optionBreakdowns.push({ name: optName, value: valStr, charge: `+${match[1]}g (metal)` });
-                }
-            }
-
-            // 3. Flat Gemstone Price: flat charge for gemstone (e.g. ₹2,500 or ₹5,000)
-            if (lowerName.includes('gem') || lowerName.includes('stone') || lowerName.includes('diamond')) {
-                if (delta > 0) {
-                    flatGemPrice += delta;
-                    optionBreakdowns.push({ name: optName, value: valStr, charge: delta });
-                }
-            }
-
-            // Other flat option additions
-            if (delta && !lowerName.includes('purity') && !lowerName.includes('metal') &&
-                !lowerName.includes('finish') && !lowerName.includes('size') &&
-                !lowerName.includes('gem') && !lowerName.includes('stone') && !lowerName.includes('chain')) {
-                optionDelta += delta;
-                optionBreakdowns.push({ name: optName, value: valObj.value, charge: delta });
+            if (valStr) {
+                optionBreakdowns.push({
+                    name: optName,
+                    value: valStr,
+                    charge: delta
+                });
             }
         });
 
@@ -1075,11 +1037,10 @@ export default function DynamicCollectionPage({ params }) {
         const effectiveWeight = isSilver && Number(productDetail.silver_weight_grams) > 0
             ? Number(productDetail.silver_weight_grams)
             : (Number(productDetail.base_weight_grams) || 8.5);
-        const totalWeight = Math.round((effectiveWeight + extraGrams) * 100) / 100;
 
         const effectiveMakingPercent = isSilver && productDetail.silver_making_charge_percent !== null && productDetail.silver_making_charge_percent !== undefined && productDetail.silver_making_charge_percent !== ''
             ? Number(productDetail.silver_making_charge_percent)
-            : productDetail.making_charge_percent;
+            : Number(productDetail.making_charge_percent || 0);
 
         const effectiveBrandMarkup = isSilver && productDetail.silver_brand_markup_percent !== null && productDetail.silver_brand_markup_percent !== undefined && productDetail.silver_brand_markup_percent !== ''
             ? Number(productDetail.silver_brand_markup_percent)
@@ -1089,33 +1050,67 @@ export default function DynamicCollectionPage({ params }) {
             ? Number(productDetail.silver_other_charges)
             : (Number(productDetail.other_charges) || 0);
 
+        // Immediate local baseline calculation while API calculates
+        const purityFraction = purityStr.includes('24') ? 1.0 : purityStr.includes('18') ? 0.75 : purityStr.includes('14') ? 0.585 : isSilver ? 0.925 : 0.916;
+        const rate22g = (rates?.gold_22kt_per_10g || 80150) / 10;
+        const rateSilverG = (rates?.silver_per_10g || 950) / 10;
+        const localRatePerGram = isSilver ? rateSilverG : (purityFraction === 0.916 ? rate22g : (rate22g / 0.916) * purityFraction);
+        const localMetalVal = Math.round(effectiveWeight * localRatePerGram * 100) / 100;
+        const localMakingVal = Math.round(localMetalVal * (effectiveMakingPercent / 100) * 100) / 100;
+        const localMarkupVal = Math.round(localMetalVal * (effectiveBrandMarkup / 100) * 100) / 100;
+        const localSubtotal = Math.round((localMetalVal + localMakingVal + localMarkupVal + effectiveOtherCharges + totalOptionsDelta) * 100) / 100;
+        const localGst = Math.round(localSubtotal * 0.03 * 100) / 100;
+        const localTotal = Math.round(localSubtotal + localGst);
+
+        // Set immediate local calculation so UI never lags
+        setPriceBreakdown(prev => ({
+            ...prev,
+            weight_grams: effectiveWeight,
+            rate_per_gram: localRatePerGram,
+            metal_value: localMetalVal,
+            making_charge_percent: effectiveMakingPercent,
+            making_charge: localMakingVal,
+            brand_markup_percent: effectiveBrandMarkup,
+            brand_markup: localMarkupVal,
+            base_other_charges: effectiveOtherCharges,
+            total_options_delta: totalOptionsDelta,
+            option_breakdowns: optionBreakdowns,
+            subtotal: localSubtotal,
+            gst: localGst,
+            gst_amount: localGst,
+            total: localTotal,
+            total_price: localTotal,
+            rate_used: {
+                purity: purityStr,
+                rate_per_gram: localRatePerGram,
+                rate_per_10g: localRatePerGram * 10,
+                rate_date: rates?.effective_date || new Date().toISOString().split('T')[0],
+            }
+        }));
+
         let cancelled = false;
         const calculate = async () => {
             try {
-                const purityFraction = purityStr.includes('24') ? 1.0 : purityStr.includes('18') ? 0.75 : purityStr.includes('14') ? 0.585 : isSilver ? 0.925 : 0.916;
                 const response = await apiFetch('/price/calculate', {
                     method: 'POST',
                     body: JSON.stringify({
-                        weight_grams: totalWeight,
+                        weight_grams: effectiveWeight,
                         purity: purityStr,
                         purity_fraction: purityFraction,
                         metal_type: isSilver ? 'silver' : 'gold',
-                        making_charge_flat: Number(productDetail.making_charge) || 0,
+                        making_charge_flat: 0,
                         making_charge_percent: effectiveMakingPercent,
                         brand_markup_percent: effectiveBrandMarkup,
-                        other_charges: effectiveOtherCharges,
-                        wastage_percent: Number(productDetail.wastage_percent) || 0,
-                        gem: gemName,
-                        stone_charge: flatGemPrice > 0 ? flatGemPrice : null,
+                        other_charges: effectiveOtherCharges + totalOptionsDelta,
+                        wastage_percent: 0,
                     }),
                 });
                 const data = response?.data;
                 if (!data || cancelled) return;
                 setPriceBreakdown({
                     ...data,
-                    subtotal: Number(data.subtotal || 0) + optionDelta,
-                    gst: Number(data.gst_amount || 0),
-                    total: Number(data.total_price || 0) + optionDelta,
+                    base_other_charges: effectiveOtherCharges,
+                    total_options_delta: totalOptionsDelta,
                     option_breakdowns: optionBreakdowns,
                     rate_used: {
                         purity: purityStr,
@@ -1130,7 +1125,7 @@ export default function DynamicCollectionPage({ params }) {
         };
         calculate();
         return () => { cancelled = true; };
-    }, [selectedOptions, rates, productDetail, categoryInfo, hasCustomized]);
+    }, [selectedOptions, rates, productDetail, categoryInfo, selectedPurity, availablePurities]);
 
     // Product Images & Thumbnails matching real product media & selected finish
     const thumbnails = useMemo(() => {
@@ -1696,7 +1691,15 @@ export default function DynamicCollectionPage({ params }) {
 
                                         return (
                                             <div key={grp.id || grp.name} className="atelier-control-group" style={{ marginBottom: 0 }}>
-                                                <div className="atelier-spec-label">{grp.name.toUpperCase()}</div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                                    <div className="atelier-spec-label" style={{ marginBottom: 0 }}>{grp.name.toUpperCase()}</div>
+                                                    {selectedOptions[grp.name]?.value && (
+                                                        <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: 500 }}>
+                                                            {selectedOptions[grp.name].value}
+                                                            {Number(selectedOptions[grp.name].price_delta) > 0 ? ` (+₹${Number(selectedOptions[grp.name].price_delta).toLocaleString('en-IN')})` : ''}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div className="atelier-box-select-wrapper">
                                                     <select
                                                         className="atelier-box-select"
@@ -1715,7 +1718,7 @@ export default function DynamicCollectionPage({ params }) {
                                                     >
                                                         {grp.values.map((vObj) => {
                                                             const rawVal = typeof vObj === 'string' ? vObj : vObj.value;
-                                                            const displayVal = isSize ? rawVal.replace(/^(Ring\s*Size|Size)\s*/i, '').trim() : (isChain ? rawVal.replace(/\s*Chain\s*/i, ' ').trim() : rawVal);
+                                                            const displayVal = isSize ? rawVal.replace(/^(Ring\s*Size|Size)\s*/i, '').trim() : rawVal;
                                                             const delta = Number(vObj.price_delta || 0);
                                                             return (
                                                                 <option key={vObj.id || rawVal} value={rawVal}>
@@ -1739,7 +1742,15 @@ export default function DynamicCollectionPage({ params }) {
 
                                         return (
                                             <div key={grp.id || grp.name} className="atelier-control-group" style={{ marginBottom: 0 }}>
-                                                <div className="atelier-spec-label">{grp.name.toUpperCase()}</div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                                    <div className="atelier-spec-label" style={{ marginBottom: 0 }}>{grp.name.toUpperCase()}</div>
+                                                    {selectedOptions[grp.name]?.value && (
+                                                        <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: 500 }}>
+                                                            {selectedOptions[grp.name].value}
+                                                            {Number(selectedOptions[grp.name].price_delta) > 0 ? ` (+₹${Number(selectedOptions[grp.name].price_delta).toLocaleString('en-IN')})` : ''}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div className="atelier-gems-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                                                     {grp.values.map((sVal, idx) => {
                                                         const valLower = (sVal.value || '').toLowerCase();
@@ -1989,49 +2000,52 @@ export default function DynamicCollectionPage({ params }) {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Metal Weight &amp; Purity:</span>
-                                <strong style={{ color: '#1A1A1A' }}>{priceBreakdown.weight_grams}g ({selectedPurity || '18KT'})</strong>
+                                <span>Net Weight &amp; Purity:</span>
+                                <strong style={{ color: '#1A1A1A' }}>{priceBreakdown.weight_grams}g ({selectedPurity || '22KT'})</strong>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Metal Value (@ ₹{Number(Math.round(priceBreakdown.rate_used?.rate_per_gram || priceBreakdown.rate_per_gram || 0)).toLocaleString('en-IN')}/g):</span>
+                                <span>Metal Price (@ ₹{Number(Math.round(priceBreakdown.rate_used?.rate_per_gram || priceBreakdown.rate_per_gram || 0)).toLocaleString('en-IN')}/g):</span>
                                 <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.metal_value)).toLocaleString('en-IN')}</strong>
                             </div>
 
-                            {(priceBreakdown.wastage_value > 0 || priceBreakdown.making_percent_value > 0) && (
+                            {Number(priceBreakdown.making_charge || 0) > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                    <span>Making ({priceBreakdown.wastage_percent || 2.5}% of Metal):</span>
-                                    <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.wastage_value || priceBreakdown.making_percent_value)).toLocaleString('en-IN')}</strong>
+                                    <span>Making Charge ({priceBreakdown.making_charge_percent || 0}%):</span>
+                                    <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.making_charge)).toLocaleString('en-IN')}</strong>
                                 </div>
                             )}
 
-                            {(priceBreakdown.author_charge > 0 || priceBreakdown.making_charge > 0) && (
+                            {Number(priceBreakdown.brand_markup || 0) > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                    <span>Author / Crafting Fee:</span>
-                                    <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.author_charge || priceBreakdown.making_charge)).toLocaleString('en-IN')}</strong>
+                                    <span>Brand Markup ({priceBreakdown.brand_markup_percent || 0}%):</span>
+                                    <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.brand_markup)).toLocaleString('en-IN')}</strong>
                                 </div>
                             )}
 
-                            {hasGem && (
+                            {Number(priceBreakdown.base_other_charges || 0) > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                    <span>Gem ({selectedOptions[gemGroup?.name]?.value || selectedOptions['GEM / STONE OPTIONS']?.value || selectedOptions['GEM']?.value || 'No Stone'}):</span>
-                                    <strong style={{ color: '#1A1A1A' }}>
-                                        {Number(priceBreakdown.stone_charge || 0) > 0
-                                            ? `+₹${Number(Math.round(priceBreakdown.stone_charge)).toLocaleString('en-IN')}`
-                                            : '₹0'}
-                                    </strong>
+                                    <span>Other Charge:</span>
+                                    <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.base_other_charges)).toLocaleString('en-IN')}</strong>
                                 </div>
                             )}
 
-                            {hasChain && selectedChain && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                    <span>Chain Selection ({selectedChain}):</span>
-                                    <strong style={{ color: '#1A1A1A' }}>₹0</strong>
+                            {priceBreakdown.option_breakdowns && priceBreakdown.option_breakdowns.length > 0 && (
+                                <div style={{ borderTop: '1px dashed #DDD', paddingTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                    <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#888', textTransform: 'uppercase' }}>Product Options:</div>
+                                    {priceBreakdown.option_breakdowns.map((ob, idx) => (
+                                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', color: '#555', fontSize: '0.82rem' }}>
+                                            <span>{ob.name}: <strong>{ob.value}</strong></span>
+                                            <strong style={{ color: '#1A1A1A' }}>
+                                                {Number(ob.charge) > 0 ? `+₹${Number(Math.round(ob.charge)).toLocaleString('en-IN')}` : '₹0'}
+                                            </strong>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
 
                             <div style={{ borderTop: '1px solid #EEE', paddingTop: '0.6rem', display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                                <span>Taxable Subtotal:</span>
+                                <span>Total (Subtotal):</span>
                                 <strong style={{ color: '#1A1A1A' }}>₹{Number(Math.round(priceBreakdown.subtotal)).toLocaleString('en-IN')}</strong>
                             </div>
 
@@ -2050,7 +2064,7 @@ export default function DynamicCollectionPage({ params }) {
                                 justifyContent: 'space-between',
                                 alignItems: 'center'
                             }}>
-                                <span style={{ fontWeight: '700', color: '#1A1A1A' }}>Final Transparent MRP:</span>
+                                <span style={{ fontWeight: '700', color: '#1A1A1A' }}>Final Price:</span>
                                 <span style={{ fontWeight: '800', color: '#1A1A1A', fontSize: '1.25rem' }}>
                                     ₹{Number(Math.round(priceBreakdown.total || priceBreakdown.total_price)).toLocaleString('en-IN')}
                                 </span>
@@ -2371,9 +2385,10 @@ export default function DynamicCollectionPage({ params }) {
                     white-space: nowrap;
                 }
                 .atelier-purity-btn.active {
-                    border: 1.5px solid #1A1A1A;
-                    color: #1A1A1A;
-                    font-weight: 700;
+                    background: #1A1A1A !important;
+                    border: 1.5px solid #1A1A1A !important;
+                    color: #FFFFFF !important;
+                    font-weight: 700 !important;
                 }
 
                 /* FINISH: 4 bars in one row */
