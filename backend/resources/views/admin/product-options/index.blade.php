@@ -103,24 +103,6 @@
                   {{ $group->name }}
                 </h3>
 
-                <!-- Display Type Badge -->
-                @if($group->display_type === 'image_swatch')
-                  <span style="background: #FEF3C7; color: #D97706; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                    Image Swatch
-                  </span>
-                @elseif($group->display_type === 'text_button')
-                  <span style="background: #EEF2FF; color: #4F46E5; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="12" rx="2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                    Text Button
-                  </span>
-                @else
-                  <span style="background: #F3F4F6; color: #374151; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                    Dropdown
-                  </span>
-                @endif
-
                 @if($group->is_required)
                   <span style="background: #FEE2E2; color: #DC2626; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">
                     Required
@@ -138,12 +120,26 @@
 
           <!-- Group Actions -->
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button type="button" class="admin-btn admin-btn-secondary" onclick="openAddValueModal({{ $group->id }}, '{{ addslashes($group->name) }}', '{{ $group->display_type }}')">
+            <button type="button"
+                    class="admin-btn admin-btn-secondary"
+                    data-group-id="{{ $group->id }}"
+                    data-group-name="{{ $group->name }}"
+                    data-display-type="{{ $group->display_type }}"
+                    onclick="openAddValueModalFromBtn(this)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Add Value
             </button>
 
-            <button type="button" class="admin-btn admin-btn-edit" onclick="openEditGroupModal({{ json_encode($group) }})">
+            <button type="button"
+                    class="admin-btn admin-btn-edit"
+                    data-group-id="{{ $group->id }}"
+                    data-group-name="{{ $group->name }}"
+                    data-group-code="{{ $group->code }}"
+                    data-group-display-type="{{ $group->display_type }}"
+                    data-group-description="{{ $group->description ?? '' }}"
+                    data-group-is-required="{{ $group->is_required ? '1' : '0' }}"
+                    data-group-is-active="{{ $group->is_active ? '1' : '0' }}"
+                    onclick="openEditGroupModalFromBtn(this)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
               Edit
             </button>
@@ -206,7 +202,15 @@
                   </td>
                   <td style="padding: 10px 18px; text-align: right;">
                     <div style="display: inline-flex; gap: 6px;">
-                      <button type="button" class="admin-btn admin-btn-edit" style="padding: 4px 8px; font-size: 11px;" onclick="openEditValueModal({{ json_encode($val) }})">
+                      <button type="button"
+                              class="admin-btn admin-btn-edit"
+                              style="padding: 4px 8px; font-size: 11px;"
+                              data-id="{{ $val->id }}"
+                              data-value="{{ $val->value }}"
+                              data-color-code="{{ $val->color_code ?? '' }}"
+                              data-image="{{ $val->image ?? '' }}"
+                              data-is-active="{{ $val->is_active ? '1' : '0' }}"
+                              onclick="openEditValueModalFromBtn(this)">
                         Edit
                       </button>
                       <form action="{{ route('admin.product-options.values.delete', $val->id) }}" method="POST" onsubmit="return confirm('Delete value {{ $val->value }}?');" style="margin: 0; display: inline;">
@@ -223,7 +227,12 @@
                 <tr>
                   <td colspan="5" style="padding: 24px; text-align: center; color: var(--admin-text-muted); font-size: 13px;">
                     No values added yet for this option group.
-                    <a href="javascript:void(0)" onclick="openAddValueModal({{ $group->id }}, '{{ addslashes($group->name) }}', '{{ $group->display_type }}')" style="color: #3C50E0; font-weight: 600; margin-left: 6px;">
+                    <a href="javascript:void(0)"
+                       data-group-id="{{ $group->id }}"
+                       data-group-name="{{ $group->name }}"
+                       data-display-type="{{ $group->display_type }}"
+                       onclick="openAddValueModalFromBtn(this)"
+                       style="color: #3C50E0; font-weight: 600; margin-left: 6px;">
                       + Add the first value
                     </a>
                   </td>
@@ -250,7 +259,7 @@
 </div>
 
 <!-- ==================== MODAL: CREATE OPTION GROUP ==================== -->
-<div id="newGroupModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+<div id="newGroupModal" onclick="if(event.target === this) closeNewGroupModal()" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
   <div class="admin-card" style="width: 100%; max-width: 520px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); overflow: hidden;">
     <div style="padding: 18px 24px; border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
       <h3 style="font-size: 16px; font-weight: 700; color: var(--admin-text-primary); margin: 0;">Create New Option Group</h3>
@@ -302,7 +311,7 @@
 </div>
 
 <!-- ==================== MODAL: EDIT OPTION GROUP ==================== -->
-<div id="editGroupModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+<div id="editGroupModal" onclick="if(event.target === this) closeEditGroupModal()" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
   <div class="admin-card" style="width: 100%; max-width: 520px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); overflow: hidden;">
     <div style="padding: 18px 24px; border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
       <h3 style="font-size: 16px; font-weight: 700; color: var(--admin-text-primary); margin: 0;">Edit Option Group</h3>
@@ -355,7 +364,7 @@
 </div>
 
 <!-- ==================== MODAL: ADD OPTION VALUE ==================== -->
-<div id="addValueModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+<div id="addValueModal" onclick="if(event.target === this) closeAddValueModal()" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
   <div class="admin-card" style="width: 100%; max-width: 560px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); overflow: hidden;">
     <div style="padding: 18px 24px; border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
       <h3 style="font-size: 16px; font-weight: 700; color: var(--admin-text-primary); margin: 0;">
@@ -367,7 +376,7 @@
       @csrf
       <div style="margin-bottom: 14px;">
         <label style="display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 5px;">Value Name *</label>
-        <input type="text" name="value" required placeholder="e.g. 18KT, Emerald, VS1, Size 14, Rose Gold" class="admin-input" style="width: 100%;">
+        <input type="text" id="add_val_value" name="value" required placeholder="e.g. 18KT, Emerald, VS1, Size 14, Rose Gold" class="admin-input" style="width: 100%;">
       </div>
 
       <div style="margin-bottom: 14px;">
@@ -385,7 +394,7 @@
 
       <div style="margin-bottom: 20px;">
         <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
-          <input type="checkbox" name="is_active" value="1" checked style="accent-color: #3C50E0;">
+          <input type="checkbox" id="add_val_is_active" name="is_active" value="1" checked style="accent-color: #3C50E0;">
           <span>Active in store</span>
         </label>
       </div>
@@ -399,7 +408,7 @@
 </div>
 
 <!-- ==================== MODAL: EDIT OPTION VALUE ==================== -->
-<div id="editValueModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+<div id="editValueModal" onclick="if(event.target === this) closeEditValueModal()" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
   <div class="admin-card" style="width: 100%; max-width: 560px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); overflow: hidden;">
     <div style="padding: 18px 24px; border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
       <h3 style="font-size: 16px; font-weight: 700; color: var(--admin-text-primary); margin: 0;">Edit Option Value</h3>
@@ -450,7 +459,20 @@
     document.getElementById('newGroupModal').style.display = 'none';
   }
 
+  function openEditGroupModalFromBtn(btn) {
+    const d = btn.dataset;
+    document.getElementById('editGroupForm').action = '/admin/product-options/' + d.groupId;
+    document.getElementById('edit_group_name').value = d.groupName || '';
+    document.getElementById('edit_group_code').value = d.groupCode || '';
+    document.getElementById('edit_group_display_type').value = d.groupDisplayType || 'dropdown';
+    document.getElementById('edit_group_description').value = d.groupDescription || '';
+    document.getElementById('edit_group_is_required').checked = d.groupIsRequired === '1';
+    document.getElementById('edit_group_is_active').checked = d.groupIsActive === '1';
+    document.getElementById('editGroupModal').style.display = 'flex';
+  }
+
   function openEditGroupModal(group) {
+    if (!group) return;
     document.getElementById('editGroupForm').action = '/admin/product-options/' + group.id;
     document.getElementById('edit_group_name').value = group.name || '';
     document.getElementById('edit_group_code').value = group.code || '';
@@ -464,16 +486,57 @@
     document.getElementById('editGroupModal').style.display = 'none';
   }
 
+  function openAddValueModalFromBtn(btn) {
+    const d = btn.dataset;
+    openAddValueModal(d.groupId, d.groupName, d.displayType);
+  }
+
   function openAddValueModal(groupId, groupName, displayType) {
-    document.getElementById('addValueForm').action = '/admin/product-options/' + groupId + '/values';
-    document.getElementById('addValueGroupName').innerText = groupName;
+    const form = document.getElementById('addValueForm');
+    form.action = '/admin/product-options/' + groupId + '/values';
+    document.getElementById('addValueGroupName').innerText = groupName || '';
+    const valInput = document.getElementById('add_val_value');
+    if (valInput) valInput.value = '';
+    const colorPicker = document.getElementById('add_color_picker');
+    const colorText = document.getElementById('add_color_text');
+    if (colorPicker) colorPicker.value = '#E5C158';
+    if (colorText) colorText.value = '';
+    const activeCheck = document.getElementById('add_val_is_active');
+    if (activeCheck) activeCheck.checked = true;
     document.getElementById('addValueModal').style.display = 'flex';
+    if (valInput) setTimeout(() => valInput.focus(), 50);
   }
   function closeAddValueModal() {
     document.getElementById('addValueModal').style.display = 'none';
   }
 
+  function openEditValueModalFromBtn(btn) {
+    const d = btn.dataset;
+    document.getElementById('editValueForm').action = '/admin/product-options/values/' + d.id;
+    document.getElementById('edit_val_value').value = d.value || '';
+    document.getElementById('edit_val_color_code').value = d.colorCode || '';
+    const colorPicker = document.getElementById('edit_color_picker');
+    if (colorPicker) {
+      if (d.colorCode && d.colorCode.startsWith('#')) {
+        colorPicker.value = d.colorCode;
+      } else {
+        colorPicker.value = '#E5C158';
+      }
+    }
+    document.getElementById('edit_val_is_active').checked = d.isActive === '1';
+
+    const previewDiv = document.getElementById('edit_val_img_preview');
+    if (d.image) {
+      previewDiv.innerHTML = '<span style="font-size:11px; color:#64748B;">Current Image:</span><br><img src="' + d.image + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #CBD5E1;margin-top:4px;">';
+    } else {
+      previewDiv.innerHTML = '';
+    }
+
+    document.getElementById('editValueModal').style.display = 'flex';
+  }
+
   function openEditValueModal(val) {
+    if (!val) return;
     document.getElementById('editValueForm').action = '/admin/product-options/values/' + val.id;
     document.getElementById('edit_val_value').value = val.value || '';
     document.getElementById('edit_val_color_code').value = val.color_code || '';
