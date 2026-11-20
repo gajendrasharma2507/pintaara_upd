@@ -1862,7 +1862,6 @@ export default function DynamicCollectionPage({ params }) {
                         <div className="atelier-btn-accent-line" />
                         <div className="atelier-bottom-inner">
                             <div className="atelier-price-block">
-                                <span className="atelier-price-label">MRP · Inclusive of GST</span>
                                 <div className="atelier-price-value">₹ {displayPrice}</div>
                                 <button
                                     type="button"
