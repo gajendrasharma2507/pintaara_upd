@@ -1701,15 +1701,7 @@ export default function DynamicCollectionPage({ params }) {
 
                                         return (
                                             <div key={grp.id || grp.name} className="atelier-control-group" style={{ marginBottom: 0 }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                                    <div className="atelier-spec-label" style={{ marginBottom: 0 }}>{grp.name.toUpperCase()}</div>
-                                                    {selectedOptions[grp.name]?.value && (
-                                                        <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: 500 }}>
-                                                            {selectedOptions[grp.name].value}
-                                                            {Number(selectedOptions[grp.name].price_delta) > 0 ? ` (+₹${Number(selectedOptions[grp.name].price_delta).toLocaleString('en-IN')})` : ''}
-                                                        </span>
-                                                    )}
-                                                </div>
+                                                <div className="atelier-spec-label" style={{ marginBottom: '6px' }}>{grp.name.toUpperCase()}</div>
                                                 <div className="atelier-box-select-wrapper">
                                                     <select
                                                         className="atelier-box-select"
@@ -1729,10 +1721,9 @@ export default function DynamicCollectionPage({ params }) {
                                                         {grp.values.map((vObj) => {
                                                             const rawVal = typeof vObj === 'string' ? vObj : vObj.value;
                                                             const displayVal = isSize ? rawVal.replace(/^(Ring\s*Size|Size)\s*/i, '').trim() : rawVal;
-                                                            const delta = Number(vObj.price_delta || 0);
                                                             return (
                                                                 <option key={vObj.id || rawVal} value={rawVal}>
-                                                                    {displayVal} {delta > 0 ? `(+₹${delta.toLocaleString('en-IN')})` : ''}
+                                                                    {displayVal}
                                                                 </option>
                                                             );
                                                         })}
@@ -1752,15 +1743,7 @@ export default function DynamicCollectionPage({ params }) {
 
                                         return (
                                             <div key={grp.id || grp.name} className="atelier-control-group" style={{ marginBottom: 0 }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                                    <div className="atelier-spec-label" style={{ marginBottom: 0 }}>{grp.name.toUpperCase()}</div>
-                                                    {selectedOptions[grp.name]?.value && (
-                                                        <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: 500 }}>
-                                                            {selectedOptions[grp.name].value}
-                                                            {Number(selectedOptions[grp.name].price_delta) > 0 ? ` (+₹${Number(selectedOptions[grp.name].price_delta).toLocaleString('en-IN')})` : ''}
-                                                        </span>
-                                                    )}
-                                                </div>
+                                                <div className="atelier-spec-label" style={{ marginBottom: '6px' }}>{grp.name.toUpperCase()}</div>
                                                 <div className="atelier-gems-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                                                     {grp.values.map((sVal, idx) => {
                                                         const valLower = (sVal.value || '').toLowerCase();
