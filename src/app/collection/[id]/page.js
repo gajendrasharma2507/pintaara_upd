@@ -848,44 +848,57 @@ export default function DynamicCollectionPage({ params }) {
         });
     }, [purityGroup, productDetail?.available_purities, productDetail?.finish_purities, productDetail?.karat, productDetail?.purity]);
 
-    // Ensure selected purity is always valid when availablePurities changes
+    // Ensure selected purity is always valid when availablePurities changes (default to FIRST option)
     useEffect(() => {
         if (availablePurities && availablePurities.length > 0) {
-            const isCurrentAvailable = availablePurities.some((pVal) => {
-                return selectedPurity === pVal.code || selectedPurity === pVal.value;
-            });
-            if (!isCurrentAvailable) {
-                const first = availablePurities[0];
-                const clean = first.code || first.value;
-                setSelectedPurity(clean);
+            const first = availablePurities[0];
+            const cleanFirst = first.code || first.value;
+            if (!hasCustomized) {
+                setSelectedPurity(cleanFirst);
                 const grpName = purityGroup?.name || 'Metal Colors & Purities';
-                handleSelectOption(grpName, { value: clean, price_delta: Number(first.price_delta) || 0 });
+                handleSelectOption(grpName, { value: cleanFirst, price_delta: Number(first.price_delta) || 0 });
+            } else {
+                const isCurrentAvailable = availablePurities.some((pVal) => {
+                    return selectedPurity === pVal.code || selectedPurity === pVal.value;
+                });
+                if (!isCurrentAvailable) {
+                    setSelectedPurity(cleanFirst);
+                    const grpName = purityGroup?.name || 'Metal Colors & Purities';
+                    handleSelectOption(grpName, { value: cleanFirst, price_delta: Number(first.price_delta) || 0 });
+                }
             }
         }
-    }, [availablePurities, selectedPurity]);
+    }, [availablePurities]);
 
-    // Ensure selected finish is always valid when availableFinishes changes
+    // Ensure selected finish is always valid when availableFinishes changes (default to FIRST option)
     useEffect(() => {
         if (availableFinishes && availableFinishes.length > 0) {
-            const isCurrentAvailable = availableFinishes.some((fVal) => {
-                const valStr = typeof fVal === 'string' ? fVal : fVal.value;
-                const code = fVal.code || normalizeFinishKey(valStr);
-                return normalizeFinishKey(selectedFinishCode) === normalizeFinishKey(code);
-            });
-            if (!isCurrentAvailable) {
-                const first = availableFinishes[0];
-                const valStr = typeof first === 'string' ? first : first.value;
-                const code = first.code || normalizeFinishKey(valStr);
-                const cleanCode = normalizeFinishKey(code);
+            const first = availableFinishes[0];
+            const valStr = typeof first === 'string' ? first : first.value;
+            const code = first.code || normalizeFinishKey(valStr);
+            const cleanCode = normalizeFinishKey(code);
+            if (!hasCustomized) {
                 setSelectedFinishCode(cleanCode);
                 setActiveImgIndex(0);
                 const grpName = finishGroup?.name || 'Finish Options';
                 handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: first.image });
+            } else {
+                const isCurrentAvailable = availableFinishes.some((fVal) => {
+                    const vStr = typeof fVal === 'string' ? fVal : fVal.value;
+                    const c = fVal.code || normalizeFinishKey(vStr);
+                    return normalizeFinishKey(selectedFinishCode) === normalizeFinishKey(c);
+                });
+                if (!isCurrentAvailable) {
+                    setSelectedFinishCode(cleanCode);
+                    setActiveImgIndex(0);
+                    const grpName = finishGroup?.name || 'Finish Options';
+                    handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: first.image });
+                }
             }
         }
-    }, [availableFinishes, selectedFinishCode, finishGroup]);
+    }, [availableFinishes]);
 
-    // Synchronize default selections when option groups change
+    // Synchronize default selections: ALWAYS default select the FIRST option for every group
     useEffect(() => {
         if (activeOptionGroups && activeOptionGroups.length > 0) {
             setSelectedOptions((prev) => {
@@ -898,44 +911,31 @@ export default function DynamicCollectionPage({ params }) {
                         if (v.code && currentSelected.code && normalizeFinishKey(v.code) === normalizeFinishKey(currentSelected.code)) return true;
                         return false;
                     });
-                    if (!exists && group.values.length > 0) {
+                    if ((!hasCustomized || !exists) && group.values.length > 0) {
+                        const firstVal = group.values[0];
+                        next[gName] = firstVal;
                         const l = gName.toLowerCase();
                         if (l.includes('purity') || l.includes('metal') || l.includes('karat')) {
-                            const val = group.values.find((v) => v.value.includes('18K')) || group.values.find((v) => v.value.includes('22K')) || group.values[0];
-                            next[gName] = val;
-                            const match = val.value.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i);
-                            setSelectedPurity(match ? match[0].toUpperCase() : val.value);
+                            const match = firstVal.value.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i);
+                            setSelectedPurity(match ? match[0].toUpperCase() : firstVal.value);
                         } else if (l.includes('finish')) {
-                            const val = group.values.find((v) => v.value.toLowerCase().includes('yellow')) || group.values[0];
-                            next[gName] = val;
-                            const cleanCode = normalizeFinishKey(val.code || val.value || 'YG');
+                            const cleanCode = normalizeFinishKey(firstVal.code || firstVal.value || 'YG');
                             setSelectedFinishCode(cleanCode);
                             setActiveImgIndex(0);
                         } else if (l.includes('size')) {
-                            const val = group.values[0];
-                            next[gName] = val;
-                            setSelectedSize(val.value.replace(/^(Ring\s*Size|Size)\s*/i, ''));
+                            setSelectedSize(firstVal.value.replace(/^(Ring\s*Size|Size)\s*/i, ''));
                         } else if (l.includes('chain')) {
-                            const val = group.values.find((v) => v.value.toLowerCase().includes('box')) || group.values[0];
-                            next[gName] = val;
-                            setSelectedChain(val.value.replace(/\s*Chain\s*/i, ' ').trim());
+                            setSelectedChain(firstVal.value.replace(/\s*Chain\s*/i, ' ').trim());
                         } else if (l.includes('gem') || l.includes('stone')) {
-                            const val = group.values.find((v) => {
-                                const value = v.value.toLowerCase();
-                                return value.includes('no stone') || value.includes('solid gold') || value.includes('none');
-                            }) || group.values[0];
-                            next[gName] = val;
-                            const valLower = val.value.toLowerCase();
+                            const valLower = firstVal.value.toLowerCase();
                             setSelectedGem(valLower.includes('emerald') ? 'emerald' : valLower.includes('sapphire') ? 'sapphire' : valLower.includes('ruby') ? 'ruby' : valLower.includes('diamond') ? 'diamond' : 'none');
-                        } else {
-                            next[gName] = group.values[0];
                         }
                     }
                 });
                 return next;
             });
         }
-    }, [activeOptionGroups]);
+    }, [activeOptionGroups, hasCustomized]);
 
     const handleSelectOption = (groupName, valueObj) => {
         setHasCustomized(true);
