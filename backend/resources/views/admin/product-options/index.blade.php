@@ -6,17 +6,11 @@
   <!-- Header Banner -->
   <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
     <div>
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
         <h1 style="font-size: 22px; font-weight: 700; color: var(--admin-text-primary); margin: 0; letter-spacing: -0.01em;">
           Product Options &amp; Variants
         </h1>
-        <span style="background: #EFF2FE; color: #3C50E0; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; letter-spacing: 0.05em; text-transform: uppercase;">
-          Dynamic System
-        </span>
       </div>
-      <p style="font-size: 13.5px; color: var(--admin-text-secondary); margin: 0; max-width: 720px; line-height: 1.5;">
-        Create unlimited option groups (e.g. Metal Purity, Gemstones, Ring Size, Diamond Clarity, Chain Type), choose frontend display types, and manage values with swatches, price adjustments, and stock.
-      </p>
     </div>
 
     <div style="display: flex; gap: 10px;">
@@ -108,9 +102,6 @@
                 <h3 style="font-size: 16px; font-weight: 700; color: var(--admin-text-primary); margin: 0;">
                   {{ $group->name }}
                 </h3>
-                <span style="background: #F1F5F9; color: #475569; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; font-family: monospace;">
-                  {{ $group->code }}
-                </span>
 
                 <!-- Display Type Badge -->
                 @if($group->display_type === 'image_swatch')
@@ -142,12 +133,6 @@
                   </span>
                 @endif
               </div>
-
-              @if($group->description)
-                <div style="font-size: 12.5px; color: var(--admin-text-muted); margin-top: 3px;">
-                  {{ $group->description }}
-                </div>
-              @endif
             </div>
           </div>
 
