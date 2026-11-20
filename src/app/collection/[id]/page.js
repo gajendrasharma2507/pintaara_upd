@@ -529,8 +529,8 @@ export default function DynamicCollectionPage({ params }) {
                 // Skip certificate standards or empty names
                 if (lower.includes('certificate') || !optName) return;
 
-                // Deduplicate by group ID or exact internal name, so any custom option groups created by Admin are preserved
-                const normKey = opt.id ? `id_${opt.id}` : optName.toLowerCase();
+                // Deduplicate by group ID and normalized name so options don't collide
+                const normKey = `${opt.id ? `id_${opt.id}_` : ''}${lower}`;
 
                 if (seen.has(normKey)) return;
                 seen.add(normKey);

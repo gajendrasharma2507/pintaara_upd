@@ -414,9 +414,6 @@
             <button type="button" id="btn_generate_variants" class="admin-btn admin-btn-primary" style="padding: 7px 14px; font-size: 12px;">
               ⚡ Generate Variant Matrix
             </button>
-            <button type="button" id="btn_add_single_variant" class="admin-btn admin-btn-secondary" style="padding: 7px 12px; font-size: 12px;">
-              + Add Custom Row
-            </button>
           </div>
         </div>
 
