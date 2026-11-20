@@ -628,7 +628,8 @@ export default function DynamicCollectionPage({ params }) {
     const finishGroup = useMemo(() => {
         return activeOptionGroups?.find((g) => {
             const l = (g.name || '').toLowerCase();
-            return l.includes('finish') || l.includes('tone') || g.code === 'FINISH';
+            if (l.includes('stone') || l.includes('gem') || l.includes('diamond')) return false;
+            return l.includes('finish') || l.includes('two-tone') || l.includes('metal tone') || g.code === 'FINISH';
         });
     }, [activeOptionGroups]);
 
@@ -1091,17 +1092,22 @@ export default function DynamicCollectionPage({ params }) {
         let cancelled = false;
         const calculate = async () => {
             try {
+                const safeWeight = Math.max(0.01, effectiveWeight || 0.01);
+                const safeMakingPercent = Math.min(100, Math.max(0, effectiveMakingPercent || 0));
+                const safeBrandMarkup = Math.min(100, Math.max(0, effectiveBrandMarkup || 0));
+                const safeOtherCharges = Math.max(0, (effectiveOtherCharges || 0) + totalOptionsDelta);
+
                 const response = await apiFetch('/price/calculate', {
                     method: 'POST',
                     body: JSON.stringify({
-                        weight_grams: effectiveWeight,
+                        weight_grams: safeWeight,
                         purity: purityStr,
                         purity_fraction: purityFraction,
                         metal_type: isSilver ? 'silver' : 'gold',
                         making_charge_flat: 0,
-                        making_charge_percent: effectiveMakingPercent,
-                        brand_markup_percent: effectiveBrandMarkup,
-                        other_charges: effectiveOtherCharges + totalOptionsDelta,
+                        making_charge_percent: safeMakingPercent,
+                        brand_markup_percent: safeBrandMarkup,
+                        other_charges: safeOtherCharges,
                         wastage_percent: 0,
                     }),
                 });
@@ -1120,7 +1126,7 @@ export default function DynamicCollectionPage({ params }) {
                     },
                 });
             } catch (error) {
-                if (!cancelled) console.error('Unable to calculate product price:', error);
+                if (!cancelled) console.warn('Unable to calculate product price from API (using accurate local breakdown):', error);
             }
         };
         calculate();
