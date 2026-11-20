@@ -36,7 +36,13 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthApiController::class, 'login']);
     Route::post('/forgot-password', [AuthApiController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthApiController::class, 'resetPassword']);
+    Route::post('/verify-storefront-passcode', [AuthApiController::class, 'verifyStorefrontPasscode']);
+    Route::get('/passcode-status', [AuthApiController::class, 'getStorefrontPasscodeStatus']);
 });
+
+// Storefront Passcode Access Verification & Status
+Route::get('/storefront/passcode-status', [AuthApiController::class, 'getStorefrontPasscodeStatus']);
+Route::post('/storefront/verify-passcode', [AuthApiController::class, 'verifyStorefrontPasscode']);
 
 // Dedicated Admin Login Endpoint
 Route::post('/admin/auth/login', [AuthApiController::class, 'adminLogin']);

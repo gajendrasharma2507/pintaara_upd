@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\User;
+use App\Services\CustomerNotificationService;
 use App\Services\OtpService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -71,7 +72,6 @@ class AuthApiController extends Controller
                 'email' => $email,
                 'requires_otp' => true,
                 'cooldown_seconds' => $otpRes['cooldown_seconds'],
-                'dev_otp' => $otpRes['dev_otp'] ?? null,
             ],
         ], 200);
     }
@@ -126,6 +126,9 @@ class AuthApiController extends Controller
                     'is_disabled' => false,
                     'email_verified_at' => now(),
                 ]);
+
+                // Dispatch B-6: Welcome to PINTAARA
+                CustomerNotificationService::sendAccountCreated($user);
             } else {
                 $user->update(['email_verified_at' => now()]);
             }
@@ -221,7 +224,6 @@ class AuthApiController extends Controller
             'data' => [
                 'email' => $email,
                 'cooldown_seconds' => 60,
-                'dev_otp' => $otpRes['dev_otp'] ?? null,
             ],
         ]);
     }
@@ -264,7 +266,6 @@ class AuthApiController extends Controller
                 'requires_otp' => true,
                 'email' => $email,
                 'message' => 'Your email has not been verified yet. A 6-digit verification code has been dispatched.',
-                'dev_otp' => $otpRes['dev_otp'] ?? null,
             ], 403);
         }
 
@@ -503,6 +504,9 @@ class AuthApiController extends Controller
         $user->update(['password' => Hash::make($request->new_password)]);
         AuditLog::log('password_changed', 'User', $user->id);
 
+        // Dispatch B-4: Password Updated Notification
+        CustomerNotificationService::sendPasswordChanged($user);
+
         return response()->json([
             'success' => true,
             'message' => 'Password updated successfully.',
@@ -563,6 +567,9 @@ class AuthApiController extends Controller
 
         AuditLog::log('email_changed', 'User', $user->id, ['email' => $oldEmail], ['email' => $newEmail]);
 
+        // Dispatch B-5: Email Address Updated Notification (sent to old email address for security alert)
+        CustomerNotificationService::sendEmailAddressChanged($oldEmail, $newEmail, $user);
+
         return response()->json([
             'success' => true,
             'message' => 'Email address successfully updated.',
@@ -600,7 +607,6 @@ class AuthApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'A 6-digit verification code has been dispatched to your email.',
-            'dev_otp' => $otpRes['dev_otp'] ?? null,
             'cooldown_seconds' => $otpRes['cooldown_seconds'] ?? 60,
         ]);
     }
@@ -655,6 +661,9 @@ class AuthApiController extends Controller
 
         AuditLog::log('password_reset_completed', 'User', $user->id);
 
+        // Dispatch B-4: Password Updated Notification
+        CustomerNotificationService::sendPasswordChanged($user);
+
         return response()->json([
             'success' => true,
             'message' => 'Password reset successfully. You may now sign in with your new credentials.',
@@ -676,5 +685,75 @@ class AuthApiController extends Controller
             'status' => 'success',
             'message' => 'Logged out successfully.',
         ]);
+    }
+
+    /**
+     * Storefront Atelier Passcode Status (Enabled / Disabled).
+     * Endpoint: GET /api/storefront/passcode-status
+     */
+    public function getStorefrontPasscodeStatus(): JsonResponse
+    {
+        $enabled = \App\Models\Setting::get('storefront_password_enabled', '1');
+        $isEnabled = !($enabled === '0' || $enabled === 'false' || $enabled === false || $enabled === 0);
+
+        return response()->json([
+            'status' => 'success',
+            'enabled' => $isEnabled,
+        ]);
+    }
+
+    /**
+     * Storefront Atelier Passcode Verification (24-Hour Access Window).
+     * Endpoint: POST /api/auth/verify-storefront-passcode
+     */
+    public function verifyStorefrontPasscode(Request $request): JsonResponse
+    {
+        $enabled = \App\Models\Setting::get('storefront_password_enabled', '1');
+        $isEnabled = !($enabled === '0' || $enabled === 'false' || $enabled === false || $enabled === 0);
+        if (!$isEnabled) {
+            $durationSeconds = 86400;
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Storefront password protection is disabled.',
+                'expires_in' => $durationSeconds,
+                'expires_at' => (time() + $durationSeconds) * 1000,
+            ]);
+        }
+
+        $inputPasscode = trim((string) $request->input('passcode', ''));
+        $configuredPasscode = trim((string) \App\Models\Setting::get('storefront_passcode', env('STOREFRONT_PASSCODE', '')));
+
+        if ($configuredPasscode === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Storefront passcode is not configured in settings.',
+            ], 500);
+        }
+
+        if ($inputPasscode === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please enter the atelier passcode.',
+            ], 422);
+        }
+
+        if (hash_equals($configuredPasscode, $inputPasscode)) {
+            $durationSeconds = 86400; // 24 hours
+            $expiresAtTimestamp = (time() + $durationSeconds) * 1000;
+
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'message' => 'PINTAARA access granted for 24 hours.',
+                'expires_in' => $durationSeconds,
+                'expires_at' => $expiresAtTimestamp,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Incorrect PINTAARA passcode. Please try again.',
+        ], 401);
     }
 }

@@ -6,6 +6,7 @@ import Slider from '@/components/Slider';
 import EnterPage from '@/components/EnterPage';
 import { PINTAARA_CONFIG, ENTER_PAGE_CONFIG } from '@/config/slides';
 import { safeStorage, safeSessionStorage } from '@/lib/storage';
+import api from '@/lib/api';
 
 export default function Home() {
   const router = useRouter();
@@ -73,7 +74,16 @@ export default function Home() {
     }
   }, []);
 
-  const handleEnter = () => {
+  const handleEnter = async () => {
+    try {
+      const statusRes = await api.getStorefrontPasscodeStatus();
+      if (statusRes && statusRes.enabled === false) {
+        safeStorage.setItem("pintaara_unlocked", "1");
+        triggerEnterTransition();
+        return;
+      }
+    } catch (e) {}
+
     const unlocked = safeStorage.getItem("pintaara_unlocked");
     const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
     const isUnlocked = unlocked === "1" && expiresAt > Date.now();

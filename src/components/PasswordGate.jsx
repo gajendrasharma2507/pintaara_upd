@@ -50,37 +50,59 @@ export default function PasswordGate({ children }) {
       return;
     }
 
-    const unlocked = safeStorage.getItem("pintaara_unlocked");
-    const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
-    const now = Date.now();
+    let isCancelled = false;
+    api.getStorefrontPasscodeStatus().then((res) => {
+      if (isCancelled) return;
+      if (res && res.enabled === false) {
+        setIsUnlocked(true);
+        setLoading(false);
+        return;
+      }
 
-    // Check if unlocked AND within the 24-hour window
-    if (unlocked === "1" && expiresAt > now) {
-      setIsUnlocked(true);
-      setLoading(false);
+      const unlocked = safeStorage.getItem("pintaara_unlocked");
+      const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
+      const now = Date.now();
 
-      // Auto-lock when the 24 hours expire in the current session
-      const remainingTime = expiresAt - now;
-      const timer = setTimeout(() => {
+      // Check if unlocked AND within the 24-hour window
+      if (unlocked === "1" && expiresAt > now) {
+        setIsUnlocked(true);
+        setLoading(false);
+
+        // Auto-lock when the 24 hours expire in the current session
+        const remainingTime = expiresAt - now;
+        const timer = setTimeout(() => {
+          safeStorage.removeItem("pintaara_unlocked");
+          safeStorage.removeItem("pintaara_unlocked_expires_at");
+          try {
+            document.cookie = "pintaara_unlocked=; path=/; max-age=0";
+          } catch (err) { }
+          setIsUnlocked(false);
+        }, remainingTime);
+
+        return () => clearTimeout(timer);
+      } else {
+        // 24 hours elapsed or not unlocked — require entering passcode again
         safeStorage.removeItem("pintaara_unlocked");
         safeStorage.removeItem("pintaara_unlocked_expires_at");
         try {
           document.cookie = "pintaara_unlocked=; path=/; max-age=0";
         } catch (err) { }
         setIsUnlocked(false);
-      }, remainingTime);
-
-      return () => clearTimeout(timer);
-    } else {
-      // 24 hours elapsed or not unlocked — require entering passcode again
-      safeStorage.removeItem("pintaara_unlocked");
-      safeStorage.removeItem("pintaara_unlocked_expires_at");
-      try {
-        document.cookie = "pintaara_unlocked=; path=/; max-age=0";
-      } catch (err) { }
-      setIsUnlocked(false);
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (isCancelled) return;
+      const unlocked = safeStorage.getItem("pintaara_unlocked");
+      const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
+      if (unlocked === "1" && expiresAt > Date.now()) {
+        setIsUnlocked(true);
+      } else {
+        setIsUnlocked(false);
+      }
       setLoading(false);
-    }
+    });
+
+    return () => { isCancelled = true; };
   }, [isAdmin]);
 
   // Immediately render admin or password page without any password gate or spinner

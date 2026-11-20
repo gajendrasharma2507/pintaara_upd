@@ -14,11 +14,24 @@ export default function PasswordPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const unlocked = safeStorage.getItem("pintaara_unlocked");
-    const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
-    if (unlocked === "1" && expiresAt > Date.now()) {
-      router.replace("/");
-    }
+    api.getStorefrontPasscodeStatus().then((res) => {
+      if (res && res.enabled === false) {
+        safeStorage.setItem("pintaara_unlocked", "1");
+        router.replace("/");
+        return;
+      }
+      const unlocked = safeStorage.getItem("pintaara_unlocked");
+      const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
+      if (unlocked === "1" && expiresAt > Date.now()) {
+        router.replace("/");
+      }
+    }).catch(() => {
+      const unlocked = safeStorage.getItem("pintaara_unlocked");
+      const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
+      if (unlocked === "1" && expiresAt > Date.now()) {
+        router.replace("/");
+      }
+    });
   }, [router]);
 
   const handleSubmit = async (e) => {

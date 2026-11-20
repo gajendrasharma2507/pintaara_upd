@@ -1,18 +1,20 @@
 export function getApiBaseUrl() {
-  const raw = (process.env.NEXT_PUBLIC_API_URL || '').replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
-  return raw || 'https://api.pintaara.com/api';
+  return (process.env.NEXT_PUBLIC_API_URL || '').replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
 }
 
 export function getApiHost() {
   return getApiBaseUrl().replace(/\/api\/?$/, '');
 }
 
-const API_BASE_URL = getApiBaseUrl();
+export function getAdminUrl() {
+  return (process.env.NEXT_PUBLIC_ADMIN_URL || '').replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
+}
 
 import { safeStorage } from '@/lib/storage';
 
 export async function apiFetch(endpoint, options = {}) {
   const token = safeStorage.getItem('pintaara_token');
+  const baseUrl = getApiBaseUrl();
 
   const headers = {
     'Content-Type': 'application/json',
@@ -26,7 +28,7 @@ export async function apiFetch(endpoint, options = {}) {
     delete headers['Content-Type'];
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${baseUrl}${endpoint}`, {
     ...options,
     headers,
   });
@@ -79,6 +81,8 @@ export default {
   verifyEmailChangeOtp: (data) => apiFetch('/auth/verify-email-change-otp', { method: 'POST', body: JSON.stringify(data) }),
   forgotPassword: (data) => apiFetch('/auth/forgot-password', { method: 'POST', body: JSON.stringify(data) }),
   resetPassword: (data) => apiFetch('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
+  getStorefrontPasscodeStatus: () => apiFetch('/storefront/passcode-status'),
+  verifyStorefrontPasscode: (passcode) => apiFetch('/auth/verify-storefront-passcode', { method: 'POST', body: JSON.stringify({ passcode }) }),
 
   // User Protected Resources
   getUserOrders: () => apiFetch('/user/orders'),
