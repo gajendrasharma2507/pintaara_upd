@@ -814,7 +814,7 @@ export default function CheckoutPage() {
                                                 <span className="item-qty-tag">Qty: {item.qty}</span>
                                             </div>
                                             <div className="summary-item-price-col">
-                                                <span className="item-price-tag">₹ {(item.price * item.qty).toLocaleString('en-IN')}</span>
+                                                <span className="item-price-tag">₹ {Math.round(item.price * item.qty).toLocaleString('en-IN')}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -823,7 +823,7 @@ export default function CheckoutPage() {
                                 <div className="summary-math-calculation-box">
                                     <div className="math-row">
                                         <span className="math-label">Subtotal [{cart.reduce((total, item) => total + item.qty, 0)} Item]</span>
-                                        <span className="math-val">₹ {subtotal.toLocaleString('en-IN')}</span>
+                                        <span className="math-val">₹ {Math.round(subtotal).toLocaleString('en-IN')}</span>
                                     </div>
                                     <div className="math-row">
                                         <span className="math-label">Shipping</span>
@@ -831,13 +831,13 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="math-row">
                                         <span className="math-label">GST Tax (3%)</span>
-                                        <span className="math-val">₹ {tax.toLocaleString('en-IN')}</span>
+                                        <span className="math-val">₹ {Math.round(tax).toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
 
                                 <div className="summary-checkout-grand-total">
                                     <div className="grand-total-display">
-                                        <span className="total-tag">₹ {total.toLocaleString('en-IN')}</span>
+                                        <span className="total-tag">₹ {Math.round(total).toLocaleString('en-IN')}</span>
                                         <span className="total-subtext">Incl. taxes &amp; charges</span>
                                     </div>
                                     <button 

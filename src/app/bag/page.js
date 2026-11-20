@@ -82,7 +82,7 @@ export default function BagPage() {
 
                                         {/* Column 3: Unit Price */}
                                         <div className="td-col col-price">
-                                            <span className="price-val">₹ {item.price.toLocaleString('en-IN')}</span>
+                                            <span className="price-val">₹ {Math.round(item.price).toLocaleString('en-IN')}</span>
                                         </div>
 
                                         {/* Column 4: Quantity Control */}
@@ -107,7 +107,7 @@ export default function BagPage() {
 
                                         {/* Column 5: Item Total */}
                                         <div className="td-col col-total">
-                                            <span className="price-val">₹ {(item.price * item.qty).toLocaleString('en-IN')}</span>
+                                            <span className="price-val">₹ {Math.round(item.price * item.qty).toLocaleString('en-IN')}</span>
                                         </div>
 
                                         {/* Column 6: Remove Button */}
@@ -127,22 +127,22 @@ export default function BagPage() {
                             <div className="summary-breakdown-box">
                                 <div className="summary-breakdown-row">
                                     <span className="breakdown-label">Subtotal [{cart.reduce((total, item) => total + item.qty, 0)} Item]</span>
-                                    <span className="breakdown-value">₹ {subtotal.toLocaleString('en-IN')}</span>
+                                    <span className="breakdown-value">₹ {Math.round(subtotal).toLocaleString('en-IN')}</span>
                                 </div>
                                 <div className="summary-breakdown-row">
                                     <span className="breakdown-label">Shipping</span>
                                     <span className="breakdown-value status-free">FREE</span>
                                 </div>
                                 <div className="summary-breakdown-row">
-                                    <span className="breakdown-label">Tax</span>
-                                    <span className="breakdown-value">₹ {tax.toLocaleString('en-IN')}</span>
+                                    <span className="breakdown-label">GST Tax (3%)</span>
+                                    <span className="breakdown-value">₹ {Math.round(tax).toLocaleString('en-IN')}</span>
                                 </div>
                             </div>
 
                             {/* Right: Grand total & action buttons */}
                             <div className="summary-grand-total-box">
                                 <div className="grand-total-display">
-                                    <span className="grand-total-amount">₹ {total.toLocaleString('en-IN')}</span>
+                                    <span className="grand-total-amount">₹ {Math.round(total).toLocaleString('en-IN')}</span>
                                     <span className="grand-total-subtext">Incl. taxes & charges</span>
                                 </div>
                                 <div className="bag-action-buttons-group">

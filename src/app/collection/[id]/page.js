@@ -1246,10 +1246,10 @@ export default function DynamicCollectionPage({ params }) {
 
         const finalCalculatedPrice = priceBreakdown?.total || priceBreakdown?.total_price || priceBreakdown?.final_amount;
         const variantPrice = (finalCalculatedPrice && Number(finalCalculatedPrice) > 0)
-            ? Number(finalCalculatedPrice)
+            ? Math.round(Number(finalCalculatedPrice))
             : (activeVariant && (Number(activeVariant.price_override) > 0 || Number(activeVariant.price) > 0)
-                ? Number(activeVariant.price_override || activeVariant.price)
-                : (productDetail?.base_pricing?.total_price || 90640));
+                ? Math.round(Number(activeVariant.price_override || activeVariant.price))
+                : Math.round(Number(productDetail?.base_pricing?.total_price || 90640)));
 
         const item = {
             id: productDetail?.design_code || productDetail?.id || resolvedParams?.id,
@@ -1269,6 +1269,8 @@ export default function DynamicCollectionPage({ params }) {
                 price_delta: v.price_delta || 0,
             })),
             price: variantPrice,
+            subtotal_price: priceBreakdown?.subtotal ? Math.round(Number(priceBreakdown.subtotal)) : Math.round(variantPrice / 1.03),
+            gst_amount: priceBreakdown?.gst_amount || priceBreakdown?.gst ? Math.round(Number(priceBreakdown.gst_amount || priceBreakdown.gst)) : Math.round(variantPrice - (variantPrice / 1.03)),
             weight_used: priceBreakdown?.weight_grams || 8.5,
             price_breakdown: priceBreakdown,
             qty: 1,
