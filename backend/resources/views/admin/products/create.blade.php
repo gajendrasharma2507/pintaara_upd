@@ -370,14 +370,8 @@
         <div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <label class="admin-label" style="margin: 0; font-size: 14px; font-weight: 700; color: var(--admin-text-primary);">
-              Product Options &amp; Variants
+              Product Options
             </label>
-            <span style="background: #EFF2FE; color: #3C50E0; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase;">
-              Dynamic Options
-            </span>
-          </div>
-          <div style="font-size: 12px; color: var(--admin-text-secondary); margin-top: 4px;">
-            Select which option groups apply to this piece, customize available values, and generate SKU / price / stock variant combinations.
           </div>
         </div>
 
