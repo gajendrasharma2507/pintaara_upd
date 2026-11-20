@@ -776,7 +776,7 @@ export default function DynamicCollectionPage({ params }) {
                         id: cleanCode,
                         value: cleanCode,
                         code: cleanCode,
-                        price_delta: cleanCode === '22KT' ? 12000 : cleanCode === '14KT' ? -10000 : cleanCode.includes('SILVER') ? -45000 : 0,
+                        price_delta: 0,
                     });
                 }
             });
@@ -805,7 +805,7 @@ export default function DynamicCollectionPage({ params }) {
                         id: item.purity_id || cleanCode,
                         value: cleanCode,
                         code: cleanCode,
-                        price_delta: cleanCode === '22KT' ? 12000 : cleanCode === '14KT' ? -10000 : cleanCode.includes('SILVER') ? -45000 : 0,
+                        price_delta: 0,
                     });
                 }
             });
@@ -1071,13 +1071,27 @@ export default function DynamicCollectionPage({ params }) {
             }
         });
 
-        const baseWeight = Number(productDetail.base_weight_grams) || 8.5;
-        const totalWeight = Math.round((baseWeight + extraGrams) * 100) / 100;
+        const isSilver = purityStr.toLowerCase().includes('silver') || purityStr.includes('925');
+        const effectiveWeight = isSilver && Number(productDetail.silver_weight_grams) > 0
+            ? Number(productDetail.silver_weight_grams)
+            : (Number(productDetail.base_weight_grams) || 8.5);
+        const totalWeight = Math.round((effectiveWeight + extraGrams) * 100) / 100;
+
+        const effectiveMakingPercent = isSilver && productDetail.silver_making_charge_percent !== null && productDetail.silver_making_charge_percent !== undefined && productDetail.silver_making_charge_percent !== ''
+            ? Number(productDetail.silver_making_charge_percent)
+            : productDetail.making_charge_percent;
+
+        const effectiveBrandMarkup = isSilver && productDetail.silver_brand_markup_percent !== null && productDetail.silver_brand_markup_percent !== undefined && productDetail.silver_brand_markup_percent !== ''
+            ? Number(productDetail.silver_brand_markup_percent)
+            : (Number(productDetail.brand_markup_percent) || 0);
+
+        const effectiveOtherCharges = isSilver && productDetail.silver_other_charges !== null && productDetail.silver_other_charges !== undefined && productDetail.silver_other_charges !== ''
+            ? Number(productDetail.silver_other_charges)
+            : (Number(productDetail.other_charges) || 0);
 
         let cancelled = false;
         const calculate = async () => {
             try {
-                const isSilver = purityStr.toLowerCase().includes('silver') || purityStr.includes('925');
                 const purityFraction = purityStr.includes('24') ? 1.0 : purityStr.includes('18') ? 0.75 : purityStr.includes('14') ? 0.585 : isSilver ? 0.925 : 0.916;
                 const response = await apiFetch('/price/calculate', {
                     method: 'POST',
@@ -1087,9 +1101,9 @@ export default function DynamicCollectionPage({ params }) {
                         purity_fraction: purityFraction,
                         metal_type: isSilver ? 'silver' : 'gold',
                         making_charge_flat: Number(productDetail.making_charge) || 0,
-                        making_charge_percent: productDetail.making_charge_percent,
-                        brand_markup_percent: productDetail.brand_markup_percent || 0,
-                        other_charges: productDetail.other_charges || 0,
+                        making_charge_percent: effectiveMakingPercent,
+                        brand_markup_percent: effectiveBrandMarkup,
+                        other_charges: effectiveOtherCharges,
                         wastage_percent: Number(productDetail.wastage_percent) || 0,
                         gem: gemName,
                         stone_charge: flatGemPrice > 0 ? flatGemPrice : null,
@@ -1586,7 +1600,7 @@ export default function DynamicCollectionPage({ params }) {
                                     const match = typeof rawVal === 'string' ? rawVal.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i) : null;
                                     const cleanPurity = match ? match[0].toUpperCase() : rawVal;
                                     const isSelected = selectedPurity === cleanPurity || selectedPurity === rawVal;
-                                    const delta = Number(pVal.price_delta) || (cleanPurity === '22KT' ? 12000 : cleanPurity === '14KT' ? -10000 : cleanPurity === '925 SILVER' ? -45000 : 0);
+                                    const delta = Number(pVal.price_delta) || 0;
                                     return (
                                         <button
                                             key={pVal.id || cleanPurity}

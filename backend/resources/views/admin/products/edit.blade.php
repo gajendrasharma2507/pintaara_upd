@@ -161,6 +161,41 @@
       </div>
     </div>
 
+    <!-- Silver Specifications (Applied when 925 Silver is selected) -->
+    <div style="background: #F8FAFC; border: 1px solid var(--admin-border); border-radius: 8px; padding: 14px 18px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.04em;">
+            Silver Specifications (925 Silver)
+          </span>
+          <span style="background: #E2E8F0; color: #475569; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
+            Optional
+          </span>
+        </div>
+        <div style="font-size: 11.5px; color: var(--admin-text-muted);">
+          Used for price calculation when customer selects 925 Silver (falls back to gold values if empty)
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+        <div>
+          <label class="admin-label" style="font-size: 12px;">Silver Net Weight (g)</label>
+          <input type="number" step="0.001" name="silver_weight_grams" value="{{ old('silver_weight_grams', $product->silver_weight_grams) }}" class="admin-input" placeholder="e.g. 4.200 (optional)">
+        </div>
+        <div>
+          <label class="admin-label" style="font-size: 12px;">Silver Making Charge (%)</label>
+          <input type="number" step="0.01" name="silver_making_charge_percent" value="{{ old('silver_making_charge_percent', $product->silver_making_charge_percent) }}" class="admin-input" placeholder="e.g. 15.00">
+        </div>
+        <div>
+          <label class="admin-label" style="font-size: 12px;">Silver Brand Markup (%)</label>
+          <input type="number" step="0.01" name="silver_brand_markup_percent" value="{{ old('silver_brand_markup_percent', $product->silver_brand_markup_percent) }}" class="admin-input" placeholder="e.g. 0.00">
+        </div>
+        <div>
+          <label class="admin-label" style="font-size: 12px;">Silver Other Charge (₹)</label>
+          <input type="number" step="0.01" name="silver_other_charges" value="{{ old('silver_other_charges', $product->silver_other_charges) }}" class="admin-input" placeholder="0.00">
+        </div>
+      </div>
+    </div>
+
     <div>
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
         <label class="admin-label" style="margin: 0; font-size: 13.5px; font-weight: 700; color: var(--admin-text-primary);">
