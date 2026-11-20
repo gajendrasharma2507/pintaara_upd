@@ -1257,9 +1257,12 @@ export default function DynamicCollectionPage({ params }) {
             k.toLowerCase().includes('chain')
         );
 
-        const variantPrice = (activeVariant && (Number(activeVariant.price_override) > 0 || Number(activeVariant.price) > 0))
-            ? Number(activeVariant.price_override || activeVariant.price)
-            : (priceBreakdown?.total || 90640);
+        const finalCalculatedPrice = priceBreakdown?.total || priceBreakdown?.total_price || priceBreakdown?.final_amount;
+        const variantPrice = (finalCalculatedPrice && Number(finalCalculatedPrice) > 0)
+            ? Number(finalCalculatedPrice)
+            : (activeVariant && (Number(activeVariant.price_override) > 0 || Number(activeVariant.price) > 0)
+                ? Number(activeVariant.price_override || activeVariant.price)
+                : (productDetail?.base_pricing?.total_price || 90640));
 
         const item = {
             id: productDetail?.design_code || productDetail?.id || resolvedParams?.id,
@@ -1450,11 +1453,12 @@ export default function DynamicCollectionPage({ params }) {
     }
 
     const displayPrice = (() => {
+        const finalCalculated = priceBreakdown?.total || priceBreakdown?.total_price || priceBreakdown?.final_amount;
+        if (finalCalculated && Number(finalCalculated) > 0) {
+            return Number(Math.round(finalCalculated)).toLocaleString('en-IN');
+        }
         if (activeVariant && (Number(activeVariant.price_override) > 0 || Number(activeVariant.price) > 0)) {
             return Number(Math.round(activeVariant.price_override || activeVariant.price)).toLocaleString('en-IN');
-        }
-        if (priceBreakdown?.total) {
-            return Number(Math.round(priceBreakdown.total)).toLocaleString('en-IN');
         }
         if (productDetail?.base_pricing?.total_price) {
             return Number(Math.round(productDetail.base_pricing.total_price)).toLocaleString('en-IN');
