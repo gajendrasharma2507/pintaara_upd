@@ -398,46 +398,7 @@
         <!-- Populated by JavaScript -->
       </div>
 
-      <!-- Variants Combinations Section -->
-      <div style="border-top: 1px solid var(--admin-border); padding-top: 18px; margin-top: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-          <div>
-            <h4 style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--admin-text-primary); margin: 0; letter-spacing: 0.04em;">
-              Variant Matrix &amp; Pricing Overrides
-            </h4>
-            <div style="font-size: 11.5px; color: var(--admin-text-secondary); margin-top: 2px;">
-              Manage individual SKUs, stock availability, and optional fixed price overrides per variant combination.
-            </div>
-          </div>
 
-          <div style="display: flex; gap: 8px;">
-            <button type="button" id="btn_generate_variants" class="admin-btn admin-btn-primary" style="padding: 7px 14px; font-size: 12px;">
-              ⚡ Generate Variant Matrix
-            </button>
-          </div>
-        </div>
-
-        <div style="overflow-x: auto; background: #ffffff; border: 1px solid var(--admin-border); border-radius: 8px;">
-          <table class="admin-table" style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #F8FAFC; border-bottom: 1px solid var(--admin-border); font-size: 11px; text-transform: uppercase; color: var(--admin-text-muted); letter-spacing: 0.05em; text-align: left;">
-                <th style="padding: 9px 14px;">Variant Combination</th>
-                <th style="padding: 9px 14px; width: 180px;">SKU</th>
-                <th style="padding: 9px 14px; width: 160px;">Price Override (₹)</th>
-                <th style="padding: 9px 14px; width: 180px;">Variant Image</th>
-                <th style="padding: 9px 14px; width: 90px; text-align: center;">Status</th>
-                <th style="padding: 9px 14px; width: 60px; text-align: right;">Action</th>
-              </tr>
-            </thead>
-            <tbody id="variants_matrix_tbody">
-              <!-- Populated by JavaScript -->
-            </tbody>
-          </table>
-          <div id="variants_empty_notice" style="display: none; padding: 24px; text-align: center; color: var(--admin-text-muted); font-size: 12.5px;">
-            No variants generated yet. Click <strong>"⚡ Generate Variant Matrix"</strong> to create combinations from your active options.
-          </div>
-        </div>
-      </div>
     </div>
 
     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
@@ -1053,7 +1014,7 @@ function getOptionAssignmentsPayload() {
 
 function getVariantsMatrixPayload() {
   const tbody = document.getElementById('variants_matrix_tbody');
-  if (!tbody) return currentVariants;
+  if (!tbody) return [];
 
   const rows = tbody.querySelectorAll('tr.variant-row');
   const payload = [];
