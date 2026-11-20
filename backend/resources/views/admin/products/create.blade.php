@@ -345,9 +345,6 @@
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; flex-wrap: wrap;">
         <div>
           <label class="admin-label" style="margin: 0; font-size: 13.5px; font-weight: 600;">Product Sections / Text Boxes</label>
-          <div style="font-size: 11.5px; color: var(--admin-text-secondary); margin-top: 3px;">
-            Add multiple text boxes as needed (e.g. Description, Delivery & Return, Materials & Care, Size Guide). Displayed on the storefront with matching typography and styling.
-          </div>
         </div>
         <button type="button" id="btn_add_section" class="admin-btn-secondary" style="padding: 7px 15px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
