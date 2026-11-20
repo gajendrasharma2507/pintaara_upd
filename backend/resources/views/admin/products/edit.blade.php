@@ -979,9 +979,6 @@ function initOptionsAndVariantsBuilder() {
           <label for="chk_group_enable_${group.id}" style="font-size: 13.5px; font-weight: 700; color: var(--admin-text-primary); cursor: pointer; margin: 0;">
             ${escapeHtml(group.name)}
           </label>
-          <span style="font-size: 10.5px; font-family: monospace; background: #EEF2F6; color: #475569; padding: 2px 6px; border-radius: 4px;">
-            ${escapeHtml(group.code)}
-          </span>
         </div>
 
         <div style="display: flex; align-items: center; gap: 14px;">
