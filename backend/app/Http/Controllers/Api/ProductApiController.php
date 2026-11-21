@@ -239,24 +239,14 @@ class ProductApiController extends Controller
                                 ]);
                             }
                         }
+
+                        // If dynamic option assignments exist, they are the authoritative options configured by the Admin.
+                        // ONLY return the explicitly assigned dynamic options! Do not resurrect unassigned legacy options!
+                        return $dynamicOptions;
                     }
 
-                    $dynamicGroupNorms = $dynamicOptions->map(function($g) {
-                        $n = strtolower($g['name']);
-                        if (str_contains($n, 'purity') || str_contains($n, 'metal') || str_contains($n, 'karat')) return 'purity';
-                        if (str_contains($n, 'finish') || str_contains($n, 'tone')) return 'finish';
-                        if (str_contains($n, 'size')) return 'size';
-                        if (str_contains($n, 'chain')) return 'chain';
-                        if (str_contains($n, 'gem') || str_contains($n, 'stone')) return 'gem';
-                        return $n;
-                    })->toArray();
-
+                    // 2. Fallback to legacy options ONLY for legacy products with ZERO dynamic assignments
                     $finalOptions = collect();
-                    foreach ($dynamicOptions as $dOpt) {
-                        $finalOptions->push($dOpt);
-                    }
-
-                    // 2. Fallback to legacy options for any groups not covered by dynamic assignments
                     foreach ($product->options as $o) {
                         $nameLower = strtolower($o->name);
                         $normKey = $nameLower;
