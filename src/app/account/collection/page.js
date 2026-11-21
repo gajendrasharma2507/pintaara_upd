@@ -7,13 +7,22 @@ import OfficialInvoice from '@/components/OfficialInvoice';
 
 const resolveCertFileUrl = (url) => {
     if (!url) return '';
-    const cleanUrl = String(url).replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
+    let cleanUrl = String(url).replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
+    if (cleanUrl.includes('api.pintaara.com')) {
+        cleanUrl = cleanUrl.replace('api.pintaara.com', 'admin.pintaara.com');
+    }
     if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('blob:')) {
         return cleanUrl;
     }
+    const apiHost = getApiHost().replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
     if (cleanUrl.startsWith('/storage/')) {
-        const apiHost = getApiHost().replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
         return `${apiHost}${cleanUrl}`;
+    }
+    if (cleanUrl.startsWith('storage/')) {
+        return `${apiHost}/${cleanUrl}`;
+    }
+    if (cleanUrl.startsWith('/images/') || cleanUrl.startsWith('images/')) {
+        return cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`;
     }
     return cleanUrl;
 };
@@ -48,17 +57,18 @@ const getValidCertificates = (piece) => {
 };
 
 const PRODUCT_IMAGE_MAP = {
-    'BR-SG-OR-001': 'https://api.pintaara.com/storage/products/images/media_1792447747_cULJbwzt.png',
-    'PD-SG-OR-001': 'https://api.pintaara.com/storage/products/images/media_1792625622_draVowIy.png',
-    'RG-SG-OR-001': 'https://api.pintaara.com/storage/products/images/media_1792625844_2sf2LgGA.png',
-    'RG-SG-OR-002': 'https://api.pintaara.com/storage/products/images/media_1792625527_MuJnEFUp.png',
-    'RG-SG-AR-004': 'https://api.pintaara.com/storage/products/images/media_1792625939_vlRePACq.png',
-    'ER-SG-OR-001A': 'https://api.pintaara.com/storage/products/images/media_1792620061_mjjOIrbB.jpg',
-    'ER-SG-OR-001B': 'https://api.pintaara.com/storage/products/images/media_1792620132_CxF1ZjMv.jpg',
-    'ER-SG-OR-001C': 'https://api.pintaara.com/storage/products/images/media_1792620199_eAYwagpk.jpg',
-    'ER-SG-OR-002A': 'https://api.pintaara.com/storage/products/images/media_1792620290_iTrtvIeW.jpg',
-    'ER-SG-OR-002B': 'https://api.pintaara.com/storage/products/images/media_1792620311_D8Hg6HxL.jpg',
-    'ER-SG-OR-002C': 'https://api.pintaara.com/storage/products/images/media_1792620356_FuyExqwB.jpg',
+    'BR-SG-OR-001': '/images/design-log/BR-SG-OR-001.JPG',
+    'PD-SG-OR-001': '/images/design-log/PD-SG-OR-001.JPG',
+    'RG-SG-OR-001': '/images/design-log/RG-SG-OR-001.JPG',
+    'RG-SG-OR-002': '/images/design-log/RG-SG-OR-002.JPG',
+    'RG-SG-AR-004': '/images/collections/ring.jpg',
+    'ER-SG-OR-001A': '/images/design-log/ER-SG-OR-001A.JPG',
+    'ER-SG-OR-001B': '/images/design-log/ER-SG-OR-001B.JPG',
+    'ER-SG-OR-001C': '/images/design-log/ER-SG-OR-001C.JPG',
+    'ER-SG-OR-002A': '/images/design-log/ER-SG-OR-002A.JPG',
+    'ER-SG-OR-002B': '/images/design-log/ER-SG-OR-002B.JPG',
+    'ER-SG-OR-002C': '/images/design-log/ER-SG-OR-002C.JPG',
+    'PD-PD-CS-002': '/images/collections/ring.jpg',
 };
 
 const resolvePieceImage = (piece, catalogMap = {}) => {
@@ -87,7 +97,7 @@ const DEFAULT_PIECES = [
         id: 'piece-dummy-1',
         piece_code: 'BR-SG-OR-001',
         name: 'Origin Link Bracelet',
-        image: 'https://api.pintaara.com/storage/products/images/media_1792447747_cULJbwzt.png',
+        image: '/images/design-log/BR-SG-OR-001.JPG',
         metal_purity: '22KT (91.6% Royal Gold)',
         finish: 'Yellow Gold',
         gem: 'Natural Diamond (VVS-VS)',
@@ -212,7 +222,7 @@ export default function AccountCollectionPage() {
             {/* Header */}
             <div className="acct-collection-header">
                 <h1 className="acct-col-title">MY COLLECTION</h1>
-                <div className="acct-col-divider" />
+                <div className="acct-hairline acct-col-divider" />
             </div>
 
             {/* Pieces */}
@@ -254,11 +264,12 @@ export default function AccountCollectionPage() {
                                         alt={piece.piece_code || piece.name}
                                         className="acct-thumb-img"
                                         onError={(e) => {
-                                            const code = String(piece.piece_code || '').toUpperCase();
-                                            const fallback = PRODUCT_IMAGE_MAP[code] || PRODUCT_IMAGE_MAP['BR-SG-OR-001'];
-                                            if (e.target.src !== fallback) {
-                                                e.target.onerror = null;
+                                            const code = String(piece.piece_code || piece.design_code || '').toUpperCase().trim();
+                                            const fallback = PRODUCT_IMAGE_MAP[code] || '/images/design-log/BR-SG-OR-001.JPG';
+                                            if (!e.target.src.endsWith(fallback)) {
                                                 e.target.src = fallback;
+                                            } else {
+                                                e.target.src = '/images/collections/bracelet.jpg';
                                             }
                                         }}
                                     />
@@ -493,22 +504,23 @@ export default function AccountCollectionPage() {
             <style jsx>{`
                 .acct-collection-page {
                     width: 100%;
-                    max-width: 950px;
+                    max-width: 1100px;
                 }
                 .acct-collection-header {
-                    margin-bottom: 2rem;
+                    margin-bottom: 2.8rem;
                 }
                 .acct-col-title {
-                    font-size: 1.4rem;
-                    font-weight: 500;
+                    font-size: 1.6rem;
+                    font-weight: 400;
                     letter-spacing: 0.04em;
-                    color: #1A1A1A;
-                    margin: 0 0 1.25rem 0;
+                    color: #111111;
+                    margin: 0 0 1.2rem 0;
                 }
-                .acct-col-divider {
+                .acct-col-divider,
+                .acct-hairline {
                     width: 100%;
                     height: 1px;
-                    background-color: #D6D2C8;
+                    background-color: #D6D0C6;
                 }
 
                 .acct-pieces-container {

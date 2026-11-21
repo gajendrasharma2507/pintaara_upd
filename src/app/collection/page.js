@@ -13,7 +13,7 @@ const resolveImageUrl = (img) => {
     if (img.startsWith('/storage/')) {
         const apiHost = process.env.NEXT_PUBLIC_API_URL 
             ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
-            : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://api.pintaara.com' : 'http://127.0.0.1:8000');
+            : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://admin.pintaara.com' : 'http://127.0.0.1:8000');
         return `${apiHost}${img}`;
     }
     return img;
@@ -115,11 +115,11 @@ export default function CollectionPage() {
                     });
                     setCategories(mapped);
                 } else {
-                    setCategories(defaultCategories);
+                    setCategories([]);
                 }
             } catch (err) {
-                console.warn('Live collections fetch fallback to default categories:', err);
-                setCategories(defaultCategories);
+                console.warn('Live collections fetch fallback to empty collection:', err);
+                setCategories([]);
             } finally {
                 if (isMounted) setIsLoading(false);
             }
@@ -196,11 +196,11 @@ export default function CollectionPage() {
                                 <div className="pintaara-shimmer shimmer-line title" style={{ marginTop: '0.85rem', width: '55%', height: '18px' }} />
                             </div>
                         ))
-                    ) : (
-                        categories.map((cat) => (
+                    ) : categories.length > 0 ? (
+                        categories.map((cat, idx) => (
                             <Link
                                 href={`/collection/${cat.id}`}
-                                key={cat.id}
+                                key={`${cat.id || 'cat'}-${idx}`}
                                 className="collection-card-item"
                             >
                                 <div className="card-media-frame">
@@ -209,6 +209,20 @@ export default function CollectionPage() {
                                 <h2 className="card-item-title">{cat.name}</h2>
                             </Link>
                         ))
+                    ) : (
+                        <div className="collection-empty-state" style={{ gridColumn: '1 / -1', padding: '6rem 1rem', textAlign: 'center', width: '100%' }}>
+                            <p style={{
+                                fontFamily: "var(--font-body), 'Avenir Next', sans-serif",
+                                fontSize: '1rem',
+                                fontWeight: 400,
+                                letterSpacing: '0.12em',
+                                textTransform: 'uppercase',
+                                color: '#666666',
+                                margin: 0
+                            }}>
+                                No collection currently published.
+                            </p>
+                        </div>
                     )}
                 </div>
 
