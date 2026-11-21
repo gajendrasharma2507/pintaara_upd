@@ -63,25 +63,78 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
     const paymentDate = formatDate(invoice.payment_date || invoice.created_at || invoice.acquired_at || new Date());
 
     // Customer / Created For info
-    const customerName = invoice.customer_name || user?.name || 'Shreevaths Nair';
-    const customerPhone = invoice.customer_phone || user?.phone || '+91 98989 45454';
-    const customerEmail = invoice.customer_email || user?.email || 'shvnair1995@gmail.com';
+    const customerName = invoice.customer_name || user?.name || 'Customer';
+    const customerPhone = invoice.customer_phone || user?.phone || '';
+    const customerEmail = invoice.customer_email || user?.email || '';
 
-    // Billing Address
-    const billingName = invoice.billing_name || customerName;
-    const billingLine1 = invoice.billing_address || user?.address || 'Unit 1011, 42 Skyvilla, Gorti Road,';
-    const billingCityState = invoice.billing_city_state || (user?.city ? `${user.city}, ${user.state || 'Gujarat'}` : 'Vadodara, Gujarat');
-    const billingCountry = invoice.billing_country || 'India';
-    const billingPincode = invoice.billing_pincode || '390040';
-    const billingContact = invoice.billing_phone || customerPhone || '+91 98942 43549';
+    // Smart Address Parser Helper
+    const parseAddressHelper = (rawAddr, fallbackName, fallbackPhone) => {
+        const res = {
+            name: fallbackName || customerName,
+            line1: '',
+            cityState: '',
+            country: 'India',
+            pincode: '',
+            contact: fallbackPhone || customerPhone,
+        };
+        if (!rawAddr || rawAddr === 'No shipping address provided') return res;
+
+        // 1. If object
+        if (typeof rawAddr === 'object') {
+            res.name = rawAddr.recipient_name || rawAddr.full_name || rawAddr.name || fallbackName || customerName;
+            const l1 = rawAddr.address_line1 || rawAddr.address || '';
+            const l2 = rawAddr.address_line2 || '';
+            res.line1 = [l1, l2].filter(Boolean).join(', ');
+            res.cityState = [rawAddr.city, rawAddr.state].filter(Boolean).join(', ');
+            res.pincode = rawAddr.postal_code || rawAddr.pincode || rawAddr.pin_code || '';
+            res.country = rawAddr.country || 'India';
+            res.contact = rawAddr.phone || rawAddr.contact || fallbackPhone || customerPhone;
+            return res;
+        }
+
+        // 2. If JSON string
+        if (typeof rawAddr === 'string' && (rawAddr.trim().startsWith('{') || rawAddr.trim().startsWith('['))) {
+            try {
+                const parsed = JSON.parse(rawAddr);
+                if (parsed && typeof parsed === 'object') {
+                    return parseAddressHelper(parsed, fallbackName, fallbackPhone);
+                }
+            } catch (e) {}
+        }
+
+        // 3. Formatted string: line1, city, state, country - pincode
+        const str = String(rawAddr).trim();
+        const match = str.match(/^(.*),\s*([^,]+),\s*([^,]+),\s*([^-]+?)\s*-\s*([0-9a-zA-Z\s]+)$/);
+        if (match) {
+            res.line1 = match[1].trim();
+            res.cityState = `${match[2].trim()}, ${match[3].trim()}`;
+            res.country = match[4].trim();
+            res.pincode = match[5].trim();
+            return res;
+        }
+
+        // 4. Plain string fallback
+        res.line1 = str;
+        res.country = '';
+        res.pincode = '';
+        return res;
+    };
+
+    // Raw Shipping Address
+    const rawShipping = invoice.shipping_address || invoice.customer_address || user?.address || (user?.addresses && user.addresses[0]?.address_line1 ? `${user.addresses[0].address_line1}${user.addresses[0].address_line2 ? `, ${user.addresses[0].address_line2}` : ''}, ${user.addresses[0].city}, ${user.addresses[0].state}, ${user.addresses[0].country || 'India'} - ${user.addresses[0].pincode}` : '') || '';
+    
+    // Raw Billing Address (defaults to Shipping Address)
+    const rawBilling = invoice.billing_address || invoice.customer_billing_address || rawShipping;
 
     // Shipping Address
-    const shippingName = invoice.shipping_name || 'Darshit Soni';
-    const shippingLine1 = invoice.shipping_address || 'Unit 12A, 451 The West Mall';
-    const shippingCityState = invoice.shipping_city_state || 'Etobicoke, Ontario';
-    const shippingPostal = invoice.shipping_postal || 'M1K5J7';
-    const shippingCountry = invoice.shipping_country || 'Canada';
-    const shippingContact = invoice.shipping_phone || billingContact || '+91 98942 43549';
+    const shippingNameResolved = (invoice.shipping_name && invoice.shipping_name !== 'Darshit Soni') ? invoice.shipping_name : customerName;
+    const shippingContactResolved = invoice.shipping_phone || customerPhone;
+    const shipping = parseAddressHelper(rawShipping, shippingNameResolved, shippingContactResolved);
+
+    // Billing Address
+    const billingNameResolved = invoice.billing_name || shipping.name || customerName;
+    const billingContactResolved = invoice.billing_phone || shipping.contact || customerPhone;
+    const billing = parseAddressHelper(rawBilling, billingNameResolved, billingContactResolved);
 
     // Line Item
     const pieceCode = invoice.piece_code || invoice.name || 'PD-SD-OR-001';
@@ -235,14 +288,16 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                 <div className="pnt-inv-address-row">
                     <div className="pnt-inv-addr-left">
                         <div className="pnt-inv-section-label">BILLING ADDRESS</div>
-                        <div className="pnt-inv-addr-name">{billingName}</div>
-                        <div className="pnt-inv-addr-line">{billingLine1}</div>
-                        <div className="pnt-inv-addr-line">{billingCityState}</div>
-                        <div className="pnt-inv-addr-split">
-                            <span>{billingCountry}</span>
-                            <span className="pnt-inv-pin-center">{billingPincode}</span>
-                        </div>
-                        <div className="pnt-inv-addr-contact">Contact No.: {billingContact}</div>
+                        <div className="pnt-inv-addr-name">{billing.name}</div>
+                        <div className="pnt-inv-addr-line">{billing.line1}</div>
+                        {billing.cityState && <div className="pnt-inv-addr-line">{billing.cityState}</div>}
+                        {(billing.country || billing.pincode) && (
+                            <div className="pnt-inv-addr-split">
+                                <span>{billing.country}</span>
+                                {billing.pincode && <span className="pnt-inv-pin-center">{billing.pincode}</span>}
+                            </div>
+                        )}
+                        {billing.contact && <div className="pnt-inv-addr-contact">Contact No.: {billing.contact}</div>}
                     </div>
 
                     {/* Line 3: Short floating vertical line */}
@@ -252,14 +307,16 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
 
                     <div className="pnt-inv-addr-right">
                         <div className="pnt-inv-section-label">SHIPPING ADDRESS</div>
-                        <div className="pnt-inv-addr-name">{shippingName}</div>
-                        <div className="pnt-inv-addr-line">{shippingLine1}</div>
-                        <div className="pnt-inv-addr-line">{shippingCityState}</div>
-                        <div className="pnt-inv-addr-split-right">
-                            <span className="pnt-inv-pin-center">{shippingPostal}</span>
-                            <span>{shippingCountry}</span>
-                        </div>
-                        <div className="pnt-inv-addr-contact">Contact No.: {shippingContact}</div>
+                        <div className="pnt-inv-addr-name">{shipping.name}</div>
+                        <div className="pnt-inv-addr-line">{shipping.line1}</div>
+                        {shipping.cityState && <div className="pnt-inv-addr-line">{shipping.cityState}</div>}
+                        {(shipping.country || shipping.pincode) && (
+                            <div className="pnt-inv-addr-split-right">
+                                {shipping.pincode && <span className="pnt-inv-pin-center">{shipping.pincode}</span>}
+                                <span>{shipping.country}</span>
+                            </div>
+                        )}
+                        {shipping.contact && <div className="pnt-inv-addr-contact">Contact No.: {shipping.contact}</div>}
                     </div>
                 </div>
 
