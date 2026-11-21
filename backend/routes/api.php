@@ -103,6 +103,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Customer Private Orders History (Strictly scoped to authenticated user)
     Route::get('/user/orders', [OrderApiController::class, 'userOrders']);
+    Route::delete('/user/orders/{orderNumber}', [OrderApiController::class, 'destroyUserOrder']);
+    Route::post('/user/orders/{orderNumber}/cancel', [OrderApiController::class, 'destroyUserOrder']);
 
     // Customer Appointments History
     Route::get('/user/appointments', [AppointmentApiController::class, 'userAppointments']);

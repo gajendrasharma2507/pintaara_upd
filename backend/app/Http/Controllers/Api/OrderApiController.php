@@ -604,6 +604,7 @@ class OrderApiController extends Controller
                 $q->where('user_id', $user->id)
                   ->orWhereRaw('LOWER(TRIM(customer_email)) = ?', [strtolower(trim($user->email))]);
             })
+            ->whereNotIn('status', ['cancelled', 'deleted'])
             ->latest()
             ->get();
 
@@ -641,6 +642,41 @@ class OrderApiController extends Controller
             'status' => 'success',
             'success' => true,
             'data' => $formatted,
+        ]);
+    }
+
+    public function destroyUserOrder(string $orderNumber, Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
+        }
+
+        $order = Order::where(function ($q) use ($orderNumber) {
+                $q->where('order_number', $orderNumber)->orWhere('id', $orderNumber);
+            })
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereRaw('LOWER(TRIM(customer_email)) = ?', [strtolower(trim($user->email))]);
+            })
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Order not found.',
+            ], 404);
+        }
+
+        $order->status = 'cancelled';
+        $order->save();
+        $order->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'success' => true,
+            'message' => 'Order removed successfully.',
         ]);
     }
 

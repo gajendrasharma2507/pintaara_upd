@@ -7,6 +7,7 @@ export default function AccountOrdersPage() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [placedOrderNum, setPlacedOrderNum] = useState(null);
+    const [cancellingId, setCancellingId] = useState(null);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -34,13 +35,37 @@ export default function AccountOrdersPage() {
         { num: '05', title: 'Delivered' }
     ];
 
+    const handleCancelOrder = async (orderId) => {
+        if (!window.confirm(`Are you sure you want to cancel and remove order #${orderId}?`)) {
+            return;
+        }
+        setCancellingId(orderId);
+        try {
+            await apiFetch(`/user/orders/${orderId}`, { method: 'DELETE' });
+            try {
+                const localOrder = JSON.parse(localStorage.getItem('pintaara_last_order') || '{}');
+                if (localOrder?.order_number === orderId) {
+                    localStorage.removeItem('pintaara_last_order');
+                }
+            } catch (e) {}
+            setOrders((prev) => prev.filter((o) => o.id !== orderId));
+        } catch (err) {
+            alert(err.message || 'Failed to cancel order');
+        } finally {
+            setCancellingId(null);
+        }
+    };
+
     useEffect(() => {
         const fetchOrders = async () => {
             try {
                 const res = await apiFetch('/user/orders');
                 let mapped = [];
-                if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
-                    mapped = res.data.map((o) => ({
+                if (res && Array.isArray(res.data)) {
+                    const activeOrders = res.data.filter(
+                        (o) => o.status !== 'cancelled' && o.status !== 'deleted'
+                    );
+                    mapped = activeOrders.map((o) => ({
                         id: o.order_number,
                         itemCode: o.items?.[0]?.design_code || o.items?.[0]?.product_name || `ORDER #${o.order_number}`,
                         totalAmount: o.total_amount ? '₹' + Number(o.total_amount).toLocaleString('en-IN') : null,
@@ -48,13 +73,21 @@ export default function AccountOrdersPage() {
                         currentStep: statusToStep[o.status] || 1,
                         steps: defaultSteps,
                     }));
+
+                    // Sync localStorage: remove cached last order if it was deleted or cancelled
+                    try {
+                        const localOrder = JSON.parse(localStorage.getItem('pintaara_last_order') || '{}');
+                        if (localOrder?.order_number && !activeOrders.some((o) => o.order_number === localOrder.order_number)) {
+                            localStorage.removeItem('pintaara_last_order');
+                        }
+                    } catch (e) {}
                 } else {
                     // Check if recently placed order in session
                     try {
                         const localOrder = JSON.parse(localStorage.getItem('pintaara_last_order') || '{}');
                         if (localOrder?.order_number) {
                             const orderRes = await apiFetch(`/orders/${localOrder.order_number}`);
-                            if (orderRes && orderRes.data) {
+                            if (orderRes && orderRes.data && orderRes.data.status !== 'cancelled' && orderRes.data.status !== 'deleted') {
                                 mapped = [{
                                     id: orderRes.data.order_number,
                                     itemCode: orderRes.data.items?.[0]?.design_code || orderRes.data.items?.[0]?.product_name || `ORDER #${orderRes.data.order_number}`,
@@ -63,6 +96,8 @@ export default function AccountOrdersPage() {
                                     currentStep: orderRes.data.current_step || statusToStep[orderRes.data.status] || 1,
                                     steps: defaultSteps,
                                 }];
+                            } else {
+                                localStorage.removeItem('pintaara_last_order');
                             }
                         }
                     } catch (e) {}
@@ -70,20 +105,7 @@ export default function AccountOrdersPage() {
                 setOrders(mapped);
             } catch (err) {
                 console.warn('Orders fetch note:', err.message);
-                try {
-                    const localOrder = JSON.parse(localStorage.getItem('pintaara_last_order') || '{}');
-                    if (localOrder?.order_number) {
-                        const orderRes = await apiFetch(`/orders/${localOrder.order_number}`);
-                        if (orderRes && orderRes.data) {
-                            setOrders([{
-                                id: orderRes.data.order_number,
-                                itemCode: orderRes.data.items?.[0]?.design_code || orderRes.data.items?.[0]?.product_name || 'PD-SD-OR-001',
-                                currentStep: orderRes.data.current_step || statusToStep[orderRes.data.status] || 1,
-                                steps: defaultSteps,
-                            }]);
-                        }
-                    }
-                } catch (e) {}
+                setOrders([]);
             } finally {
                 setLoading(false);
             }
@@ -170,6 +192,36 @@ export default function AccountOrdersPage() {
                                         {order.totalAmount} {order.createdAt ? `• ${order.createdAt}` : ''}
                                     </span>
                                 )}
+                                <div style={{ marginTop: '0.9rem' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleCancelOrder(order.id)}
+                                        disabled={cancellingId === order.id}
+                                        style={{
+                                            background: 'transparent',
+                                            border: '1px solid #D6D0C6',
+                                            color: '#8A8279',
+                                            padding: '6px 14px',
+                                            fontSize: '0.7rem',
+                                            letterSpacing: '0.1em',
+                                            textTransform: 'uppercase',
+                                            cursor: cancellingId === order.id ? 'not-allowed' : 'pointer',
+                                            transition: 'all 0.2s',
+                                            fontFamily: 'inherit',
+                                            borderRadius: '2px',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.borderColor = '#B91C1C';
+                                            e.currentTarget.style.color = '#B91C1C';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.borderColor = '#D6D0C6';
+                                            e.currentTarget.style.color = '#8A8279';
+                                        }}
+                                    >
+                                        {cancellingId === order.id ? 'Cancelling...' : 'Cancel / Remove'}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Milestone tracker matching Page 0009 */}

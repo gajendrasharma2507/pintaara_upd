@@ -86,6 +86,8 @@ export default {
 
   // User Protected Resources
   getUserOrders: () => apiFetch('/user/orders'),
+  deleteUserOrder: (orderNumber) => apiFetch(`/user/orders/${orderNumber}`, { method: 'DELETE' }),
+  cancelUserOrder: (orderNumber) => apiFetch(`/user/orders/${orderNumber}/cancel`, { method: 'POST' }),
   getUserCollection: () => apiFetch('/user/collection'),
   getUserAppointments: () => apiFetch('/user/appointments'),
   bookAppointment: (data) => apiFetch('/appointments', { method: 'POST', body: JSON.stringify(data) }),
