@@ -995,11 +995,26 @@ export default function DynamicCollectionPage({ params }) {
         );
         const purityStr = selectedPurity || purityEntry?.[1]?.value || (availablePurities?.[0]?.value || '22KT');
 
+        // Ensure default options are used even on the initial render before state flushes
+        const effectiveOptions = { ...selectedOptions };
+        if (activeOptionGroups && activeOptionGroups.length > 0) {
+            activeOptionGroups.forEach(grp => {
+                const gName = grp.name;
+                const lowerName = gName.toLowerCase();
+                if (lowerName.includes('purity') || lowerName.includes('metal') || lowerName.includes('karat') || lowerName.includes('finish')) {
+                    return;
+                }
+                if (!effectiveOptions[gName] && grp.values && grp.values.length > 0) {
+                    effectiveOptions[gName] = grp.values[0];
+                }
+            });
+        }
+
         // Sum ALL selected product options price adjustments (e.g. SIZE +₹1,000, GEM +₹5,000, CHAIN, etc.)
         let totalOptionsDelta = 0;
         const optionBreakdowns = [];
 
-        Object.entries(selectedOptions).forEach(([optName, valObj]) => {
+        Object.entries(effectiveOptions).forEach(([optName, valObj]) => {
             const lowerName = optName.toLowerCase();
             // Purity and Finish are metal/image specs
             if (lowerName.includes('purity') || lowerName.includes('metal') || lowerName.includes('karat') || lowerName.includes('finish')) {
@@ -1228,19 +1243,34 @@ export default function DynamicCollectionPage({ params }) {
             alert(`This piece has reached its limited edition run (${limitStr}/${limitStr}) and is currently unavailable.`);
             return;
         }
+
+        const effectiveBagOptions = { ...selectedOptions };
+        if (activeOptionGroups && activeOptionGroups.length > 0) {
+            activeOptionGroups.forEach(grp => {
+                const gName = grp.name;
+                const lowerName = gName.toLowerCase();
+                if (lowerName.includes('purity') || lowerName.includes('metal') || lowerName.includes('karat') || lowerName.includes('finish')) {
+                    return;
+                }
+                if (!effectiveBagOptions[gName] && grp.values && grp.values.length > 0) {
+                    effectiveBagOptions[gName] = grp.values[0];
+                }
+            });
+        }
+
         const purityEntry = Object.entries(selectedOptions).find(([k]) =>
             k.toLowerCase().includes('purity') || k.toLowerCase().includes('metal') || k.toLowerCase().includes('karat')
         );
         const finishEntry = Object.entries(selectedOptions).find(([k]) =>
             k.toLowerCase().includes('finish')
         );
-        const gemEntry = Object.entries(selectedOptions).find(([k]) =>
+        const gemEntry = Object.entries(effectiveBagOptions).find(([k]) =>
             k.toLowerCase().includes('gem') || k.toLowerCase().includes('stone')
         );
-        const sizeEntry = Object.entries(selectedOptions).find(([k]) =>
+        const sizeEntry = Object.entries(effectiveBagOptions).find(([k]) =>
             k.toLowerCase().includes('size')
         );
-        const chainEntry = Object.entries(selectedOptions).find(([k]) =>
+        const chainEntry = Object.entries(effectiveBagOptions).find(([k]) =>
             k.toLowerCase().includes('chain')
         );
 
@@ -1263,7 +1293,7 @@ export default function DynamicCollectionPage({ params }) {
             gem: gemEntry ? gemEntry[1]?.value : 'Natural Diamond',
             size: sizeEntry ? sizeEntry[1]?.value : 'Standard',
             chain: chainEntry ? chainEntry[1]?.value : 'None',
-            customizations: Object.entries(selectedOptions).map(([k, v]) => ({
+            customizations: Object.entries(effectiveBagOptions).map(([k, v]) => ({
                 option: k,
                 value: v.value,
                 price_delta: v.price_delta || 0,

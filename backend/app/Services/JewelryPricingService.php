@@ -113,7 +113,12 @@ class JewelryPricingService
                 ];
 
                 $parsedRows[$rowId] = $item;
-                $streamItems[] = $item;
+
+                // Exclude international/telemetry tickers from the bullion stream display
+                $excludedStreamIds = ['2124', '2126', '2125'];
+                if (!in_array($rowId, $excludedStreamIds) && !in_array($category, ['international', 'forex']) && stripos($name, 'GOLD COST') === false) {
+                    $streamItems[] = $item;
+                }
             }
 
             // 1. Resolve Gold 999 Benchmark (24KT Pure Gold per 10g)
@@ -213,61 +218,76 @@ class JewelryPricingService
     }
 
     /**
-     * Get the base 22KT gold rate per 10g (derived from live Aarav Bullion stream + admin extra offset).
+     * Get the base 22KT gold rate per 10g (derived from live Aarav Bullion stream + admin extra offset & step slabs).
      */
     public function getBaseGoldRatePer10g(bool $withMarkup = true): float
     {
         $live = $this->fetchAaravLiveRates();
-        if ($live && !empty($live['gold_22kt_per_10g'])) {
-            $rawRate = (float) $live['gold_22kt_per_10g'];
+        if ($live && !empty($live['gold_24kt_per_10g'])) {
+            $raw24k = (float) $live['gold_24kt_per_10g'];
+            $raw22k = (float) $live['gold_22kt_per_10g'];
+        } elseif ($live && !empty($live['gold_22kt_per_10g'])) {
+            $raw22k = (float) $live['gold_22kt_per_10g'];
+            $raw24k = $raw22k / 0.916;
         } else {
             $rate = $this->getLatestRate('gold');
-            $rawRate = $rate ? (float) $rate->rate_per_10g : 138182.00;
+            $raw22k = $rate ? (float) $rate->rate_per_10g : 138182.00;
+            $raw24k = $raw22k / 0.916;
         }
 
         if (!$withMarkup) {
-            return $rawRate;
+            return round($raw22k, 2);
         }
 
+        $gap = (float) Setting::get('gold_step_gap', 0);
         $offset = (float) Setting::get('gold_rate_extra_offset', 0);
         $floor  = (float) Setting::get('gold_rate_min_floor', 0);
 
-        $effective = $rawRate + $offset;
-        if ($floor > 0 && $effective < $floor) {
-            $effective = $floor;
+        if ($gap > 0) {
+            $stepped24k = ceil($raw24k / $gap) * $gap;
+            $effective22k = ($stepped24k * 0.916) + $offset;
+        } else {
+            $effective22k = $raw22k + $offset;
         }
 
-        return round($effective, 2);
+        if ($floor > 0 && $effective22k < $floor) {
+            $effective22k = $floor;
+        }
+
+        return round($effective22k, 2);
     }
 
     /**
-     * Get the base Silver rate per 10g (from live Aarav Bullion stream + admin extra offset).
+     * Get the base Silver rate per 10g (from live Aarav Bullion stream + admin extra offset & step slabs).
      */
     public function getBaseSilverRatePer10g(bool $withMarkup = true): float
     {
         $live = $this->fetchAaravLiveRates();
-        if ($live && !empty($live['silver_925_per_10g'])) {
-            $rawRate = (float) $live['silver_925_per_10g'];
-        } elseif ($live && !empty($live['silver_per_10g'])) {
-            $rawRate = (float) $live['silver_per_10g'] * 0.925;
+        if ($live && !empty($live['silver_per_10g'])) {
+            $rawSilver10g = (float) $live['silver_per_10g'];
+        } elseif ($live && !empty($live['silver_per_kg'])) {
+            $rawSilver10g = (float) $live['silver_per_kg'] / 100.0;
         } else {
             $rate = $this->getLatestRate('silver');
-            $rawRate = $rate ? (float) $rate->rate_per_10g : 1994.00;
+            $rawSilver10g = $rate ? (float) $rate->rate_per_10g : 2155.00;
         }
 
         if (!$withMarkup) {
-            return $rawRate;
+            return round($rawSilver10g, 2);
         }
 
+        $gap = (float) Setting::get('silver_step_gap', 0);
         $offset = (float) Setting::get('silver_rate_extra_offset', 0);
         $floor  = (float) Setting::get('silver_rate_min_floor', 0);
 
-        $effective = $rawRate + $offset;
-        if ($floor > 0 && $effective < $floor) {
-            $effective = $floor;
+        $stepped10g = ($gap > 0) ? (ceil($rawSilver10g / $gap) * $gap) : $rawSilver10g;
+        $effective10g = $stepped10g + $offset;
+
+        if ($floor > 0 && $effective10g < $floor) {
+            $effective10g = $floor;
         }
 
-        return round($effective, 2);
+        return round($effective10g, 2);
     }
 
     /**
@@ -277,9 +297,20 @@ class JewelryPricingService
     {
         if ($base22ktRate === null) {
             $live = $this->fetchAaravLiveRates();
+            $gap = (float) Setting::get('gold_step_gap', 0);
             $offset = (float) Setting::get('gold_rate_extra_offset', 0);
-            if ($offset == 0 && $live && !empty($live['gold_24kt_per_gram'])) {
+            $floor = (float) Setting::get('gold_rate_min_floor', 0);
+            if ($gap == 0 && $offset == 0 && $floor == 0 && $live && !empty($live['gold_24kt_per_gram'])) {
                 return (float) $live['gold_24kt_per_gram'];
+            }
+            if ($live && !empty($live['gold_24kt_per_10g'])) {
+                $raw24k = (float) $live['gold_24kt_per_10g'];
+                $stepped24k = ($gap > 0) ? (ceil($raw24k / $gap) * $gap) : $raw24k;
+                $effective24k = $stepped24k + $offset;
+                if ($floor > 0 && $effective24k < $floor) {
+                    $effective24k = $floor;
+                }
+                return round($effective24k / 10.0, 2);
             }
         }
 
@@ -314,54 +345,65 @@ class JewelryPricingService
         float $stoneCharge = 0.0,
         string $metalType = 'gold',
         ?float $baseRate = null,
-        ?float $gstPercent = null
+        ?float $gstPercent = null,
+        float $brandMarkupPercent = 0.0,
+        float $otherCharges = 0.0
     ): array {
         $gstRate = $gstPercent ?? (float) Setting::get('gst_percent', 3.0);
         $ratePerGram = $this->calculateRatePerGram($purityFraction, $metalType, $baseRate);
 
-        // 1. Metal Value
+        // 1. Net Metal Value (Net Weight * Rate per gram)
         $metalValue = round($weightGrams * $ratePerGram, 2);
 
         // 2. Wastage Value
         $wastageValue = round($metalValue * ($wastagePercent / 100.0), 2);
 
-        // 3. Making Charge (Priority: Flat ₹ if set > 0, else percentage of metal value)
-        if ($makingChargeFlat !== null && $makingChargeFlat > 0) {
-            $makingCharge = round($makingChargeFlat, 2);
-        } elseif ($makingChargePercent !== null && $makingChargePercent > 0) {
+        // 3. Making Charge (% prioritized or flat ₹)
+        if ($makingChargePercent !== null && $makingChargePercent > 0) {
             $makingCharge = round($metalValue * ($makingChargePercent / 100.0), 2);
+        } elseif ($makingChargeFlat !== null && $makingChargeFlat > 0) {
+            $makingCharge = round($makingChargeFlat, 2);
         } else {
             $makingCharge = 0.0;
         }
 
-        // 4. Stone Charge
-        $stoneValue = round($stoneCharge, 2);
+        // 4. Brand Markup (%)
+        $brandMarkup = round($metalValue * ($brandMarkupPercent / 100.0), 2);
 
-        // 5. Taxable Subtotal
-        $subtotal = round($metalValue + $wastageValue + $makingCharge + $stoneValue, 2);
+        // 5. Other Charges (₹ flat + stones)
+        $totalOtherCharges = round($otherCharges + $stoneCharge, 2);
 
-        // 6. GST Amount
+        // 6. Taxable Subtotal (Total)
+        $subtotal = round($metalValue + $wastageValue + $makingCharge + $brandMarkup + $totalOtherCharges, 2);
+
+        // 7. GST Amount (3%)
         $gstAmount = round($subtotal * ($gstRate / 100.0), 2);
 
-        // 7. Final Total Price
+        // 8. Final Amount
         $totalPrice = round($subtotal + $gstAmount, 2);
 
         return [
             'weight_grams' => $weightGrams,
+            'net_weight_grams' => $weightGrams,
             'purity_fraction' => $purityFraction,
             'metal_type' => $metalType,
             'rate_per_gram' => $ratePerGram,
             'metal_value' => $metalValue,
+            'making_charge_percent' => $makingChargePercent,
+            'making_charge' => $makingCharge,
+            'brand_markup_percent' => $brandMarkupPercent,
+            'brand_markup' => $brandMarkup,
+            'other_charges' => $totalOtherCharges,
             'wastage_percent' => $wastagePercent,
             'wastage_value' => $wastageValue,
             'making_percent_value' => $wastageValue,
-            'making_charge' => $makingCharge,
             'author_charge' => $makingCharge,
-            'stone_charge' => $stoneValue,
+            'stone_charge' => $stoneCharge,
             'subtotal' => $subtotal,
             'gst_percent' => $gstRate,
             'gst_amount' => $gstAmount,
             'total_price' => $totalPrice,
+            'final_amount' => $totalPrice,
         ];
     }
 
@@ -393,14 +435,36 @@ class JewelryPricingService
             }
         }
 
+        // Include default options delta from first assigned values if no explicit overrides provided
+        $defaultOptionsDelta = 0.0;
+        if (empty($selections['options_delta']) && $product->relationLoaded('optionAssignments')) {
+            foreach ($product->optionAssignments as $assign) {
+                $grp = $assign->group;
+                if (!$grp || !$grp->is_active) continue;
+                $selIds = $assign->selected_values;
+                $grpValues = $grp->values ? $grp->values->where('is_active', true) : collect();
+                if (!empty($selIds) && is_array($selIds)) {
+                    $grpValues = $grpValues->whereIn('id', $selIds);
+                }
+                $firstVal = $grpValues->values()->first();
+                if ($firstVal) {
+                    $assignedPrices = is_array($assign->value_prices) ? $assign->value_prices : [];
+                    $delta = isset($assignedPrices[$firstVal->id]) ? (float)$assignedPrices[$firstVal->id] : (float)($firstVal->price_delta ?? 0);
+                    $defaultOptionsDelta += $delta;
+                }
+            }
+        }
+
         return $this->calculatePrice(
             weightGrams: (float) $weight,
             purityFraction: $purityFraction,
-            wastagePercent: (float) $product->wastage_percent,
+            wastagePercent: (float) ($product->wastage_percent ?? 0),
             makingChargeFlat: $product->making_charge,
             makingChargePercent: $product->making_charge_percent,
             stoneCharge: $stoneCharge,
-            metalType: $metalType
+            metalType: $metalType,
+            brandMarkupPercent: (float) ($product->brand_markup_percent ?? 0),
+            otherCharges: (float) ($product->other_charges ?? 0) + $defaultOptionsDelta
         );
     }
 
@@ -442,14 +506,36 @@ class JewelryPricingService
             }
         }
 
+        // Include default options delta from first assigned values if no explicit overrides provided
+        $defaultOptionsDelta = 0.0;
+        if (empty($selections['options_delta']) && $product->relationLoaded('optionAssignments')) {
+            foreach ($product->optionAssignments as $assign) {
+                $grp = $assign->group;
+                if (!$grp || !$grp->is_active) continue;
+                $selIds = $assign->selected_values;
+                $grpValues = $grp->values ? $grp->values->where('is_active', true) : collect();
+                if (!empty($selIds) && is_array($selIds)) {
+                    $grpValues = $grpValues->whereIn('id', $selIds);
+                }
+                $firstVal = $grpValues->values()->first();
+                if ($firstVal) {
+                    $assignedPrices = is_array($assign->value_prices) ? $assign->value_prices : [];
+                    $delta = isset($assignedPrices[$firstVal->id]) ? (float)$assignedPrices[$firstVal->id] : (float)($firstVal->price_delta ?? 0);
+                    $defaultOptionsDelta += $delta;
+                }
+            }
+        }
+
         return $this->calculatePrice(
             weightGrams: (float) $weight,
             purityFraction: $purityFraction,
-            wastagePercent: (float) $product->wastage_percent,
+            wastagePercent: (float) ($product->wastage_percent ?? 0),
             makingChargeFlat: $product->making_charge,
             makingChargePercent: $product->making_charge_percent,
             stoneCharge: $stoneCharge,
-            metalType: $metalType
+            metalType: $metalType,
+            brandMarkupPercent: (float) ($product->brand_markup_percent ?? 0),
+            otherCharges: (float) ($product->other_charges ?? 0) + $defaultOptionsDelta
         );
     }
 
@@ -463,9 +549,16 @@ class JewelryPricingService
         $baseSilverRate = $baseSilverRate ?? $this->getBaseSilverRatePer10g();
         $pureGoldPerGram = $this->calculatePureGoldRatePerGram($baseGoldRate);
 
+        $live = $this->fetchAaravLiveRates();
+        $rawGold24k10g = (float) ($live['gold_24kt_per_10g'] ?? ($pureGoldPerGram * 10.0));
+        $rawSilverKg = (float) ($live['silver_per_kg'] ?? 192353.0);
+        $rawSilver10g = (float) ($live['silver_per_10g'] ?? round($rawSilverKg / 100.0, 2));
+
         $rates = [
             'gold_24kt_pure_per_gram' => round($pureGoldPerGram, 2),
             'gold_24kt_pure_per_10g'  => round($pureGoldPerGram * 10.0, 2),
+            'raw_gold_24kt_10g'       => round($rawGold24k10g, 2),
+            'raw_silver_10g'          => round($rawSilver10g, 2),
             'gold_base_22kt_per_10g'  => $baseGoldRate,
             'silver_base_per_10g'     => $baseSilverRate,
             'silver_per_kg'           => round(($baseSilverRate / 0.925) * 100.0, 2),
@@ -473,17 +566,24 @@ class JewelryPricingService
         ];
 
         foreach ($purities as $purity) {
+            $fraction = (float) $purity->purity_fraction;
             $ratePerGram = $this->calculateRatePerGram(
-                (float) $purity->purity_fraction,
+                $fraction,
                 $purity->type,
                 $purity->type === 'gold' ? $baseGoldRate : $baseSilverRate
             );
+
+            $raw10g = $purity->type === 'gold'
+                ? round($rawGold24k10g * $fraction, 2)
+                : round($rawSilver10g * $fraction, 2);
 
             $rates['purities'][] = [
                 'id' => $purity->id,
                 'name' => $purity->name,
                 'type' => $purity->type,
-                'purity_fraction' => (float) $purity->purity_fraction,
+                'purity_fraction' => $fraction,
+                'raw_market_10g' => $raw10g,
+                'rate_with_gap_10g' => round($ratePerGram * 10.0, 2),
                 'rate_per_gram' => $ratePerGram,
                 'rate_per_10g' => round($ratePerGram * 10.0, 2),
             ];
@@ -565,7 +665,9 @@ class JewelryPricingService
                 stoneCharge: $stoneCharge,
                 metalType: $metalType,
                 baseRate: $metalType === 'gold' ? $baseGoldRate : $baseSilverRate,
-                gstPercent: $gstPercent
+                gstPercent: $gstPercent,
+                brandMarkupPercent: (float) ($product->brand_markup_percent ?? 0),
+                otherCharges: (float) ($product->other_charges ?? 0)
             );
 
             // Calibrate default catalog benchmark for PD-SG-OR-001 (₹1,50,000 for 18K Diamond)
