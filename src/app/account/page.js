@@ -371,7 +371,6 @@ export default function AccountProfilePage() {
     const displayName = user?.name || name || 'Patron';
     const displayPhone = user?.phone || phone || '—';
     const displayEmail = user?.email || email || '—';
-    const displayId = user?.id_number || (user?.id ? `PATRON #${user.id}` : 'PATRON ACCOUNT');
     
     const addressLine1 = primaryAddress?.address_line1 
         || user?.address_line1 
@@ -446,7 +445,7 @@ export default function AccountProfilePage() {
                         <label className="field-label">FULL NAME</label>
                         <div className="input-box clickable" onClick={() => setModal('editName')}>
                             <span className={name ? "input-val" : "input-placeholder"}>
-                                {name || displayName || "Name as per ID Proof"}
+                                {name || displayName || "Full Name"}
                             </span>
                             <span className="chevron">&gt;</span>
                         </div>
@@ -471,30 +470,6 @@ export default function AccountProfilePage() {
                                 {email && email !== '—' ? email : "Email"}
                             </span>
                             <span className="chevron">&gt;</span>
-                        </div>
-                    </div>
-
-                    {/* ID PROOF */}
-                    <div className="form-group">
-                        <label className="field-label">ID PROOF</label>
-                        <div className="id-proof-row">
-                            <div className="input-box flex-1">
-                                <span className={docPath ? "input-val" : "input-placeholder"}>
-                                    {docPath ? docPath.split('/').pop() : "Aadhar, Driver's License, Passport"}
-                                </span>
-                            </div>
-                            <button
-                                type="button"
-                                className="upload-square-btn"
-                                onClick={() => fileInputRef.current?.click()}
-                                title="Upload ID Document"
-                            >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                    <polyline points="17 8 12 3 7 8" />
-                                    <line x1="12" y1="3" x2="12" y2="15" />
-                                </svg>
-                            </button>
                         </div>
                     </div>
 
@@ -587,10 +562,6 @@ export default function AccountProfilePage() {
                             )}
                         </div>
 
-                        <div className="profile-detail-row" data-label="MEMBER">
-                            <span className="profile-regular-text">{displayId}</span>
-                        </div>
-
                         <div className="profile-detail-row address-row" data-label="ADDRESS">
                             <div className="profile-regular-text">{addressLine1}</div>
                             <div className="profile-regular-text">{addressLine2}</div>
@@ -610,118 +581,6 @@ export default function AccountProfilePage() {
                                 EDIT PROFILE
                             </button>
                         </div>
-                    </div>
-
-                    {/* Right Column: Real Uploaded Document Preview */}
-                    <div className="profile-document-column">
-                        {!hasDoc ? (
-                            /* No document uploaded — show upload prompt */
-                            <div className="profile-card-wrapper">
-                                <button
-                                    type="button"
-                                    className="profile-upload-prompt"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={uploadingDoc}
-                                    title="Click to upload government ID proof"
-                                >
-                                    <div className="profile-upload-icon-circle">
-                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                            <polyline points="17 8 12 3 7 8"/>
-                                            <line x1="12" y1="3" x2="12" y2="15"/>
-                                        </svg>
-                                    </div>
-                                    <span className="profile-upload-main-text">
-                                        {uploadingDoc ? 'UPLOADING DOCUMENT...' : 'UPLOAD ID PROOF'}
-                                    </span>
-                                    <span className="profile-upload-sub-text">
-                                        Aadhaar · Passport · Driver&apos;s Licence
-                                    </span>
-                                    <span className="profile-upload-badge">
-                                        {uploadingDoc ? 'Processing...' : '+ CHOOSE FILE'}
-                                    </span>
-                                </button>
-                            </div>
-                        ) : isPdf ? (
-                            <div className="profile-card-wrapper">
-                                <div className="profile-pdf-preview-card">
-                                    <iframe
-                                        src={`${resolveDocUrl(docPath)}#toolbar=0&navpanes=0&scrollbar=0`}
-                                        title="PDF Document Preview"
-                                        className="profile-pdf-iframe"
-                                    />
-                                    <a 
-                                        href={resolveDocUrl(docPath)} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="profile-pdf-overlay"
-                                        title="Open Full PDF Document"
-                                    >
-                                        <span className="profile-pdf-pill">OPEN PDF ↗</span>
-                                    </a>
-                                </div>
-                                <div className="profile-doc-meta-row">
-                                    <span className="profile-doc-name">{docPath.split('/').pop()}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={uploadingDoc}
-                                        className="profile-doc-replace-btn"
-                                    >
-                                        {uploadingDoc ? 'Uploading...' : 'Replace Document'}
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            /* Image document (JPG/PNG/WEBP) */
-                            <div className="profile-card-wrapper">
-                                <div className="profile-image-card">
-                                    <a 
-                                        href={resolveDocUrl(docPath)} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="profile-licence-link"
-                                        title="Click to view full document in new tab"
-                                    >
-                                        <img 
-                                            src={resolveDocUrl(docPath)} 
-                                            alt="Government Identity Document" 
-                                            className="profile-licence-image"
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.style.display = 'none';
-                                                const fb = e.target.parentElement?.parentElement?.querySelector('.doc-fallback-card');
-                                                if (fb) fb.style.display = 'flex';
-                                            }}
-                                        />
-                                    </a>
-                                    <div className="doc-fallback-card" style={{ display: 'none' }}>
-                                        <span style={{ fontSize: '0.8rem', fontWeight: 500, letterSpacing: '0.04em', color: '#1A1A1A' }}>
-                                            {docPath.split('/').pop()}
-                                        </span>
-                                        <a
-                                            href={resolveDocUrl(docPath)}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{ fontSize: '0.72rem', letterSpacing: '0.06em', color: '#1A1A1A', textDecoration: 'underline', marginTop: '6px' }}
-                                        >
-                                            VIEW DOCUMENT ↗
-                                        </a>
-                                    </div>
-                                </div>
-                                <div className="profile-doc-meta-row">
-                                    <span className="profile-doc-name">{docPath.split('/').pop()}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={uploadingDoc}
-                                        className="profile-doc-replace-btn"
-                                    >
-                                        {uploadingDoc ? 'Uploading...' : 'Replace Document'}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             )}
@@ -1166,12 +1025,11 @@ export default function AccountProfilePage() {
                     margin-bottom: 1.25rem;
                 }
 
-                /* Profile 2-column Layout (No Icons) */
+                /* Profile Layout */
                 .profile-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1.15fr;
-                    gap: 3.5rem;
-                    align-items: start;
+                    display: flex;
+                    flex-direction: column;
+                    max-width: 540px;
                     padding-top: 2rem;
                 }
                 .profile-details-column {
