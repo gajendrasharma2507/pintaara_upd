@@ -47,6 +47,13 @@
         'type' => 'text',
         'action_type' => 'single',
       ],
+      'invoice_prefix' => [
+        'name' => 'Invoice Prefix',
+        'raw_val' => $settings['invoice_prefix'] ?? 'INV-PT-',
+        'display_val' => $settings['invoice_prefix'] ?? 'INV-PT-',
+        'type' => 'text',
+        'action_type' => 'single',
+      ],
       'storefront_passcode' => [
         'name' => 'Website Password',
         'raw_val' => $settings['storefront_passcode'] ?? 'Pintaara@2026',

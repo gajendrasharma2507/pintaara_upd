@@ -238,10 +238,18 @@ class OrderApiController extends Controller
             'delivered' => ['step' => 5, 'label' => 'Delivered', 'desc' => 'Hand-delivered to patron'],
         ];
 
+        $invPrefix = \App\Models\Setting::get('invoice_prefix', 'INV-PT-');
+        if (!empty($invPrefix) && !str_ends_with($invPrefix, '-')) {
+            $invPrefix .= '-';
+        }
+        $orderRefKey = strtoupper(substr(md5($order->id . ($order->order_number ?: 'PNT')), 0, 6));
+        $invoiceNumber = $invPrefix . ($order->created_at ? $order->created_at->format('Y') : '2026') . '-' . $orderRefKey;
+
         return response()->json([
             'status' => 'success',
             'data' => [
                 'order_number' => $order->order_number,
+                'invoice_number' => $invoiceNumber,
                 'status' => $order->status,
                 'status_label' => $order->status_label,
                 'current_step' => $statusSteps[$order->status]['step'] ?? 1,
@@ -848,10 +856,18 @@ class OrderApiController extends Controller
                 $hoursOld = $order->created_at ? $order->created_at->diffInHours(now()) : 0;
                 $isCancellable = ($order->status !== 'cancelled' && $order->status !== 'delivered' && $hoursOld < 24);
 
+                $invPrefix = \App\Models\Setting::get('invoice_prefix', 'INV-PT-');
+                if (!empty($invPrefix) && !str_ends_with($invPrefix, '-')) {
+                    $invPrefix .= '-';
+                }
+                $orderRefKey = strtoupper(substr(md5($order->id . ($order->order_number ?: 'PNT')), 0, 6));
+                $invoiceNumber = $invPrefix . ($order->created_at ? $order->created_at->format('Y') : '2026') . '-' . $orderRefKey;
+
                 $collectionPieces[] = [
                     'id' => $item->id,
                     'order_id' => $order->id,
                     'order_number' => $order->order_number,
+                    'invoice_number' => $invoiceNumber,
                     'piece_code' => $item->design_code ?: ($product?->design_code ?: 'PD-SD-OR-001'),
                     'name' => $item->product_name ?: ($product?->name ?: 'Pintaara Piece'),
                     'metal_purity' => $item->metal_purity ?: '18KT',

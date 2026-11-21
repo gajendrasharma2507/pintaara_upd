@@ -4,7 +4,11 @@
   
   // Invoice Numbers & References
   $orderRefKey = strtoupper(substr(md5($order->id . ($order->order_number ?: 'PNT')), 0, 6));
-  $invoiceNo = 'INV-PT-' . ($order->created_at ? $order->created_at->format('Y') : '2026') . '-' . $orderRefKey;
+  $invPrefix = \App\Models\Setting::get('invoice_prefix', 'INV-PT-');
+  if (!empty($invPrefix) && !str_ends_with($invPrefix, '-')) {
+      $invPrefix .= '-';
+  }
+  $invoiceNo = $invPrefix . ($order->created_at ? $order->created_at->format('Y') : '2026') . '-' . $orderRefKey;
   $orderRef = 'REF-PT-' . ($order->created_at ? $order->created_at->format('Y') : '2026') . '-' . $orderRefKey;
 
   // Customer / Patron Information

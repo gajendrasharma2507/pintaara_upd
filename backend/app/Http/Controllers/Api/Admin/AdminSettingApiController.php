@@ -51,6 +51,7 @@ class AdminSettingApiController extends Controller
             'default_wastage_percent' => (float) Setting::get('default_wastage_percent', 0.0),
             'support_email' => Setting::get('support_email', 'info@pintaara.com'),
             'support_phone' => Setting::get('support_phone', '+91 98765 43210'),
+            'invoice_prefix' => Setting::get('invoice_prefix', 'INV-PT-'),
             'address' => Setting::get('address', 'Atelier Suite 402, Platinum Tower, Bandra West, Mumbai, Maharashtra 400050'),
         ];
 
@@ -165,6 +166,7 @@ class AdminSettingApiController extends Controller
             if (isset($at['default_wastage_percent'])) Setting::set('default_wastage_percent', (float) $at['default_wastage_percent'], 'number', 'Default Wastage Percent');
             if (isset($at['support_email'])) Setting::set('support_email', $at['support_email'], 'string', 'Concierge Support Email');
             if (isset($at['support_phone'])) Setting::set('support_phone', $at['support_phone'], 'string', 'Concierge Support Phone');
+            if (isset($at['invoice_prefix'])) Setting::set('invoice_prefix', trim($at['invoice_prefix']), 'string', 'Invoice Prefix');
             if (isset($at['address'])) Setting::set('address', $at['address'], 'string', 'Atelier Physical Address');
         }
 
