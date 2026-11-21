@@ -9,7 +9,6 @@ import RegionModal from '@/components/RegionModal';
 export default function RegisterPage() {
     const router = useRouter();
     const { register, verifyOtp, resendOtp } = useAuth();
-    const fileRef = useRef(null);
 
     const [formData, setFormData] = useState({
         first_name: '',
@@ -17,8 +16,6 @@ export default function RegisterPage() {
         email: '',
         password: '',
         phone: '',
-        id_proof_name: '',
-        id_proof_file: null,
     });
     const [agreed, setAgreed] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -48,13 +45,6 @@ export default function RegisterPage() {
         if (error) setError('');
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setFormData((prev) => ({ ...prev, id_proof_file: file, id_proof_name: file.name }));
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -69,26 +59,13 @@ export default function RegisterPage() {
         setLoading(true);
 
         try {
-            let payload;
-            if (formData.id_proof_file) {
-                payload = new FormData();
-                payload.append('name', `${formData.first_name} ${formData.last_name}`.trim());
-                payload.append('email', formData.email.trim());
-                payload.append('password', formData.password);
-                payload.append('password_confirmation', formData.password);
-                payload.append('phone', formData.phone.trim());
-                payload.append('id_proof_file', formData.id_proof_file);
-                payload.append('id_proof_name', formData.id_proof_file.name);
-            } else {
-                payload = {
-                    name: `${formData.first_name} ${formData.last_name}`.trim(),
-                    email: formData.email.trim(),
-                    password: formData.password,
-                    password_confirmation: formData.password,
-                    phone: formData.phone.trim(),
-                    id_proof_name: formData.id_proof_name || null,
-                };
-            }
+            const payload = {
+                name: `${formData.first_name} ${formData.last_name}`.trim(),
+                email: formData.email.trim(),
+                password: formData.password,
+                password_confirmation: formData.password,
+                phone: formData.phone.trim(),
+            };
             const res = await register(payload);
 
             if (res && res.data && res.data.requires_otp) {
@@ -319,40 +296,7 @@ export default function RegisterPage() {
                                             )}
                                         </div>
 
-                                        <div className="auth-field">
-                                            <label className="auth-label" htmlFor="reg-id-proof">ID PROOF</label>
-                                            <div className="auth-upload-group">
-                                                <input
-                                                    id="reg-id-proof"
-                                                    className="auth-input auth-upload-input"
-                                                    type="text"
-                                                    readOnly
-                                                    placeholder="Aadhar, Driver’s License, Passport"
-                                                    value={formData.id_proof_name}
-                                                    onClick={() => fileRef.current?.click()}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="auth-upload-btn"
-                                                    onClick={() => fileRef.current?.click()}
-                                                    aria-label="Upload ID Proof"
-                                                    title="Upload ID Document"
-                                                >
-                                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M4 17v2a1.5 1.5 0 0 0 1.5 1.5h13a1.5 1.5 0 0 0 1.5-1.5v-2" />
-                                                        <polyline points="7 9 12 4 17 9" />
-                                                        <line x1="12" y1="4" x2="12" y2="15" />
-                                                    </svg>
-                                                </button>
-                                                <input
-                                                    ref={fileRef}
-                                                    type="file"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    style={{ display: 'none' }}
-                                                    onChange={handleFileChange}
-                                                />
-                                            </div>
-                                        </div>
+
                                     </div>
                                 </div>
 
@@ -710,34 +654,7 @@ export default function RegisterPage() {
                     font-weight: 300;
                 }
 
-                /* ID Proof upload group */
-                .auth-upload-group {
-                    display: flex;
-                    align-items: stretch;
-                    width: 100%;
-                }
 
-                .auth-upload-input {
-                    flex: 1;
-                    cursor: pointer;
-                    border-right: none;
-                }
-
-                .auth-upload-btn {
-                    width: 48px;
-                    background: #CDC1B4;
-                    border: 1px solid #1F1F1F;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 0;
-                    transition: background 0.15s, opacity 0.15s;
-                }
-
-                .auth-upload-btn:hover {
-                    background: #BEB1A3;
-                }
 
                 /* Submit section */
                 .auth-submit-wrap {
