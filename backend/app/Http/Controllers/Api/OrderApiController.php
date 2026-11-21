@@ -781,6 +781,18 @@ class OrderApiController extends Controller
                     }
                 }
                 
+                $formatDocUrl = function($u) {
+                    if (empty($u)) return $u;
+                    $clean = trim($u);
+                    if (str_starts_with($clean, 'http://') || str_starts_with($clean, 'https://')) {
+                        return $clean;
+                    }
+                    if (str_starts_with($clean, '/images/uploads/') || str_starts_with($clean, 'images/uploads/') || str_starts_with($clean, '/storage/') || str_starts_with($clean, 'storage/')) {
+                        return 'https://admin.pintaara.com/' . ltrim($clean, '/');
+                    }
+                    return $clean;
+                };
+
                 $itemCerts = $item->certificates;
                 if (!is_array($itemCerts) || empty($itemCerts)) {
                     $itemCerts = [];
@@ -791,7 +803,7 @@ class OrderApiController extends Controller
                             'id' => 'cert_1',
                             'name' => 'Certificate',
                             'certificate_number' => $certNum ?: 'BIS-CERT',
-                            'certificate_url' => $certUrl,
+                            'certificate_url' => $formatDocUrl($certUrl),
                             'verification_url' => 'https://www.manakonline.in/MANAK/hallmarkHuidVerification',
                         ];
                     }
@@ -800,12 +812,20 @@ class OrderApiController extends Controller
                         $u = $c['certificate_url'] ?? ($c['url'] ?? '');
                         return !empty($u) && !str_contains($u, 'sample-certificate.pdf');
                     }));
+                    foreach ($itemCerts as &$c) {
+                        if (!empty($c['certificate_url'])) {
+                            $c['certificate_url'] = $formatDocUrl($c['certificate_url']);
+                        }
+                    }
+                    unset($c);
                 }
 
                 $itemPrice = (float) ($item->price > 0 ? $item->price : ($item->total > 0 ? $item->total : ($product?->final_price ?: $product?->base_price ?: 0)));
                 $itemTotal = (float) ($item->total > 0 ? $item->total : $itemPrice);
                 $goldRateLocked = (float) ($item->gold_rate_locked > 0 ? $item->gold_rate_locked : ($order->gold_rate_snapshot['gold_22kt_per_10g'] ?? 0));
                 $weightUsed = (float) ($item->weight_used > 0 ? $item->weight_used : ($product?->weight_g ?: 0));
+
+                $primaryCertUrl = $formatDocUrl($item->certificate_url ?: ($product?->certificate_url ?: null));
 
                 $collectionPieces[] = [
                     'id' => $item->id,
@@ -839,7 +859,7 @@ class OrderApiController extends Controller
                     'shipping_address' => $order->shipping_address,
                     'huid' => $item->huid ?: ($product?->huid ?: null),
                     'gov_portal_url' => 'https://www.manakonline.in/MANAK/hallmarkHuidVerification',
-                    'certificate_url' => $item->certificate_url ?: ($product?->certificate_url ?: null),
+                    'certificate_url' => $primaryCertUrl,
                     'certificate_number' => $item->certificate_number ?: ($product?->certificate_number ?: null),
                     'certificates' => $itemCerts,
                     'image' => $imageUrl,

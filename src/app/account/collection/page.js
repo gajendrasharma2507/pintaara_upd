@@ -14,11 +14,11 @@ const resolveCertFileUrl = (url) => {
     if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('blob:')) {
         return cleanUrl;
     }
-    const apiHost = getApiHost().replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
-    if (cleanUrl.startsWith('/storage/')) {
+    const apiHost = (getApiHost() || 'https://admin.pintaara.com').replace(/[\uFEFF\u200B-\u200D\u00A0]/g, '').trim();
+    if (cleanUrl.startsWith('/images/uploads/') || cleanUrl.startsWith('/storage/')) {
         return `${apiHost}${cleanUrl}`;
     }
-    if (cleanUrl.startsWith('storage/')) {
+    if (cleanUrl.startsWith('images/uploads/') || cleanUrl.startsWith('storage/')) {
         return `${apiHost}/${cleanUrl}`;
     }
     if (cleanUrl.startsWith('/images/') || cleanUrl.startsWith('images/')) {
@@ -165,9 +165,15 @@ export default function AccountCollectionPage() {
         const a = document.createElement('a');
         a.href = downloadUrl;
         a.download = downloadFilename;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        setTimeout(() => {
+            if (document.body.contains(a)) {
+                document.body.removeChild(a);
+            }
+        }, 1500);
     };
 
     const handleDownloadInvoice = async (piece) => {
@@ -330,16 +336,32 @@ export default function AccountCollectionPage() {
 
                                 {validCerts.map((cert, certIdx) => {
                                     const cleanName = cert.name ? cert.name.replace(/^Download\s+/i, '') : 'Certificate';
+                                    const fileUrl = cert?.certificate_url || piece?.certificate_url;
+                                    const resolved = resolveCertFileUrl(fileUrl);
+                                    const ext = resolved.split('.').pop()?.split(/[?#]/)[0] || 'pdf';
+                                    const downloadFilename = `${cleanName.replace(/\s+/g, '-')}-${piece.order_number || piece.id || 'PNT'}.${ext}`;
+                                    const downloadUrl = `/api/download?url=${encodeURIComponent(resolved)}&filename=${encodeURIComponent(downloadFilename)}`;
+
                                     return (
-                                        <button
+                                        <a
                                             key={cert.id || certIdx}
-                                            type="button"
+                                            href={downloadUrl}
+                                            download={downloadFilename}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             className="acct-download-link"
-                                            onClick={() => handleDownloadSpecificCertificate(piece, cert)}
+                                            style={{ textDecoration: 'none', cursor: 'pointer' }}
+                                            title={`Download ${cleanName}`}
+                                            onClick={(e) => {
+                                                // Ensure smooth download handling on all browsers
+                                                if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+                                                    // Allow native download, no prevention
+                                                }
+                                            }}
                                         >
                                             <DocumentOutlineIcon />
                                             <span>Download {cleanName}</span>
-                                        </button>
+                                        </a>
                                     );
                                 })}
                             </div>

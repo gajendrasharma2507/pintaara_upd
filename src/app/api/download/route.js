@@ -15,10 +15,59 @@ export async function GET(request) {
             return new NextResponse('File URL is required', { status: 400 });
         }
 
-        // Fetch file server-side (bypasses CORS completely)
-        const response = await fetch(fileUrl);
-        if (!response.ok) {
-            return new NextResponse('Failed to fetch file from storage', { status: response.status });
+        let targetUrl = fileUrl.trim();
+
+        // 1. Resolve relative URLs to absolute URLs
+        if (targetUrl.startsWith('/')) {
+            if (targetUrl.startsWith('/images/uploads/') || targetUrl.startsWith('/storage/')) {
+                targetUrl = `https://admin.pintaara.com${targetUrl}`;
+            } else {
+                const origin = new URL(request.url).origin;
+                targetUrl = `${origin}${targetUrl}`;
+            }
+        }
+
+        // 2. Fetch file server-side (bypasses CORS completely)
+        let response = null;
+        try {
+            response = await fetch(targetUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) PintaaraDownloadProxy/1.0',
+                },
+            });
+        } catch (fetchErr) {
+            console.warn('Initial download fetch failed for:', targetUrl, fetchErr);
+        }
+
+        // 3. Fallback: if not found or failed, try switching between www and admin domains
+        if (!response || !response.ok) {
+            let altUrl = null;
+            if (targetUrl.includes('www.pintaara.com')) {
+                altUrl = targetUrl.replace('www.pintaara.com', 'admin.pintaara.com');
+            } else if (targetUrl.includes('admin.pintaara.com')) {
+                altUrl = targetUrl.replace('admin.pintaara.com', 'www.pintaara.com');
+            } else if (!targetUrl.startsWith('http')) {
+                altUrl = `https://admin.pintaara.com/${targetUrl.replace(/^\/+/, '')}`;
+            }
+
+            if (altUrl && altUrl !== targetUrl) {
+                try {
+                    const altRes = await fetch(altUrl, {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) PintaaraDownloadProxy/1.0',
+                        },
+                    });
+                    if (altRes.ok) {
+                        response = altRes;
+                    }
+                } catch (altErr) {
+                    console.warn('Alt download fetch failed for:', altUrl, altErr);
+                }
+            }
+        }
+
+        if (!response || !response.ok) {
+            return new NextResponse('Failed to fetch file from storage', { status: response ? response.status : 404 });
         }
 
         const contentType = response.headers.get('content-type') || 'application/octet-stream';
