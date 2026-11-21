@@ -309,7 +309,7 @@
 
                   <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
                     <button type="submit" class="admin-btn admin-btn-primary" style="padding: 8px 24px; font-size: 12.5px; font-weight: 700; background: #C9A961; color: #000; border: none; border-radius: 6px; cursor: pointer;">
-                      Documents
+                      Upload Documents
                     </button>
                   </div>
                 </form>
