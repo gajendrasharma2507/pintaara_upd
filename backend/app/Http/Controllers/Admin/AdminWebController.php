@@ -446,10 +446,14 @@ class AdminWebController extends Controller
         $item = OrderItem::where('order_id', $order->id)->findOrFail($itemId);
 
         $request->validate([
+            'document_files' => 'nullable|array',
+            'document_files.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
             'document_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
             'image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
             'certificate_name' => 'nullable|string|max:150',
+            'certificate_names' => 'nullable|array',
             'certificate_number' => 'nullable|string|max:100',
+            'certificate_numbers' => 'nullable|array',
             'huid' => 'nullable|string|max:100',
         ]);
 
@@ -464,7 +468,43 @@ class AdminWebController extends Controller
             $item->image = $imageUrl;
         }
 
-        // 3. Upload Document/Certificate if provided
+        $certs = is_array($item->certificates) ? $item->certificates : [];
+        $names = (array) $request->input('certificate_names', []);
+        $numbers = (array) $request->input('certificate_numbers', []);
+
+        // 3. Process Multiple Document Files
+        if ($request->hasFile('document_files')) {
+            foreach ($request->file('document_files') as $idx => $file) {
+                if ($file && $file->isValid()) {
+                    $docUrl = $this->saveUploadedFile($file, 'certificate');
+                    $customName = !empty($names[$idx]) ? trim($names[$idx]) : ($request->input('certificate_name') ?: '');
+                    if (!$customName) {
+                        $origBase = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                        $customName = ucwords(str_replace(['_', '-'], ' ', $origBase));
+                        if (strlen($customName) < 3) {
+                            $customName = 'Certificate ' . (count($certs) + 1);
+                        }
+                    }
+                    $customNum = !empty($numbers[$idx]) ? trim($numbers[$idx]) : ($request->input('certificate_number') ?: ($item->huid ? 'HUID-' . $item->huid : 'BIS-' . strtoupper(uniqid())));
+
+                    $certs[] = [
+                        'id' => 'cert_' . uniqid(),
+                        'name' => $customName,
+                        'certificate_number' => $customNum,
+                        'certificate_url' => $docUrl,
+                        'verification_url' => 'https://www.manakonline.in/MANAK/hallmarkHuidVerification',
+                        'uploaded_at' => now()->toIso8601String(),
+                    ];
+
+                    if (empty($item->certificate_url)) {
+                        $item->certificate_url = $docUrl;
+                        $item->certificate_number = $customNum;
+                    }
+                }
+            }
+        }
+
+        // 4. Fallback for single document file
         if ($request->hasFile('document_file')) {
             $file = $request->file('document_file');
             $docUrl = $this->saveUploadedFile($file, 'certificate');
@@ -474,7 +514,6 @@ class AdminWebController extends Controller
             $item->certificate_url = $docUrl;
             $item->certificate_number = $certNum;
 
-            $certs = is_array($item->certificates) ? $item->certificates : [];
             $certs[] = [
                 'id' => 'cert_' . uniqid(),
                 'name' => $certName,
@@ -483,14 +522,13 @@ class AdminWebController extends Controller
                 'verification_url' => 'https://www.manakonline.in/MANAK/hallmarkHuidVerification',
                 'uploaded_at' => now()->toIso8601String(),
             ];
-            $item->certificates = $certs;
-        } elseif ($request->filled('certificate_number')) {
-            $item->certificate_number = trim($request->input('certificate_number'));
         }
 
+        $item->certificates = $certs;
         $item->save();
 
-        return back()->with('success', 'Commissioned piece documentation updated successfully. Client portal will now display these documents.');
+        $count = count($certs);
+        return back()->with('success', "Documentation updated successfully! Total {$count} client document(s) now active on user side.");
     }
 
     public function deleteOrderItemCertificate(Request $request, $orderId, $itemId, $certIndex)

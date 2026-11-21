@@ -272,51 +272,65 @@
               </div>
             @endif
 
-            <!-- Upload Document & Piece Image Form -->
-            <div style="margin-top: 14px; padding: 14px; background: var(--admin-surface-elevated, #FAF9F5); border: 1px solid var(--admin-border); border-radius: 10px;">
-              <details>
-                <summary style="font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); cursor: pointer; outline: none; user-select: none;">
-                  + Upload Certificate, HUID &amp; Piece Photo for Client Portal
+            <!-- Upload Multiple Documents & Piece Image Form -->
+            <div style="margin-top: 14px; padding: 16px; background: var(--admin-surface-elevated, #FAF9F5); border: 1px solid var(--admin-border); border-radius: 12px;">
+              <details open>
+                <summary style="font-size: 13px; font-weight: 700; color: var(--admin-text-primary); cursor: pointer; outline: none; user-select: none; display: flex; align-items: center; justify-content: space-between;">
+                  <span>📑 Upload Multiple Client Documents, Certificates &amp; Photos</span>
+                  <span style="font-size: 11px; font-weight: 600; color: #92722A; background: rgba(201, 169, 97, 0.15); padding: 2px 8px; border-radius: 4px;">Multi-Document Active</span>
                 </summary>
                 
-                <form action="{{ route('admin.orders.items.upload-document', [$order->id, $item->id]) }}" method="POST" enctype="multipart/form-data" style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">
+                <form action="{{ route('admin.orders.items.upload-document', [$order->id, $item->id]) }}" method="POST" enctype="multipart/form-data" style="margin-top: 14px; display: flex; flex-direction: column; gap: 14px;">
                   @csrf
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                    <div>
-                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Certificate / Document File (PDF, PNG, JPG)</label>
-                      <input type="file" name="document_file" accept=".pdf,.png,.jpg,.jpeg,.webp" class="admin-input" style="padding: 5px; font-size: 11.5px;">
-                    </div>
-                    <div>
-                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Document Title</label>
-                      <input type="text" name="certificate_name" placeholder="e.g. Certificate of Authenticity" list="cert_names_list" class="admin-input" style="font-size: 12px;">
-                      <datalist id="cert_names_list">
-                        <option value="Certificate of Authenticity">
-                        <option value="BIS Hallmark Certificate">
-                        <option value="Diamond Quality Report (VVS-VS)">
-                        <option value="IGI Lab Certificate">
-                        <option value="Gemological Appraisal">
-                      </datalist>
+                  
+                  <div style="font-size: 11.5px; color: var(--admin-text-muted);">
+                    Upload one or multiple certificates (Authenticity, Hallmark, Diamond Quality, Valuation, etc.). All uploaded documents will be visible and downloadable in the client's <strong>MY COLLECTION</strong> portal.
+                  </div>
+
+                  <!-- Dynamic Document Rows Container -->
+                  <div id="doc_rows_{{ $item->id }}" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Row 1 -->
+                    <div class="doc-row" style="display: grid; grid-template-columns: 2fr 2fr 1.5fr auto; gap: 8px; align-items: end; background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid #E5E1DA;">
+                      <div>
+                        <label style="display: block; font-size: 10.5px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Document File (PDF / Image)</label>
+                        <input type="file" name="document_files[]" multiple accept=".pdf,.png,.jpg,.jpeg,.webp" class="admin-input" style="padding: 5px; font-size: 11.5px;">
+                      </div>
+                      <div>
+                        <label style="display: block; font-size: 10.5px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Document Name</label>
+                        <input type="text" name="certificate_names[]" placeholder="e.g. Certificate of Authenticity" list="cert_names_list" class="admin-input" style="font-size: 12px;">
+                      </div>
+                      <div>
+                        <label style="display: block; font-size: 10.5px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Cert / Ref Number</label>
+                        <input type="text" name="certificate_numbers[]" placeholder="e.g. BIS-772910" class="admin-input" style="font-size: 12px;">
+                      </div>
+                      <div>
+                        <button type="button" onclick="this.closest('.doc-row').remove()" style="background: none; border: none; color: #999; font-size: 16px; cursor: pointer; padding: 8px;" title="Remove this row">&times;</button>
+                      </div>
                     </div>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-                    <div>
-                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Certificate Number (optional)</label>
-                      <input type="text" name="certificate_number" value="{{ $item->certificate_number }}" placeholder="e.g. BIS-CERT-772910" class="admin-input" style="font-size: 12px;">
-                    </div>
+                  <!-- Add Another Document Row Button -->
+                  <div>
+                    <button type="button" onclick="addDocRow('{{ $item->id }}')" style="background: transparent; border: 1px dashed #C9A961; color: #92722A; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                      <span>+ Add Another Document</span>
+                    </button>
+                  </div>
+
+                  <!-- Spec & Piece Photo Details -->
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; padding-top: 10px; border-top: 1px dashed var(--admin-border);">
                     <div>
                       <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">BIS Hallmark HUID (optional)</label>
                       <input type="text" name="huid" value="{{ $item->huid }}" placeholder="e.g. 916-HUID-88291" class="admin-input" style="font-size: 12px;">
                     </div>
                     <div>
-                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Custom Piece Photo (optional)</label>
+                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Custom Crafted Piece Photo (optional)</label>
                       <input type="file" name="image_file" accept="image/*" class="admin-input" style="padding: 5px; font-size: 11.5px;">
                     </div>
                   </div>
 
                   <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
-                    <button type="submit" class="admin-btn admin-btn-primary" style="padding: 7px 16px; font-size: 12px; font-weight: 600; background: #C9A961; color: #000; border: none; border-radius: 6px; cursor: pointer;">
-                      Upload &amp; Show on User Side
+                    <button type="submit" class="admin-btn admin-btn-primary" style="padding: 8px 20px; font-size: 12.5px; font-weight: 700; background: #C9A961; color: #000; border: none; border-radius: 6px; cursor: pointer;">
+                      Upload All Documents &amp; Publish to Client Portal
                     </button>
                   </div>
                 </form>
@@ -324,6 +338,43 @@
             </div>
           </div>
         @endforeach
+
+        <datalist id="cert_names_list">
+          <option value="Certificate of Authenticity">
+          <option value="BIS Hallmark Certificate">
+          <option value="Diamond Quality Report (VVS-VS)">
+          <option value="IGI Lab Certificate">
+          <option value="GIA Grading Report">
+          <option value="Gemological Appraisal &amp; Valuation">
+          <option value="Bespoke Design Blueprint">
+        </datalist>
+
+        <script>
+          function addDocRow(itemId) {
+            const container = document.getElementById('doc_rows_' + itemId);
+            const row = document.createElement('div');
+            row.className = 'doc-row';
+            row.style.cssText = 'display: grid; grid-template-columns: 2fr 2fr 1.5fr auto; gap: 8px; align-items: end; background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid #E5E1DA;';
+            row.innerHTML = `
+              <div>
+                <label style="display: block; font-size: 10.5px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Document File (PDF / Image)</label>
+                <input type="file" name="document_files[]" multiple accept=".pdf,.png,.jpg,.jpeg,.webp" class="admin-input" style="padding: 5px; font-size: 11.5px;" required>
+              </div>
+              <div>
+                <label style="display: block; font-size: 10.5px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Document Name</label>
+                <input type="text" name="certificate_names[]" placeholder="e.g. BIS Hallmark Certificate" list="cert_names_list" class="admin-input" style="font-size: 12px;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 10.5px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Cert / Ref Number</label>
+                <input type="text" name="certificate_numbers[]" placeholder="e.g. BIS-772910" class="admin-input" style="font-size: 12px;">
+              </div>
+              <div>
+                <button type="button" onclick="this.closest('.doc-row').remove()" style="background: none; border: none; color: #999; font-size: 16px; cursor: pointer; padding: 8px;" title="Remove this row">&times;</button>
+              </div>
+            `;
+            container.appendChild(row);
+          }
+        </script>
       </div>
 
       <!-- Price Breakdown -->
