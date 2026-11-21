@@ -35,8 +35,8 @@
       ],
       'contact_email' => [
         'name' => 'Contact Email',
-        'raw_val' => $settings['contact_email'] ?? 'concierge@pintaara.com',
-        'display_val' => $settings['contact_email'] ?? 'concierge@pintaara.com',
+        'raw_val' => $settings['contact_email'] ?? 'info@pintaara.com',
+        'display_val' => $settings['contact_email'] ?? 'info@pintaara.com',
         'type' => 'email',
         'action_type' => 'single',
       ],

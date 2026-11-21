@@ -362,7 +362,7 @@ export const privacyData = {
             navLabel: "Contact us",
             title: "CONTACT US",
             paragraphs: [
-                "If you have any questions regarding this Privacy Policy or the processing of your personal data, you may contact us at: concierge@pintaara.com"
+                "If you have any questions regarding this Privacy Policy or the processing of your personal data, you may contact us at: info@pintaara.com"
             ]
         }
     ]

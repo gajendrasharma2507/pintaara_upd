@@ -49,24 +49,24 @@ class AdminSettingApiController extends Controller
             'currency_symbol' => Setting::get('currency_symbol', '₹'),
             'gst_percent' => (float) Setting::get('gst_percent', 3.0),
             'default_wastage_percent' => (float) Setting::get('default_wastage_percent', 0.0),
-            'support_email' => Setting::get('support_email', 'concierge@pintaara.com'),
+            'support_email' => Setting::get('support_email', 'info@pintaara.com'),
             'support_phone' => Setting::get('support_phone', '+91 98765 43210'),
             'address' => Setting::get('address', 'Atelier Suite 402, Platinum Tower, Bandra West, Mumbai, Maharashtra 400050'),
         ];
 
         // 2. Razorpay Payment Gateway Settings
-        $razorpayMode = Setting::get('razorpay_env', 'test');
-        $testKeyId = Setting::get('razorpay_test_key_id', config('razorpay.key_id', env('RAZORPAY_KEY_ID', 'rzp_test_placeholder')));
-        $testKeySecret = Setting::get('razorpay_test_key_secret', config('razorpay.key_secret', env('RAZORPAY_KEY_SECRET', 'placeholder_secret')));
-        $liveKeyId = Setting::get('razorpay_live_key_id', '');
-        $liveKeySecret = Setting::get('razorpay_live_key_secret', '');
-        $webhookSecret = Setting::get('razorpay_webhook_secret', '');
+        $razorpayMode = Setting::get('razorpay_env', config('razorpay.env', 'test'));
+        $testKeyId = Setting::get('razorpay_test_key_id', config('razorpay.test_key_id', ''));
+        $testKeySecret = Setting::get('razorpay_test_key_secret', config('razorpay.test_key_secret', ''));
+        $liveKeyId = Setting::get('razorpay_live_key_id', config('razorpay.live_key_id', ''));
+        $liveKeySecret = Setting::get('razorpay_live_key_secret', config('razorpay.live_key_secret', ''));
+        $webhookSecret = Setting::get('razorpay_webhook_secret', config('razorpay.webhook_secret', ''));
 
         $razorpay = [
             'mode' => $razorpayMode, // 'test' | 'live'
             'test_key_id' => $testKeyId,
             'test_key_secret_masked' => $this->maskSecret($testKeySecret),
-            'has_test_secret' => !empty($testKeySecret) && $testKeySecret !== 'placeholder_secret',
+            'has_test_secret' => !empty($testKeySecret),
             'live_key_id' => $liveKeyId,
             'live_key_secret_masked' => $this->maskSecret($liveKeySecret),
             'has_live_secret' => !empty($liveKeySecret),
@@ -80,34 +80,34 @@ class AdminSettingApiController extends Controller
 
         // 3. Sequel 247 Logistics Settings
         $sequelMode = Setting::get('sequel_env', config('services.sequel247.env', 'test'));
-        $testToken = Setting::get('sequel_test_token', config('services.sequel247.test_token', '7418b689f9b4fbf82c9f67588206fecc'));
-        $prodToken = Setting::get('sequel_prod_token', config('services.sequel247.prod_token', 'e27b75bc3b396ee53d2349adae6884ed'));
+        $testToken = Setting::get('sequel_test_token', config('services.sequel247.test_token', ''));
+        $prodToken = Setting::get('sequel_prod_token', config('services.sequel247.prod_token', ''));
 
         $sequel = [
             'mode' => $sequelMode, // 'test' | 'prod'
-            'client_code' => Setting::get('sequel_client_code', config('services.sequel247.client_code', '31492')),
-            'store_code' => Setting::get('sequel_store_code', config('services.sequel247.store_code', 'PINTARA')),
-            'origin_pincode' => Setting::get('sequel_origin_pincode', config('services.sequel247.origin_pincode', '400001')),
+            'client_code' => Setting::get('sequel_client_code', config('services.sequel247.client_code', '')),
+            'store_code' => Setting::get('sequel_store_code', config('services.sequel247.store_code', '')),
+            'origin_pincode' => Setting::get('sequel_origin_pincode', config('services.sequel247.origin_pincode', '')),
             'test_token_masked' => $this->maskSecret($testToken),
             'has_test_token' => !empty($testToken),
-            'test_endpoint' => Setting::get('sequel_test_endpoint', config('services.sequel247.test_endpoint', 'https://test.sequel247.com/')),
+            'test_endpoint' => Setting::get('sequel_test_endpoint', config('services.sequel247.test_endpoint', '')),
             'prod_token_masked' => $this->maskSecret($prodToken),
             'has_prod_token' => !empty($prodToken),
-            'prod_endpoint' => Setting::get('sequel_prod_endpoint', config('services.sequel247.prod_endpoint', 'https://sequel247.com/')),
+            'prod_endpoint' => Setting::get('sequel_prod_endpoint', config('services.sequel247.prod_endpoint', '')),
         ];
 
         // 4. Email & Notifications Settings
         $email = [
-            'mode' => Setting::get('mail_mode', 'test'), // 'test' | 'live'
+            'mode' => Setting::get('mail_mode', 'live'), // 'test' | 'live'
             'driver' => Setting::get('mail_driver', 'smtp'),
-            'smtp_host' => Setting::get('mail_host', 'sandbox.smtp.mailtrap.io'),
-            'smtp_port' => (int) Setting::get('mail_port', 2525),
-            'smtp_encryption' => Setting::get('mail_encryption', 'tls'),
-            'smtp_username' => Setting::get('mail_username', ''),
+            'smtp_host' => Setting::get('mail_host', config('mail.mailers.smtp.host', 'smtp.hostinger.com')),
+            'smtp_port' => (int) Setting::get('mail_port', config('mail.mailers.smtp.port', 465)),
+            'smtp_encryption' => Setting::get('mail_encryption', config('mail.mailers.smtp.scheme', 'ssl')),
+            'smtp_username' => Setting::get('mail_username', config('mail.mailers.smtp.username', '')),
             'smtp_password_masked' => $this->maskSecret(Setting::get('mail_password', '')),
             'has_smtp_password' => !empty(Setting::get('mail_password', '')),
             'resend_api_key_masked' => $this->maskSecret(Setting::get('resend_api_key', config('services.resend.key', ''))),
-            'from_address' => Setting::get('mail_from_address', 'concierge@pintaara.com'),
+            'from_address' => Setting::get('mail_from_address', 'info@pintaara.com'),
             'from_name' => Setting::get('mail_from_name', 'PINTAARA Fine Jewelry'),
         ];
 

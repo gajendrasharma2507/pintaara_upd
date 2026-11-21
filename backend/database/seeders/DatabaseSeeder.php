@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
         Setting::set('default_wastage_percent', 0.0, 'number', 'Default wastage buffer percentage');
         Setting::set('brand_name', 'PINTAARA', 'string', 'Luxury Fine Jewelry Atelier');
         Setting::set('currency_symbol', '₹', 'string', 'Currency symbol');
-        Setting::set('contact_email', 'concierge@pintaara.com', 'string', 'Customer concierge email');
+        Setting::set('contact_email', 'info@pintaara.com', 'string', 'Customer concierge email');
         Setting::set('contact_phone', '+91 98765 43210', 'string', 'Concierge VIP hotline');
 
         // 3. Metal Purities

@@ -416,7 +416,7 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                     </div>
                     <div className="pnt-inv-footer-right">
                         <div className="pnt-inv-footer-text">+91 95104 00753</div>
-                        <div className="pnt-inv-footer-text">pintaarainfo@gmail.com</div>
+                        <div className="pnt-inv-footer-text">info@pintaara.com</div>
                         <div className="pnt-inv-footer-text">www.pintaara.com</div>
                         <div className="pnt-inv-footer-text">Instagram @Pintaara753</div>
                     </div>

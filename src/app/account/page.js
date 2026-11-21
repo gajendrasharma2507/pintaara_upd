@@ -761,7 +761,7 @@ export default function AccountProfilePage() {
                             <input
                                 type="text"
                                 className="modal-text-input"
-                                value={email || 'darshit@pintaara.com'}
+                                value={email || ''}
                                 readOnly
                             />
                         </div>

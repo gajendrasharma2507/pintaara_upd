@@ -64,7 +64,7 @@ function OrderCancelledContent() {
                     <div className="confirmed-bottom-col">
                         <p className="confirmed-bottom-text">
                             <strong>Need Assistance?</strong><br />
-                            <a href="mailto:hello@pintaara.com">hello@pintaara.com</a>
+                            <a href="mailto:info@pintaara.com">info@pintaara.com</a>
                         </p>
                     </div>
                 </section>
