@@ -13,6 +13,7 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isRegionOpen, setIsRegionOpen] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -72,7 +73,37 @@ export default function LoginPage() {
                         </div>
                         <div className="auth-field">
                             <label className="auth-label" htmlFor="login-password">PASSWORD</label>
-                            <input id="login-password" className="auth-input" type="password" name="password" required placeholder="Enter your password" value={formData.password} onChange={handleChange} />
+                            <div className="auth-password-wrapper">
+                                <input
+                                    id="login-password"
+                                    className="auth-input"
+                                    type={showPassword ? 'text' : 'password'}
+                                    name="password"
+                                    required
+                                    placeholder="Enter your password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                />
+                                <button
+                                    type="button"
+                                    className="auth-password-toggle"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? (
+                                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                            <line x1="1" y1="1" x2="23" y2="23" />
+                                        </svg>
+                                    ) : (
+                                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
                             <div className="auth-forgot-row">
                                 <Link href="/password/forgot" className="auth-forgot-link">Forgot your password?</Link>
                             </div>
@@ -217,6 +248,35 @@ export default function LoginPage() {
                 }
                 .auth-input:focus { border-color: #000000; background: rgba(255, 255, 255, 0.1) !important; }
                 .auth-input::placeholder { color: #867F77; font-weight: 300; }
+                .auth-password-wrapper {
+                    position: relative;
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                }
+                .auth-password-wrapper .auth-input {
+                    padding-right: 2.75rem;
+                }
+                .auth-password-toggle {
+                    position: absolute;
+                    right: 0.75rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    color: #5A524A;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0.25rem;
+                    transition: color 0.15s, opacity 0.15s;
+                    opacity: 0.75;
+                }
+                .auth-password-toggle:hover {
+                    color: #111111;
+                    opacity: 1;
+                }
                 .auth-forgot-row { display: flex; justify-content: flex-end; margin-top: 0.45rem; }
                 .auth-forgot-link {
                     font-size: 0.82rem;

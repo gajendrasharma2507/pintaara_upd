@@ -19,6 +19,8 @@ export default function ForgotPasswordPage() {
     const [resendTimer, setResendTimer] = useState(60);
     const [isResending, setIsResending] = useState(false);
     const [isRegionOpen, setIsRegionOpen] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const otpRefs = useRef([]);
 
@@ -344,36 +346,78 @@ export default function ForgotPasswordPage() {
                             <form onSubmit={handlePasswordSubmit} className="auth-form">
                                 <div className="auth-field">
                                     <label className="auth-label" htmlFor="new-pass">NEW PASSWORD</label>
-                                    <input
-                                        id="new-pass"
-                                        className="auth-input"
-                                        type="password"
-                                        required
-                                        placeholder="At least 8 characters"
-                                        value={newPassword}
-                                        onChange={(e) => {
-                                            setNewPassword(e.target.value);
-                                            if (error) setError('');
-                                        }}
-                                        autoComplete="new-password"
-                                    />
+                                    <div className="auth-password-wrapper">
+                                        <input
+                                            id="new-pass"
+                                            className="auth-input"
+                                            type={showNewPassword ? 'text' : 'password'}
+                                            required
+                                            placeholder="At least 8 characters"
+                                            value={newPassword}
+                                            onChange={(e) => {
+                                                setNewPassword(e.target.value);
+                                                if (error) setError('');
+                                            }}
+                                            autoComplete="new-password"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="auth-password-toggle"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                                            tabIndex={-1}
+                                        >
+                                            {showNewPassword ? (
+                                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                                    <line x1="1" y1="1" x2="23" y2="23" />
+                                                </svg>
+                                            ) : (
+                                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="auth-field">
                                     <label className="auth-label" htmlFor="confirm-pass">CONFIRM NEW PASSWORD</label>
-                                    <input
-                                        id="confirm-pass"
-                                        className="auth-input"
-                                        type="password"
-                                        required
-                                        placeholder="Re-enter your new password"
-                                        value={confirmPassword}
-                                        onChange={(e) => {
-                                            setConfirmPassword(e.target.value);
-                                            if (error) setError('');
-                                        }}
-                                        autoComplete="new-password"
-                                    />
+                                    <div className="auth-password-wrapper">
+                                        <input
+                                            id="confirm-pass"
+                                            className="auth-input"
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            required
+                                            placeholder="Re-enter your new password"
+                                            value={confirmPassword}
+                                            onChange={(e) => {
+                                                setConfirmPassword(e.target.value);
+                                                if (error) setError('');
+                                            }}
+                                            autoComplete="new-password"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="auth-password-toggle"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                            tabIndex={-1}
+                                        >
+                                            {showConfirmPassword ? (
+                                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                                    <line x1="1" y1="1" x2="23" y2="23" />
+                                                </svg>
+                                            ) : (
+                                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <button type="submit" className="auth-btn-primary" disabled={loading}>
@@ -607,6 +651,35 @@ export default function ForgotPasswordPage() {
                 .auth-input::placeholder {
                     color: #8A8177;
                     font-weight: 300;
+                }
+                .auth-password-wrapper {
+                    position: relative;
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                }
+                .auth-password-wrapper .auth-input {
+                    padding-right: 2.75rem;
+                }
+                .auth-password-toggle {
+                    position: absolute;
+                    right: 0.75rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    color: #5A524A;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0.25rem;
+                    transition: color 0.15s, opacity 0.15s;
+                    opacity: 0.75;
+                }
+                .auth-password-toggle:hover {
+                    color: #111111;
+                    opacity: 1;
                 }
                 /* OTP 6-box grid */
                 .auth-otp-grid {
