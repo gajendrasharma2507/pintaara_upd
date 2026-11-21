@@ -205,38 +205,6 @@ export default function AccountOrdersPage() {
                                         {order.totalAmount} {order.createdAt ? `• ${order.createdAt}` : ''}
                                     </span>
                                 )}
-                                {isOrderWithin24Hours(order) && (
-                                    <div style={{ marginTop: '0.9rem' }}>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleCancelOrder(order.id)}
-                                            disabled={cancellingId === order.id}
-                                            style={{
-                                                background: 'transparent',
-                                                border: '1px solid #D6D0C6',
-                                                color: '#8A8279',
-                                                padding: '6px 14px',
-                                                fontSize: '0.7rem',
-                                                letterSpacing: '0.1em',
-                                                textTransform: 'uppercase',
-                                                cursor: cancellingId === order.id ? 'not-allowed' : 'pointer',
-                                                transition: 'all 0.2s',
-                                                fontFamily: 'inherit',
-                                                borderRadius: '2px',
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.borderColor = '#B91C1C';
-                                                e.currentTarget.style.color = '#B91C1C';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.borderColor = '#D6D0C6';
-                                                e.currentTarget.style.color = '#8A8279';
-                                            }}
-                                        >
-                                            {cancellingId === order.id ? 'Cancelling...' : 'Cancel Order'}
-                                        </button>
-                                    </div>
-                                )}
                             </div>
 
                             {/* Milestone tracker matching Page 0009 */}
