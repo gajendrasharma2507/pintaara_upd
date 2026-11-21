@@ -215,6 +215,8 @@ Route::prefix('admin')->middleware(['admin'])->group(function () {
     Route::put('/orders/{id}/shipping-address', [OrderApiController::class, 'updateShippingAddress']);
     Route::put('/orders/{orderId}/items/{itemId}/certificate', [OrderApiController::class, 'updateOrderItemCertificate']);
     Route::post('/upload-certificate', [OrderApiController::class, 'uploadCertificate']);
+    Route::delete('/orders/{id}', [OrderApiController::class, 'adminDestroy']);
+    Route::post('/orders/{id}/restore', [OrderApiController::class, 'adminRestore']);
 
     // Sequel 247 Logistics Integration
     Route::get('/logistics/config', [SequelApiController::class, 'configInfo']);
@@ -229,6 +231,8 @@ Route::prefix('admin')->middleware(['admin'])->group(function () {
     // Patrons & Customers Management
     Route::get('/customers', [AdminCustomerApiController::class, 'index']);
     Route::get('/customers/{id}', [AdminCustomerApiController::class, 'show']);
+    Route::put('/customers/{id}', [AdminCustomerApiController::class, 'update']);
+    Route::post('/customers/{id}', [AdminCustomerApiController::class, 'update']);
     Route::put('/customers/{id}/status', [AdminCustomerApiController::class, 'updateStatus']);
     Route::delete('/customers/{id}', [AdminCustomerApiController::class, 'destroy']);
     Route::get('/users', [AdminCustomerApiController::class, 'index']);

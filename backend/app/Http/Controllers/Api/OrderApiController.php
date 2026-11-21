@@ -288,9 +288,18 @@ class OrderApiController extends Controller
         ]);
     }
 
-    public function adminIndex(): JsonResponse
+    public function adminIndex(Request $request): JsonResponse
     {
-        $orders = Order::with('items')->latest()->get()->map(function ($order) {
+        $status = $request->query('status');
+        $query = Order::with('items')->latest();
+
+        if ($status === 'trash' || $status === 'deleted') {
+            $query->onlyTrashed();
+        } elseif (!empty($status) && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $orders = $query->get()->map(function ($order) {
             $firstItem = $order->items->first();
             return [
                 'id' => $order->id,
@@ -305,19 +314,23 @@ class OrderApiController extends Controller
                 'total_amount' => $order->total_amount,
                 'item_summary' => $firstItem ? $firstItem->product_name : 'Jewelry Piece',
                 'items_count' => $order->items->count(),
+                'is_deleted' => $order->trashed(),
+                'deleted_at' => $order->deleted_at?->toIso8601String(),
                 'created_at' => $order->created_at?->toIso8601String(),
             ];
         });
 
         return response()->json([
             'status' => 'success',
+            'trashed_count' => Order::onlyTrashed()->count(),
             'data' => $orders,
         ]);
     }
 
     public function adminShow(string|int $id): JsonResponse
     {
-        $order = Order::where('id', $id)
+        $order = Order::withTrashed()
+            ->where('id', $id)
             ->orWhere('order_number', $id)
             ->with(['items.product.primaryImage', 'user'])
             ->first();
@@ -336,6 +349,8 @@ class OrderApiController extends Controller
                 'order_number' => $order->order_number,
                 'status' => $order->status,
                 'status_label' => $order->status_label,
+                'is_deleted' => $order->trashed(),
+                'deleted_at' => $order->deleted_at?->toIso8601String(),
                 'payment_status' => $order->payment_status ?? 'paid',
                 'payment_method' => $order->payment_method ?? 'card',
                 'fulfillment_status' => in_array($order->status, ['shipped', 'delivered']) ? 'fulfilled' : 'unfulfilled',
@@ -439,6 +454,30 @@ class OrderApiController extends Controller
             'status' => 'success',
             'message' => "Order {$order->order_number} status updated to {$order->status}",
             'data' => $order,
+        ]);
+    }
+
+    public function adminDestroy(int|string $id): JsonResponse
+    {
+        $order = Order::where('id', $id)->orWhere('order_number', $id)->firstOrFail();
+        $orderNum = $order->order_number ?: ('#' . $order->id);
+        $order->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Order {$orderNum} moved to Trash successfully.",
+        ]);
+    }
+
+    public function adminRestore(int|string $id): JsonResponse
+    {
+        $order = Order::onlyTrashed()->where('id', $id)->orWhere('order_number', $id)->firstOrFail();
+        $orderNum = $order->order_number ?: ('#' . $order->id);
+        $order->restore();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Order {$orderNum} restored successfully.",
         ]);
     }
 
@@ -629,13 +668,30 @@ class OrderApiController extends Controller
         foreach ($orders as $order) {
             foreach ($order->items as $item) {
                 $product = $item->product;
+                if (!$product && !empty($item->design_code)) {
+                    $product = Product::with(['primaryImage', 'images'])->where('design_code', $item->design_code)->first();
+                }
                 $imageUrl = null;
 
                 // 1. Match client's selected finish with admin-uploaded finish images
                 if ($product && $product->images && !empty($item->finish)) {
-                    $finishSlug = \Illuminate\Support\Str::slug($item->finish);
-                    $matchedFinishImage = $product->images->first(function ($img) use ($finishSlug) {
-                        return \Illuminate\Support\Str::slug($img->finish_key ?? '') === $finishSlug;
+                    $rawFinish = trim($item->finish);
+                    $finishSlug = \Illuminate\Support\Str::slug($rawFinish);
+                    $finishKeyMap = [
+                        'yellow-gold' => 'YG',
+                        'yg' => 'YG',
+                        'rose-gold' => 'RG',
+                        'rg' => 'RG',
+                        'white-gold' => 'WG',
+                        'wg' => 'WG',
+                        'black-ruthenium' => 'BLK',
+                        'black-gold' => 'BLK',
+                        'blk' => 'BLK',
+                    ];
+                    $targetKey = $finishKeyMap[$finishSlug] ?? strtoupper($rawFinish);
+                    $matchedFinishImage = $product->images->first(function ($img) use ($finishSlug, $targetKey) {
+                        $k = strtoupper(trim($img->finish_key ?? ''));
+                        return $k === $targetKey || \Illuminate\Support\Str::slug($img->finish_key ?? '') === $finishSlug;
                     });
                     if ($matchedFinishImage) {
                         $imageUrl = $matchedFinishImage->url;
@@ -652,6 +708,36 @@ class OrderApiController extends Controller
                 // 3. Fallback to image saved on the order item if present
                 if (!$imageUrl) {
                     $imageUrl = $item->image ?: null;
+                }
+
+                // 4. Fallback to Design Log image if attached or exists by design code
+                if (!$imageUrl && !empty($item->design_code)) {
+                    $dLog = \App\Models\DesignLog::where('design_code', $item->design_code)->first();
+                    if ($dLog && !empty($dLog->image_url)) {
+                        $imageUrl = $dLog->image_url;
+                    }
+                }
+
+                // 5. Fallback to static catalog design-log path if available
+                if (!$imageUrl && !empty($item->design_code)) {
+                    $codeUpper = strtoupper(trim($item->design_code));
+                    $staticLogMap = [
+                        'BR-SG-OR-001' => '/images/design-log/BR-SG-OR-001.JPG',
+                        'PD-SG-OR-001' => '/images/design-log/PD-SG-OR-001.JPG',
+                        'RG-SG-OR-001' => '/images/design-log/RG-SG-OR-001.JPG',
+                        'RG-SG-OR-002' => '/images/design-log/RG-SG-OR-002.JPG',
+                        'RG-SG-AR-004' => '/images/collections/ring.jpg',
+                        'ER-SG-OR-001A' => '/images/design-log/ER-SG-OR-001A.JPG',
+                        'ER-SG-OR-001B' => '/images/design-log/ER-SG-OR-001B.JPG',
+                        'ER-SG-OR-001C' => '/images/design-log/ER-SG-OR-001C.JPG',
+                        'ER-SG-OR-002A' => '/images/design-log/ER-SG-OR-002A.JPG',
+                        'ER-SG-OR-002B' => '/images/design-log/ER-SG-OR-002B.JPG',
+                        'ER-SG-OR-002C' => '/images/design-log/ER-SG-OR-002C.JPG',
+                        'PD-PD-CS-002' => '/images/collections/ring.jpg',
+                    ];
+                    if (isset($staticLogMap[$codeUpper])) {
+                        $imageUrl = $staticLogMap[$codeUpper];
+                    }
                 }
                 
                 $itemCerts = $item->certificates;

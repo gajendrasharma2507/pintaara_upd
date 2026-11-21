@@ -25,6 +25,9 @@ Route::prefix('admin')->group(function () {
         Route::post('/orders/{id}/status', [AdminWebController::class, 'updateOrderStatus'])->name('admin.orders.status');
         Route::post('/orders/{id}/send-email', [AdminWebController::class, 'sendOrderEmail'])->name('admin.orders.send-email');
         Route::get('/orders/{id}/preview-email/{type}', [AdminWebController::class, 'previewOrderEmail'])->name('admin.orders.preview-email');
+        Route::delete('/orders/{id}', [AdminWebController::class, 'deleteOrder'])->name('admin.orders.delete');
+        Route::post('/orders/{id}/restore', [AdminWebController::class, 'restoreOrder'])->name('admin.orders.restore');
+        Route::delete('/orders/{id}/force', [AdminWebController::class, 'forceDeleteOrder'])->name('admin.orders.force-delete');
 
         // Products
         Route::get('/products', [AdminWebController::class, 'products'])->name('admin.products');
@@ -65,6 +68,8 @@ Route::prefix('admin')->group(function () {
 
         // Customers
         Route::get('/customers', [AdminWebController::class, 'customers'])->name('admin.customers');
+        Route::post('/customers/{id}', [AdminWebController::class, 'updateCustomer'])->name('admin.customers.update');
+        Route::put('/customers/{id}', [AdminWebController::class, 'updateCustomer'])->name('admin.customers.update.put');
 
         // Live Gold Rates
         Route::get('/gold-rates', [AdminWebController::class, 'goldRates'])->name('admin.gold-rates');

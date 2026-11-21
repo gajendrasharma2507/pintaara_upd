@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\CustomerNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -257,6 +258,76 @@ class AdminCustomerApiController extends Controller
     }
 
     /**
+     * Update customer profile info by Admin.
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        if (!is_numeric($id)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Guest records cannot be updated.',
+            ], 400);
+        }
+
+        $user = User::findOrFail((int) $id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string|max:500',
+            'role' => 'nullable|string|in:customer,admin',
+            'status' => 'nullable|string|in:active,pending,disabled,rejected',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        if (array_key_exists('phone', $validated)) {
+            $user->phone = $validated['phone'];
+        }
+        if (array_key_exists('address', $validated)) {
+            $user->address = $validated['address'];
+        }
+        if (!empty($validated['role'])) {
+            $user->role = $validated['role'];
+        }
+        if (!empty($validated['status'])) {
+            $user->status = $validated['status'];
+            $user->is_disabled = in_array($validated['status'], ['disabled', 'rejected']);
+            $user->is_approved = ($validated['status'] === 'active');
+        }
+        if (!empty($validated['password'])) {
+            $user->password = \Illuminate\Support\Facades\Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        AuditLog::log('customer_profile_updated_by_admin', 'User', $user->id, null, [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'status' => $user->status,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Profile for {$user->name} updated successfully.",
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'address' => $user->address,
+                'role' => $user->role,
+                'status' => $user->status,
+                'is_approved' => (bool) $user->is_approved,
+                'is_disabled' => (bool) $user->is_disabled,
+            ],
+        ]);
+    }
+
+    /**
      * Delete patron record.
      */
     public function destroy(string $id): JsonResponse
@@ -270,10 +341,14 @@ class AdminCustomerApiController extends Controller
 
         $user = User::findOrFail((int) $id);
         $userName = $user->name;
+        $userEmail = $user->email;
 
         // Revoke tokens and delete user
         $user->tokens()->delete();
         $user->delete();
+
+        // Dispatch B-7: Account Deletion Confirmed
+        CustomerNotificationService::sendAccountDeleted($userEmail, $userName);
 
         AuditLog::log('customer_deleted', 'User', (int) $id, null, ['name' => $userName]);
 

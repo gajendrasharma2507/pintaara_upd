@@ -9,6 +9,56 @@ export default function AdminCustomersPage() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selected, setSelected] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState(null);
+  const [editSuccess, setEditSuccess] = useState(null);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    role: "customer",
+    address: "",
+    status: "active",
+    password: "",
+  });
+
+  const openEdit = (customer) => {
+    setForm({
+      name: customer.name || "",
+      email: customer.email || "",
+      phone: customer.phone || "",
+      role: customer.role || "customer",
+      address: customer.address || "",
+      status: customer.status || "active",
+      password: "",
+    });
+    setEditError(null);
+    setEditSuccess(null);
+    setEditing(true);
+  };
+
+  const handleSaveCustomer = async (e) => {
+    e.preventDefault();
+    if (!selected) return;
+    setSaving(true);
+    setEditError(null);
+    setEditSuccess(null);
+    try {
+      const payload = { ...form };
+      if (!payload.password) delete payload.password;
+      const res = await api.updateAdminUser(selected.id, payload);
+      setEditSuccess("Profile updated successfully!");
+      const updatedUser = res?.data || res?.user || { ...selected, ...payload };
+      setSelected((prev) => ({ ...prev, ...updatedUser }));
+      setCustomers((prev) => prev.map((c) => (c.id === selected.id ? { ...c, ...updatedUser } : c)));
+      setTimeout(() => setEditing(false), 800);
+    } catch (err) {
+      setEditError(err.message || "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -240,14 +290,33 @@ export default function AdminCustomersPage() {
             {[
               { label: "Phone", value: selected.phone || "—" },
               { label: "Role", value: selected.role || "customer" },
+              { label: "Status", value: selected.status || "active" },
               { label: "Joined", value: formatDate(selected.created_at) },
               { label: "Email Status", value: selected.email_verified_at ? "Verified" : "Unverified" },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--admin-border)" }}>
                 <span style={{ fontSize: "12px", color: "var(--admin-text-muted)" }}>{label}</span>
-                <span style={{ fontSize: "12px", color: "var(--admin-text-primary)", fontWeight: 500 }}>{value}</span>
+                <span style={{ fontSize: "12px", color: "var(--admin-text-primary)", fontWeight: 500, textTransform: "capitalize" }}>{value}</span>
               </div>
             ))}
+
+            <button
+              onClick={() => openEdit(selected)}
+              style={{
+                marginTop: "20px",
+                width: "100%",
+                padding: "10px",
+                borderRadius: "8px",
+                background: "var(--admin-gold)",
+                border: "none",
+                color: "#000",
+                fontWeight: 600,
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+            >
+              ✏️ Edit Profile Info
+            </button>
 
             {selected.identity_proof_path && (
               <div style={{ marginTop: "16px" }}>
@@ -262,6 +331,153 @@ export default function AdminCustomersPage() {
                 </a>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Customer Modal */}
+      {editing && selected && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.75)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: "20px",
+        }}>
+          <div style={{
+            background: "var(--admin-surface)",
+            border: "1px solid var(--admin-border)",
+            borderRadius: "12px",
+            width: "100%",
+            maxWidth: "500px",
+            maxHeight: "90vh",
+            overflowY: "auto",
+            padding: "24px",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2 style={{ fontSize: "18px", fontWeight: 700, color: "var(--admin-text-primary)", margin: 0 }}>Edit Patron Profile</h2>
+              <button
+                onClick={() => setEditing(false)}
+                style={{ background: "transparent", border: "none", color: "var(--admin-text-muted)", cursor: "pointer" }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {editError && (
+              <div style={{ padding: "10px 14px", borderRadius: "8px", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontSize: "12px", marginBottom: "16px" }}>
+                {editError}
+              </div>
+            )}
+            {editSuccess && (
+              <div style={{ padding: "10px 14px", borderRadius: "8px", background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)", color: "#4ade80", fontSize: "12px", marginBottom: "16px" }}>
+                {editSuccess}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveCustomer} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  style={{ width: "100%", padding: "9px 12px", background: "var(--admin-surface-elevated)", border: "1px solid var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-primary)", fontSize: "13px", boxSizing: "border-box" }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "12px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  style={{ width: "100%", padding: "9px 12px", background: "var(--admin-surface-elevated)", border: "1px solid var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-primary)", fontSize: "13px", boxSizing: "border-box" }}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>Phone Number</label>
+                  <input
+                    type="text"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    style={{ width: "100%", padding: "9px 12px", background: "var(--admin-surface-elevated)", border: "1px solid var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-primary)", fontSize: "13px", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>Role</label>
+                  <select
+                    value={form.role}
+                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                    style={{ width: "100%", padding: "9px 12px", background: "var(--admin-surface-elevated)", border: "1px solid var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-primary)", fontSize: "13px", boxSizing: "border-box" }}
+                  >
+                    <option value="customer">Customer</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>Status</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                    style={{ width: "100%", padding: "9px 12px", background: "var(--admin-surface-elevated)", border: "1px solid var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-primary)", fontSize: "13px", boxSizing: "border-box" }}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>New Password (optional)</label>
+                  <input
+                    type="password"
+                    placeholder="Leave blank to keep"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    style={{ width: "100%", padding: "9px 12px", background: "var(--admin-surface-elevated)", border: "1px solid var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-primary)", fontSize: "13px", boxSizing: "border-box" }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "12px", color: "var(--admin-text-muted)", marginBottom: "6px" }}>Address</label>
+                <textarea
+                  rows={2}
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  style={{ width: "100%", padding: "9px 12px", background: "var(--admin-surface-elevated)", border: "1px solid var(--admin-border)", borderRadius: "8px", color: "var(--admin-text-primary)", fontSize: "13px", boxSizing: "border-box", resize: "vertical" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  style={{ padding: "9px 16px", borderRadius: "8px", background: "transparent", border: "1px solid var(--admin-border)", color: "var(--admin-text-secondary)", fontSize: "13px", cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  style={{ padding: "9px 20px", borderRadius: "8px", background: "var(--admin-gold)", border: "none", color: "#000", fontWeight: 600, fontSize: "13px", cursor: saving ? "not-allowed" : "pointer" }}
+                >
+                  {saving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

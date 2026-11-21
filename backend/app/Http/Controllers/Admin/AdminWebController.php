@@ -384,10 +384,15 @@ class AdminWebController extends Controller
 
     public function orders(Request $request)
     {
+        $status = $request->query('status', 'all');
         $query = Order::with('items')->latest();
 
-        if ($request->filled('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
+        if ($status === 'trash' || $status === 'deleted') {
+            $query->onlyTrashed();
+        } else {
+            if ($status && $status !== 'all') {
+                $query->where('status', $status);
+            }
         }
 
         if ($request->filled('search')) {
@@ -400,13 +405,39 @@ class AdminWebController extends Controller
         }
 
         $orders = $query->paginate(15);
-        return view('admin.orders.index', compact('orders'));
+        $trashedCount = Order::onlyTrashed()->count();
+        return view('admin.orders.index', compact('orders', 'trashedCount'));
     }
 
     public function orderDetail($id)
     {
-        $order = Order::with('items.product')->where('id', $id)->orWhere('order_number', $id)->firstOrFail();
+        $order = Order::withTrashed()->with('items.product')->where('id', $id)->orWhere('order_number', $id)->firstOrFail();
         return view('admin.orders.show', compact('order'));
+    }
+
+    public function deleteOrder($id)
+    {
+        $order = Order::findOrFail($id);
+        $orderNum = $order->order_number ?: ('#' . $order->id);
+        $order->delete();
+        return back()->with('success', "Order {$orderNum} moved to Trash successfully.");
+    }
+
+    public function restoreOrder($id)
+    {
+        $order = Order::onlyTrashed()->findOrFail($id);
+        $orderNum = $order->order_number ?: ('#' . $order->id);
+        $order->restore();
+        return back()->with('success', "Order {$orderNum} restored successfully.");
+    }
+
+    public function forceDeleteOrder($id)
+    {
+        $order = Order::onlyTrashed()->findOrFail($id);
+        $orderNum = $order->order_number ?: ('#' . $order->id);
+        $order->items()->delete();
+        $order->forceDelete();
+        return back()->with('success', "Order {$orderNum} has been permanently deleted.");
     }
 
     public function orderInvoice($id)
@@ -1010,6 +1041,44 @@ class AdminWebController extends Controller
         }
         $customers = $query->paginate(20);
         return view('admin.customers.index', compact('customers'));
+    }
+
+    public function updateCustomer(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string|max:500',
+            'role' => 'nullable|string|in:customer,admin',
+            'status' => 'nullable|string|in:active,pending,disabled,rejected',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        if (array_key_exists('phone', $validated)) {
+            $user->phone = $validated['phone'];
+        }
+        if (array_key_exists('address', $validated)) {
+            $user->address = $validated['address'];
+        }
+        if (!empty($validated['role'])) {
+            $user->role = $validated['role'];
+        }
+        if (!empty($validated['status'])) {
+            $user->status = $validated['status'];
+            $user->is_disabled = in_array($validated['status'], ['disabled', 'rejected']);
+            $user->is_approved = ($validated['status'] === 'active');
+        }
+        if (!empty($validated['password'])) {
+            $user->password = \Illuminate\Support\Facades\Hash::make($validated['password']);
+        }
+        $user->save();
+
+        return back()->with('success', "Customer profile for '{$user->name}' updated successfully.");
     }
 
     public function goldRates()

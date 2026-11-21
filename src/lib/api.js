@@ -147,10 +147,13 @@ export default {
   // Admin Orders (5-step flow)
   getAdminOrders: (status = '') => apiFetch(`/admin/orders${status ? `?status=${status}` : ''}`),
   updateAdminOrderStatus: (id, status) => apiFetch(`/admin/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  deleteAdminOrder: (id) => apiFetch(`/admin/orders/${id}`, { method: 'DELETE' }),
+  restoreAdminOrder: (id) => apiFetch(`/admin/orders/${id}/restore`, { method: 'POST' }),
 
   // Admin Users
   getAdminUsers: () => apiFetch('/admin/users'),
   updateAdminUserRole: (id, role) => apiFetch(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+  updateAdminUser: (id, data) => apiFetch(`/admin/customers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // 8. Razorpay Payment Gateway APIs
   getRazorpayConfig: () => apiFetch('/payment/razorpay/config'),

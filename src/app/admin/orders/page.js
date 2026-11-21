@@ -28,6 +28,7 @@ export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [deletingOrder, setDeletingOrder] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [statusMsg, setStatusMsg] = useState(null);
 
@@ -76,6 +77,39 @@ export default function AdminOrdersPage() {
       setStatusMsg({ type: "error", text: err.message || "Failed to update status" });
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!selectedOrder) return;
+    if (!window.confirm(`Are you sure you want to move order ${selectedOrder.order_number || selectedOrder.id} to trash?`)) return;
+    setDeletingOrder(true);
+    setStatusMsg(null);
+    try {
+      await api.deleteAdminOrder(selectedOrder.id);
+      setStatusMsg({ type: "success", text: "Order moved to trash" });
+      setOrders((prev) => prev.filter((o) => o.id !== selectedOrder.id));
+      setSelectedOrder(null);
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err.message || "Failed to delete order" });
+    } finally {
+      setDeletingOrder(false);
+    }
+  };
+
+  const handleRestoreOrder = async () => {
+    if (!selectedOrder) return;
+    setDeletingOrder(true);
+    setStatusMsg(null);
+    try {
+      await api.restoreAdminOrder(selectedOrder.id);
+      setStatusMsg({ type: "success", text: "Order restored successfully" });
+      setSelectedOrder((prev) => ({ ...prev, is_deleted: false, deleted_at: null }));
+      fetchOrders();
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err.message || "Failed to restore order" });
+    } finally {
+      setDeletingOrder(false);
     }
   };
 
@@ -179,6 +213,7 @@ export default function AdminOrdersPage() {
             {Object.entries(STATUS_COLORS).map(([k, v]) => (
               <option key={k} value={k}>{v.label}</option>
             ))}
+            <option value="trash">🗑️ Trash / Deleted Orders</option>
           </select>
         </div>
 
@@ -425,6 +460,50 @@ export default function AdminOrdersPage() {
             >
               {updatingStatus ? "Updating..." : "Update Status"}
             </button>
+          </div>
+
+          {/* Delete / Restore Order */}
+          <div style={{ ...cardStyle, padding: "20px" }}>
+            <div style={{ fontSize: "11px", color: "var(--admin-text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+              Order Actions
+            </div>
+            {selectedOrder.is_deleted || selectedOrder.deleted_at ? (
+              <button
+                onClick={handleRestoreOrder}
+                disabled={deletingOrder}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  background: "rgba(34,197,94,0.15)",
+                  border: "1px solid rgba(34,197,94,0.3)",
+                  color: "#4ade80",
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                {deletingOrder ? "Restoring..." : "♻️ Restore Order"}
+              </button>
+            ) : (
+              <button
+                onClick={handleDeleteOrder}
+                disabled={deletingOrder}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  background: "rgba(239,68,68,0.12)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                  color: "#f87171",
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                {deletingOrder ? "Deleting..." : "🗑️ Move to Trash"}
+              </button>
+            )}
           </div>
 
           {/* Order Items */}
