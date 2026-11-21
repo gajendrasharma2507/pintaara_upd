@@ -59,10 +59,11 @@ class AuthApiController extends Controller
         $otpRes = OtpService::sendOtp($email, 'registration', $metadata);
 
         if (!$otpRes['success']) {
+            $statusCode = isset($otpRes['cooldown_seconds']) ? 429 : 500;
             return response()->json([
                 'success' => false,
                 'message' => $otpRes['message'],
-            ], 429);
+            ], $statusCode);
         }
 
         return response()->json([
@@ -121,8 +122,8 @@ class AuthApiController extends Controller
                     'role' => 'customer',
                     'phone' => $metadata['phone'] ?? null,
                     'id_proof_path' => $metadata['id_proof_path'] ?? null,
-                    'status' => 'pending',
-                    'is_approved' => false,
+                    'status' => 'active',
+                    'is_approved' => true,
                     'is_disabled' => false,
                     'email_verified_at' => now(),
                 ]);
@@ -151,8 +152,8 @@ class AuthApiController extends Controller
                     'role' => $user->role,
                     'phone' => $user->phone,
                     'id_proof_path' => $user->id_proof_path,
-                    'status' => $user->status ?? 'pending',
-                    'is_approved' => (bool) ($user->is_approved ?? false),
+                    'status' => $user->status ?? 'active',
+                    'is_approved' => (bool) ($user->is_approved ?? true),
                     'is_disabled' => (bool) ($user->is_disabled ?? false),
                 ],
             ], 200);
@@ -404,8 +405,8 @@ class AuthApiController extends Controller
                 'phone' => $user->phone,
                 'address' => $user->address,
                 'id_proof_path' => $user->id_proof_path,
-                'status' => $user->status ?? 'pending',
-                'is_approved' => (bool) ($user->is_approved ?? false),
+                'status' => $user->status ?? 'active',
+                'is_approved' => (bool) ($user->is_approved ?? true),
                 'is_disabled' => (bool) ($user->is_disabled ?? false),
                 'admin_notes' => $user->admin_notes,
                 'orders_count' => $ordersCount,

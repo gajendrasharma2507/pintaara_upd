@@ -175,11 +175,11 @@ export default function RegisterPage() {
                             <h1 className="auth-title">ACCOUNT CREATED</h1>
                             <p className="auth-subtitle">Welcome to PINTAARA</p>
                             <p className="account-created-desc">
-                                Your account is ready while we verify the identification you provided.<br />
-                                <strong>Until verification is completed, access to certain areas of the website may be temporarily limited.</strong>
+                                Your account has been created and verified successfully.<br />
+                                <strong>Welcome to PINTAARA.</strong>
                             </p>
-                            <Link 
-                                href={typeof window !== 'undefined' && window.location.search ? `/login${window.location.search}` : "/login"} 
+                            <Link
+                                href={typeof window !== 'undefined' && window.location.search ? `/login${window.location.search}` : "/login"}
                                 className="auth-btn-primary success-btn"
                             >
                                 SIGN IN
@@ -217,7 +217,7 @@ export default function RegisterPage() {
                                                 type="text"
                                                 name="first_name"
                                                 required
-                                                placeholder="As per ID Proof"
+                                                placeholder="First Name"
                                                 value={formData.first_name}
                                                 onChange={handleChange}
                                             />
@@ -234,7 +234,7 @@ export default function RegisterPage() {
                                                 type="text"
                                                 name="last_name"
                                                 required
-                                                placeholder="As per ID Proof"
+                                                placeholder="Last Name"
                                                 value={formData.last_name}
                                                 onChange={handleChange}
                                             />
@@ -348,8 +348,8 @@ export default function RegisterPage() {
 
                                     <p className="auth-login-link-row">
                                         Already have an account?{' '}
-                                        <Link 
-                                            href={typeof window !== 'undefined' && window.location.search ? `/login${window.location.search}` : "/login"} 
+                                        <Link
+                                            href={typeof window !== 'undefined' && window.location.search ? `/login${window.location.search}` : "/login"}
                                             className="auth-login-link"
                                         >
                                             Sign In

@@ -36,25 +36,24 @@ class OtpService
 
         $plainOtp = EmailOtp::generateFor($cleanEmail, $purpose, $metadata);
 
-        // Attempt sending via Laravel Mailer
-        try {
-            Mail::raw(
-                "PINTAARA Fine Jewelry Atelier\n\nYour 6-digit verification code is: {$plainOtp}\n\nThis code will expire in 10 minutes.\nFor your security, never share this code with anyone.",
-                function ($message) use ($cleanEmail, $purpose) {
-                    $message->to($cleanEmail)
-                        ->subject("PINTAARA — Your Verification Code [" . strtoupper(str_replace('_', ' ', $purpose)) . "]");
-                }
-            );
-        } catch (\Throwable $e) {
-            Log::warning("Could not dispatch email via SMTP (logged instead): " . $e->getMessage());
-        }
+        // Dispatch via luxury PINTAARA CustomerNotificationService (Email Verification Code B-2)
+        $mailSent = CustomerNotificationService::sendEmailVerificationOtp($cleanEmail, $plainOtp, 10);
 
-        Log::info("PINTAARA OTP dispatched for {$cleanEmail} [Purpose: {$purpose}]: {$plainOtp}");
+        Log::info("PINTAARA OTP dispatched for {$cleanEmail} [Purpose: {$purpose}, Sent: " . ($mailSent ? 'YES' : 'NO') . "]");
 
         AuditLog::log('otp_generated', 'EmailOtp', null, null, [
             'email' => $cleanEmail,
             'purpose' => $purpose,
+            'mail_sent' => $mailSent,
         ]);
+
+        if (!$mailSent) {
+            return [
+                'success' => false,
+                'message' => 'Failed to dispatch verification email. Please check your email address or try again shortly.',
+                'email' => $cleanEmail,
+            ];
+        }
 
         return [
             'success' => true,
@@ -62,8 +61,6 @@ class OtpService
             'email' => $cleanEmail,
             'expires_in_minutes' => 10,
             'cooldown_seconds' => 60,
-            // Provide for seamless developer testing if in local environment
-            'dev_otp' => config('app.debug') ? $plainOtp : null,
         ];
     }
 
