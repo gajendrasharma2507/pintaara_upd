@@ -307,19 +307,7 @@
                     </button>
                   </div>
 
-                  <!-- Spec & Piece Photo Details -->
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; padding-top: 10px; border-top: 1px dashed var(--admin-border);">
-                    <div>
-                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">BIS Hallmark HUID (optional)</label>
-                      <input type="text" name="huid" value="{{ $item->huid }}" placeholder="e.g. 916-HUID-88291" class="admin-input" style="font-size: 12px;">
-                    </div>
-                    <div>
-                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Custom Crafted Piece Photo (optional)</label>
-                      <input type="file" name="image_file" accept="image/*" class="admin-input" style="padding: 5px; font-size: 11.5px;">
-                    </div>
-                  </div>
-
-                  <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+                  <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
                     <button type="submit" class="admin-btn admin-btn-primary" style="padding: 8px 24px; font-size: 12.5px; font-weight: 700; background: #C9A961; color: #000; border: none; border-radius: 6px; cursor: pointer;">
                       Documents
                     </button>
