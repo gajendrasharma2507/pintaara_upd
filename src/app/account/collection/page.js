@@ -56,24 +56,9 @@ const getValidCertificates = (piece) => {
     return valid;
 };
 
-const PRODUCT_IMAGE_MAP = {
-    'BR-SG-OR-001': '/images/design-log/BR-SG-OR-001.JPG',
-    'PD-SG-OR-001': '/images/design-log/PD-SG-OR-001.JPG',
-    'RG-SG-OR-001': '/images/design-log/RG-SG-OR-001.JPG',
-    'RG-SG-OR-002': '/images/design-log/RG-SG-OR-002.JPG',
-    'RG-SG-AR-004': '/images/collections/ring.jpg',
-    'ER-SG-OR-001A': '/images/design-log/ER-SG-OR-001A.JPG',
-    'ER-SG-OR-001B': '/images/design-log/ER-SG-OR-001B.JPG',
-    'ER-SG-OR-001C': '/images/design-log/ER-SG-OR-001C.JPG',
-    'ER-SG-OR-002A': '/images/design-log/ER-SG-OR-002A.JPG',
-    'ER-SG-OR-002B': '/images/design-log/ER-SG-OR-002B.JPG',
-    'ER-SG-OR-002C': '/images/design-log/ER-SG-OR-002C.JPG',
-    'PD-PD-CS-002': '/images/collections/ring.jpg',
-};
-
 const resolvePieceImage = (piece, catalogMap = {}) => {
     const raw = piece?.image;
-    if (raw && typeof raw === 'string' && !raw.includes('piece-dummy.png') && !raw.includes('piece-01-exact.jpg')) {
+    if (raw && typeof raw === 'string' && raw.trim().length > 0 && !raw.includes('piece-dummy.png') && !raw.includes('piece-01-exact.jpg')) {
         return resolveCertFileUrl(raw);
     }
 
@@ -81,39 +66,15 @@ const resolvePieceImage = (piece, catalogMap = {}) => {
     if (catalogMap && catalogMap[code]) {
         return catalogMap[code];
     }
-    if (PRODUCT_IMAGE_MAP[code]) {
-        return PRODUCT_IMAGE_MAP[code];
-    }
 
-    if (raw && typeof raw === 'string') {
-        return resolveCertFileUrl(raw);
-    }
-
-    return PRODUCT_IMAGE_MAP['BR-SG-OR-001'];
+    return '/images/collections/ring.jpg';
 };
-
-const DEFAULT_PIECES = [
-    {
-        id: 'piece-dummy-1',
-        piece_code: 'BR-SG-OR-001',
-        name: 'Origin Link Bracelet',
-        image: '/images/design-log/BR-SG-OR-001.JPG',
-        metal_purity: '22KT (91.6% Royal Gold)',
-        finish: 'Yellow Gold',
-        gem: 'Natural Diamond (VVS-VS)',
-        size: 'Standard',
-        acquired_at: '21 Oct 2026',
-        order_number: 'PT-2026-TKWEJG',
-        certificate_number: 'BIS-CERT-772910',
-        certificate_url: '',
-    }
-];
 
 export default function AccountCollectionPage() {
     const { user } = useAuth();
-    const [pieces, setPieces] = useState(DEFAULT_PIECES);
+    const [pieces, setPieces] = useState([]);
     const [catalogMap, setCatalogMap] = useState({});
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [selectedCertificate, setSelectedCertificate] = useState(null);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [downloadingPieceId, setDownloadingPieceId] = useState(null);
@@ -143,16 +104,16 @@ export default function AccountCollectionPage() {
                 }).catch(() => {});
 
                 const res = await api.getUserCollection();
-                if (res && (res.status === 'success' || res.success) && Array.isArray(res.data) && res.data.length > 0) {
+                if (res && (res.status === 'success' || res.success) && Array.isArray(res.data)) {
                     setPieces(res.data);
-                } else if (Array.isArray(res) && res.length > 0) {
+                } else if (Array.isArray(res)) {
                     setPieces(res);
                 } else {
-                    setPieces(DEFAULT_PIECES);
+                    setPieces([]);
                 }
             } catch (err) {
                 console.warn('Failed to load user collection:', err);
-                setPieces(DEFAULT_PIECES);
+                setPieces([]);
             } finally {
                 setLoading(false);
             }
@@ -265,11 +226,10 @@ export default function AccountCollectionPage() {
                                         className="acct-thumb-img"
                                         onError={(e) => {
                                             const code = String(piece.piece_code || piece.design_code || '').toUpperCase().trim();
-                                            const fallback = PRODUCT_IMAGE_MAP[code] || '/images/design-log/BR-SG-OR-001.JPG';
-                                            if (!e.target.src.endsWith(fallback)) {
-                                                e.target.src = fallback;
+                                            if (catalogMap && catalogMap[code] && e.target.src !== catalogMap[code]) {
+                                                e.target.src = catalogMap[code];
                                             } else {
-                                                e.target.src = '/images/collections/bracelet.jpg';
+                                                e.target.src = '/images/collections/ring.jpg';
                                             }
                                         }}
                                     />

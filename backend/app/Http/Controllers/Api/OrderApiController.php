@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\CustomerNotificationService;
 use App\Services\JewelryPricingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -115,7 +116,9 @@ class OrderApiController extends Controller
             $grandTotal = 0;
 
             foreach ($request->items as $itemData) {
-                $product = !empty($itemData['product_id']) ? Product::find($itemData['product_id']) : null;
+                $product = !empty($itemData['product_id'])
+                    ? Product::find($itemData['product_id'])
+                    : (!empty($itemData['design_code']) ? Product::whereRaw('UPPER(design_code) = UPPER(?)', [$itemData['design_code']])->first() : null);
                 $weight = (float) $itemData['weight_used'];
                 $qty = (int) ($itemData['quantity'] ?? 1);
                 $purity = $itemData['metal_purity'] ?? '22KT';
@@ -162,6 +165,14 @@ class OrderApiController extends Controller
                     'total' => $lineTotal,
                     'price_breakdown' => $priceBreakdown,
                 ]);
+
+                // Increment limited edition counter for ordered product (+1 per piece ordered)
+                if ($product && ($product->is_limited_edition ?? true)) {
+                    $pCurr = (int) ($product->edition_current ?? 1);
+                    $pLim = (int) ($product->edition_limit ?? 50);
+                    $newCurr = min($pLim, $pCurr + $qty);
+                    $product->update(['edition_current' => $newCurr]);
+                }
             }
 
             $order->update([
@@ -171,6 +182,9 @@ class OrderApiController extends Controller
             ]);
 
             DB::commit();
+
+            // Dispatch A-1: Order Confirmation Email
+            CustomerNotificationService::sendOrderConfirmation($order->fresh(['items.product']));
 
             return response()->json([
                 'status' => 'success',
@@ -403,11 +417,23 @@ class OrderApiController extends Controller
         ]);
 
         $order = Order::where('id', $id)->orWhere('order_number', $id)->firstOrFail();
+        $oldStatus = $order->status;
         $order->status = $request->status;
         if (in_array($request->status, ['shipped', 'delivered'])) {
             $order->fulfillment_status = 'fulfilled';
         }
         $order->save();
+
+        // Dispatch status-specific customer notification emails
+        if ($oldStatus !== $order->status) {
+            match ($order->status) {
+                'in_production' => CustomerNotificationService::sendManufacturingInitiated($order),
+                'shipped' => CustomerNotificationService::sendOrderDispatched($order),
+                'delivered' => CustomerNotificationService::sendOrderDelivered($order),
+                'cancelled' => CustomerNotificationService::sendOrderCancelled($order),
+                default => null,
+            };
+        }
 
         return response()->json([
             'status' => 'success',
@@ -603,10 +629,30 @@ class OrderApiController extends Controller
         foreach ($orders as $order) {
             foreach ($order->items as $item) {
                 $product = $item->product;
-                $imageUrl = $product?->primaryImage?->url
-                    ?: ($product?->images?->first()?->url
-                    ?: ($product?->primaryImage?->image_url
-                    ?: ($item->image ?: null)));
+                $imageUrl = null;
+
+                // 1. Match client's selected finish with admin-uploaded finish images
+                if ($product && $product->images && !empty($item->finish)) {
+                    $finishSlug = \Illuminate\Support\Str::slug($item->finish);
+                    $matchedFinishImage = $product->images->first(function ($img) use ($finishSlug) {
+                        return \Illuminate\Support\Str::slug($img->finish_key ?? '') === $finishSlug;
+                    });
+                    if ($matchedFinishImage) {
+                        $imageUrl = $matchedFinishImage->url;
+                    }
+                }
+
+                // 2. Fallback to product primary image or first admin image
+                if (!$imageUrl && $product) {
+                    $imageUrl = $product->primaryImage?->url
+                        ?: ($product->images?->first()?->url
+                        ?: ($product->primaryImage?->image_url ?? null));
+                }
+
+                // 3. Fallback to image saved on the order item if present
+                if (!$imageUrl) {
+                    $imageUrl = $item->image ?: null;
+                }
                 
                 $itemCerts = $item->certificates;
                 if (!is_array($itemCerts) || empty($itemCerts)) {
