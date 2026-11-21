@@ -143,7 +143,6 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
     const metalDesc = `${metalPurity} ${metalFinish}`;
     const pieceSize = invoice.size ? `Size: ${invoice.size}` : 'Size: 12';
     const stoneDesc = invoice.stone || invoice.gem ? `Stone: ${invoice.stone || invoice.gem}` : 'Stone: 0.7CT';
-    const huidText = invoice.huid ? `HUID: ${invoice.huid}` : 'HUID:';
 
     // Financial Calculation
     const totalAmountNum = Number(invoice.total || invoice.price || 26250);
@@ -343,7 +342,6 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                                 <div>{metalDesc}</div>
                                 <div>{pieceSize}</div>
                                 <div>{stoneDesc}</div>
-                                <div>{huidText}</div>
                             </div>
                         </div>
                         <div className="pnt-inv-td-unit-col">{unitPriceFormatted}</div>

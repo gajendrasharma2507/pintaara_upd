@@ -650,7 +650,6 @@
             <div>{{ $purity }} ({{ $goldPercent }} Fine Gold) {{ $finish }}</div>
             <div>Size: {{ $item->size ?: 'Standard' }}</div>
             <div>Stone: {{ ($item->gem && $item->gem !== 'None') ? $item->gem : 'No Stone / Solid Gold' }}</div>
-            <div>HUID: {{ $item->huid ?: '' }}</div>
           </div>
         </div>
         <div class="pnt-inv-td-unit-col">{{ number_format($unitPrice, 2) }}</div>
