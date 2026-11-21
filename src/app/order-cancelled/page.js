@@ -66,27 +66,6 @@ function OrderCancelledContent() {
                             <strong>Need Assistance?</strong><br />
                             <a href="mailto:hello@pintaara.com">hello@pintaara.com</a>
                         </p>
-                        <div style={{ marginTop: '1.2rem' }}>
-                            <a 
-                                href="/account/collection" 
-                                style={{
-                                    display: 'inline-block',
-                                    border: '1px solid #1A1A1A',
-                                    padding: '9px 24px',
-                                    color: '#1A1A1A',
-                                    textDecoration: 'none',
-                                    fontSize: '0.76rem',
-                                    letterSpacing: '0.12em',
-                                    textTransform: 'uppercase',
-                                    fontWeight: 600,
-                                    borderRadius: '2px',
-                                    background: 'transparent',
-                                    transition: 'all 0.2s ease',
-                                }}
-                            >
-                                View My Collection
-                            </a>
-                        </div>
                     </div>
                 </section>
             </main>
