@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import api, { getApiHost } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import OfficialInvoice from '@/components/OfficialInvoice';
@@ -90,6 +91,7 @@ const resolvePieceImage = (piece, catalogMap = {}) => {
 };
 
 export default function AccountCollectionPage() {
+    const router = useRouter();
     const { user } = useAuth();
     const [pieces, setPieces] = useState([]);
     const [catalogMap, setCatalogMap] = useState({});
@@ -98,6 +100,53 @@ export default function AccountCollectionPage() {
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [downloadingPieceId, setDownloadingPieceId] = useState(null);
     const [pdfTargetPiece, setPdfTargetPiece] = useState(null);
+    const [cancellingPieceId, setCancellingPieceId] = useState(null);
+
+    const isOrderWithin24Hours = (piece) => {
+        if (!piece || piece.status === 'cancelled' || piece.status === 'deleted') return false;
+        if (typeof piece.is_cancellable === 'boolean') return piece.is_cancellable;
+        if (!piece.created_at) return true;
+        const orderTime = new Date(piece.created_at).getTime();
+        if (isNaN(orderTime)) return true;
+        const hours = (Date.now() - orderTime) / (1000 * 60 * 60);
+        return hours < 24;
+    };
+
+    const handleCancelOrder = async (piece) => {
+        const orderRef = piece.order_number || piece.id;
+        if (!orderRef) return;
+        if (!window.confirm(`Are you sure you want to cancel order #${orderRef}? This will halt production immediately.`)) {
+            return;
+        }
+
+        setCancellingPieceId(orderRef);
+        try {
+            await api.cancelUserOrder(orderRef);
+
+            // Clean localStorage if matching
+            try {
+                const localOrder = JSON.parse(localStorage.getItem('pintaara_last_order') || '{}');
+                if (localOrder?.order_number === orderRef) {
+                    localStorage.removeItem('pintaara_last_order');
+                }
+            } catch (e) {}
+
+            // Update in-memory state
+            setPieces((prev) =>
+                prev.map((p) => {
+                    if ((p.order_number || p.id) === orderRef) {
+                        return { ...p, status: 'cancelled', is_cancellable: false };
+                    }
+                    return p;
+                })
+            );
+
+            router.push(`/order-cancelled?ref=${encodeURIComponent(orderRef)}`);
+        } catch (err) {
+            alert(err.message || 'Failed to cancel order.');
+            setCancellingPieceId(null);
+        }
+    };
 
     useEffect(() => {
         const fetchCollection = async () => {
@@ -303,6 +352,15 @@ export default function AccountCollectionPage() {
                                                 <span className="acct-spec-label">Order Ref:</span>
                                                 <span className="acct-spec-val">{piece.order_number || '—'}</span>
                                             </div>
+                                            <div className="acct-spec-row">
+                                                <span className="acct-spec-label">Order Status:</span>
+                                                <span className="acct-spec-val" style={{ 
+                                                    color: piece.status === 'cancelled' ? '#B91C1C' : 'inherit',
+                                                    fontWeight: piece.status === 'cancelled' ? 600 : 'normal'
+                                                }}>
+                                                    {piece.status === 'cancelled' ? 'Order Cancelled' : (piece.status ? piece.status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Confirmed')}
+                                                </span>
+                                            </div>
                                         </div>
                                     ) : (
                                         <>
@@ -313,6 +371,9 @@ export default function AccountCollectionPage() {
 
                                             <div className="acct-piece-meta-block">
                                                 <p className="acct-piece-text">Order Ref: {piece.order_number || '—'}</p>
+                                                <p className="acct-piece-text" style={{ color: piece.status === 'cancelled' ? '#B91C1C' : 'inherit', fontWeight: piece.status === 'cancelled' ? 600 : 'normal' }}>
+                                                    Order Status: {piece.status === 'cancelled' ? 'Order Cancelled' : (piece.status ? piece.status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Confirmed')}
+                                                </p>
                                             </div>
                                         </>
                                     )}
@@ -364,6 +425,31 @@ export default function AccountCollectionPage() {
                                         </a>
                                     );
                                 })}
+
+                                {isOrderWithin24Hours(piece) && (
+                                    <div style={{ marginTop: '0.9rem' }}>
+                                        <button
+                                            type="button"
+                                            className="profile-edit-btn"
+                                            onClick={() => handleCancelOrder(piece)}
+                                            disabled={cancellingPieceId === (piece.order_number || piece.id)}
+                                            title="Cancel this order within 24 hours of placement"
+                                            style={{
+                                                borderColor: '#1A1A1A',
+                                                color: '#1A1A1A',
+                                                padding: '8px 24px',
+                                                fontSize: '0.74rem',
+                                                letterSpacing: '0.12em',
+                                                textTransform: 'uppercase',
+                                                fontWeight: 600,
+                                                background: 'transparent',
+                                                cursor: cancellingPieceId === (piece.order_number || piece.id) ? 'not-allowed' : 'pointer',
+                                            }}
+                                        >
+                                            {cancellingPieceId === (piece.order_number || piece.id) ? 'CANCELLING...' : 'CANCEL ORDER'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     );

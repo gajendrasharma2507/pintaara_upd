@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 
 export default function AccountOrdersPage() {
+    const router = useRouter();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [placedOrderNum, setPlacedOrderNum] = useState(null);
@@ -35,13 +37,22 @@ export default function AccountOrdersPage() {
         { num: '05', title: 'Delivered' }
     ];
 
+    const isOrderWithin24Hours = (order) => {
+        if (!order || order.status === 'cancelled' || order.status === 'delivered') return false;
+        const timeVal = order.rawCreatedAt || order.createdAt;
+        if (!timeVal) return true;
+        const orderTime = new Date(timeVal).getTime();
+        if (isNaN(orderTime)) return true;
+        return (Date.now() - orderTime) / (1000 * 60 * 60) < 24;
+    };
+
     const handleCancelOrder = async (orderId) => {
-        if (!window.confirm(`Are you sure you want to cancel and remove order #${orderId}?`)) {
+        if (!window.confirm(`Are you sure you want to cancel order #${orderId}?`)) {
             return;
         }
         setCancellingId(orderId);
         try {
-            await apiFetch(`/user/orders/${orderId}`, { method: 'DELETE' });
+            await apiFetch(`/user/orders/${orderId}/cancel`, { method: 'POST' });
             try {
                 const localOrder = JSON.parse(localStorage.getItem('pintaara_last_order') || '{}');
                 if (localOrder?.order_number === orderId) {
@@ -49,9 +60,9 @@ export default function AccountOrdersPage() {
                 }
             } catch (e) {}
             setOrders((prev) => prev.filter((o) => o.id !== orderId));
+            router.push(`/order-cancelled?ref=${encodeURIComponent(orderId)}`);
         } catch (err) {
             alert(err.message || 'Failed to cancel order');
-        } finally {
             setCancellingId(null);
         }
     };
@@ -70,6 +81,8 @@ export default function AccountOrdersPage() {
                         itemCode: o.items?.[0]?.design_code || o.items?.[0]?.product_name || `ORDER #${o.order_number}`,
                         totalAmount: o.total_amount ? '₹' + Number(o.total_amount).toLocaleString('en-IN') : null,
                         createdAt: o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null,
+                        rawCreatedAt: o.created_at,
+                        status: o.status,
                         currentStep: statusToStep[o.status] || 1,
                         steps: defaultSteps,
                     }));
@@ -192,36 +205,38 @@ export default function AccountOrdersPage() {
                                         {order.totalAmount} {order.createdAt ? `• ${order.createdAt}` : ''}
                                     </span>
                                 )}
-                                <div style={{ marginTop: '0.9rem' }}>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleCancelOrder(order.id)}
-                                        disabled={cancellingId === order.id}
-                                        style={{
-                                            background: 'transparent',
-                                            border: '1px solid #D6D0C6',
-                                            color: '#8A8279',
-                                            padding: '6px 14px',
-                                            fontSize: '0.7rem',
-                                            letterSpacing: '0.1em',
-                                            textTransform: 'uppercase',
-                                            cursor: cancellingId === order.id ? 'not-allowed' : 'pointer',
-                                            transition: 'all 0.2s',
-                                            fontFamily: 'inherit',
-                                            borderRadius: '2px',
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.borderColor = '#B91C1C';
-                                            e.currentTarget.style.color = '#B91C1C';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.borderColor = '#D6D0C6';
-                                            e.currentTarget.style.color = '#8A8279';
-                                        }}
-                                    >
-                                        {cancellingId === order.id ? 'Cancelling...' : 'Cancel / Remove'}
-                                    </button>
-                                </div>
+                                {isOrderWithin24Hours(order) && (
+                                    <div style={{ marginTop: '0.9rem' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleCancelOrder(order.id)}
+                                            disabled={cancellingId === order.id}
+                                            style={{
+                                                background: 'transparent',
+                                                border: '1px solid #D6D0C6',
+                                                color: '#8A8279',
+                                                padding: '6px 14px',
+                                                fontSize: '0.7rem',
+                                                letterSpacing: '0.1em',
+                                                textTransform: 'uppercase',
+                                                cursor: cancellingId === order.id ? 'not-allowed' : 'pointer',
+                                                transition: 'all 0.2s',
+                                                fontFamily: 'inherit',
+                                                borderRadius: '2px',
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.borderColor = '#B91C1C';
+                                                e.currentTarget.style.color = '#B91C1C';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.borderColor = '#D6D0C6';
+                                                e.currentTarget.style.color = '#8A8279';
+                                            }}
+                                        >
+                                            {cancellingId === order.id ? 'Cancelling...' : 'Cancel Order'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Milestone tracker matching Page 0009 */}

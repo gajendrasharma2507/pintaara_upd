@@ -669,14 +669,31 @@ class OrderApiController extends Controller
             ], 404);
         }
 
+        // Only allow cancellation within 24 hours of placement
+        $hours = $order->created_at ? $order->created_at->diffInHours(now()) : 0;
+        if ($hours >= 24) {
+            return response()->json([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Orders can only be cancelled within 24 hours of placement.',
+            ], 422);
+        }
+
         $order->status = 'cancelled';
         $order->save();
-        $order->delete();
+
+        try {
+            CustomerNotificationService::sendOrderCancelled($order);
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'status' => 'success',
             'success' => true,
-            'message' => 'Order removed successfully.',
+            'message' => 'Order cancelled successfully.',
+            'order' => [
+                'order_number' => $order->order_number,
+                'status' => 'cancelled',
+            ],
         ]);
     }
 
@@ -694,7 +711,8 @@ class OrderApiController extends Controller
                 $q->where('user_id', $user->id)
                   ->orWhereRaw('LOWER(TRIM(customer_email)) = ?', [strtolower(trim($user->email))]);
             })
-            ->whereNotIn('status', ['cancelled'])
+            ->where('status', '!=', 'deleted')
+            ->whereNull('deleted_at')
             ->with(['items.product.primaryImage', 'items.product.images'])
             ->latest()
             ->get();
@@ -827,6 +845,9 @@ class OrderApiController extends Controller
 
                 $primaryCertUrl = $formatDocUrl($item->certificate_url ?: ($product?->certificate_url ?: null));
 
+                $hoursOld = $order->created_at ? $order->created_at->diffInHours(now()) : 0;
+                $isCancellable = ($order->status !== 'cancelled' && $order->status !== 'delivered' && $hoursOld < 24);
+
                 $collectionPieces[] = [
                     'id' => $item->id,
                     'order_id' => $order->id,
@@ -849,6 +870,8 @@ class OrderApiController extends Controller
                     'gst_amount' => (float) ($item->gst_amount ?: 0),
                     'price_breakdown' => $item->price_breakdown,
                     'acquired_at' => $order->created_at ? $order->created_at->format('d M Y') : now()->format('d M Y'),
+                    'created_at' => $order->created_at ? $order->created_at->toIso8601String() : null,
+                    'is_cancellable' => $isCancellable,
                     'payment_date' => $order->created_at ? $order->created_at->format('d F Y') : now()->format('d F Y'),
                     'payment_method' => $order->payment_method ?: 'Gpay',
                     'razorpay_payment_id' => $order->razorpay_payment_id ?: null,

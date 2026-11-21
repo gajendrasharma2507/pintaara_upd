@@ -68,10 +68,6 @@ function OrderConfirmedContent() {
                         <span className="confirmed-meta-label">STATUS</span>
                         <span className="confirmed-meta-value">CONFIRMED</span>
                     </div>
-                    <div className="confirmed-meta-col">
-                        <span className="confirmed-meta-label">ESTIMATED DELIVERY</span>
-                        <span className="confirmed-meta-value">{estimate}</span>
-                    </div>
                 </section>
 
                 <section className="confirmed-bottom">
