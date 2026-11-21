@@ -15,6 +15,7 @@ class OrderItem extends Model
         'variant_id',
         'product_name',
         'design_code',
+        'image',
         'metal_purity',
         'finish',
         'size',

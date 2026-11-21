@@ -709,8 +709,13 @@ class OrderApiController extends Controller
                 }
                 $imageUrl = null;
 
-                // 1. Match client's selected finish with admin-uploaded finish images
-                if ($product && $product->images && !empty($item->finish)) {
+                // 1. If custom piece photo was uploaded by admin for this item, use it first!
+                if (!empty($item->image)) {
+                    $imageUrl = $item->image;
+                }
+
+                // 2. Match client's selected finish with admin-uploaded finish images
+                if (!$imageUrl && $product && $product->images && !empty($item->finish)) {
                     $rawFinish = trim($item->finish);
                     $finishSlug = \Illuminate\Support\Str::slug($rawFinish);
                     $finishKeyMap = [

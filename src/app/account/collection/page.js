@@ -283,6 +283,12 @@ export default function AccountCollectionPage() {
                                                     <span className="acct-spec-val">{piece.size}</span>
                                                 </div>
                                             )}
+                                            {piece.huid && (
+                                                <div className="acct-spec-row">
+                                                    <span className="acct-spec-label">HUID:</span>
+                                                    <span className="acct-spec-val" style={{ letterSpacing: '0.04em', fontFamily: 'monospace' }}>{piece.huid}</span>
+                                                </div>
+                                            )}
                                             <div className="acct-spec-row">
                                                 <span className="acct-spec-label">Acquired:</span>
                                                 <span className="acct-spec-val">{piece.acquired_at || 'Recent'}</span>

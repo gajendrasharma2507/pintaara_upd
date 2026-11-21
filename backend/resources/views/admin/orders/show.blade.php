@@ -189,32 +189,138 @@
 
       <div style="display: flex; flex-direction: column; gap: 16px;">
         @foreach($order->items as $item)
-          <div style="display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--admin-border-light);">
-            <div>
-              <div style="font-size: 15px; font-weight: 700; color: var(--admin-text-primary);">
-                {{ $item->product_name }}
-              </div>
-              <div style="font-size: 12px; color: var(--admin-text-muted); margin-top: 4px;">
-                Code: <span style="font-family: monospace;">{{ $item->design_code }}</span> &middot;
-                Purity: <strong>{{ $item->metal_purity ?: '22KT' }}</strong> &middot;
-                Weight: {{ number_format($item->weight_used, 3) }}g
-              </div>
-              @if($item->finish || $item->size || $item->gem)
-                <div style="font-size: 11.5px; color: var(--admin-text-secondary); margin-top: 2px;">
-                  {{ $item->finish ? 'Finish: ' . $item->finish : '' }}
-                  {{ $item->size ? ' · Size: ' . $item->size : '' }}
-                  {{ $item->gem && $item->gem !== 'None' ? ' · Gem: ' . $item->gem : '' }}
+          <div style="padding-bottom: 20px; border-bottom: 1px solid var(--admin-border-light);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+              <div style="display: flex; gap: 14px; align-items: flex-start;">
+                @if($item->image)
+                  <a href="{{ $item->image }}" target="_blank" title="View Commissioned Piece Photo">
+                    <img src="{{ $item->image }}" alt="{{ $item->product_name }}" style="width: 52px; height: 52px; object-fit: cover; border-radius: 8px; border: 1px solid var(--admin-border);">
+                  </a>
+                @endif
+                <div>
+                  <div style="font-size: 15px; font-weight: 700; color: var(--admin-text-primary);">
+                    {{ $item->product_name }}
+                  </div>
+                  <div style="font-size: 12px; color: var(--admin-text-muted); margin-top: 4px;">
+                    Code: <span style="font-family: monospace;">{{ $item->design_code }}</span> &middot;
+                    Purity: <strong>{{ $item->metal_purity ?: '22KT' }}</strong> &middot;
+                    Weight: {{ number_format($item->weight_used, 3) }}g
+                  </div>
+                  @if($item->finish || $item->size || $item->gem)
+                    <div style="font-size: 11.5px; color: var(--admin-text-secondary); margin-top: 2px;">
+                      {{ $item->finish ? 'Finish: ' . $item->finish : '' }}
+                      {{ $item->size ? ' · Size: ' . $item->size : '' }}
+                      {{ $item->gem && $item->gem !== 'None' ? ' · Gem: ' . $item->gem : '' }}
+                    </div>
+                  @endif
+                  @if($item->huid)
+                    <div style="margin-top: 5px;">
+                      <span style="font-size: 11px; font-weight: 600; color: #15803D; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.25); padding: 2px 7px; border-radius: 4px;">
+                        HUID: {{ $item->huid }}
+                      </span>
+                    </div>
+                  @endif
                 </div>
-              @endif
+              </div>
+
+              <div style="text-align: right;">
+                <div style="font-size: 16px; font-weight: 800; color: var(--admin-text-primary);">
+                  ₹{{ number_format($item->total ?: $item->price, 2) }}
+                </div>
+                <div style="font-size: 11px; color: var(--admin-text-muted);">
+                  Qty: {{ $item->quantity ?: 1 }}
+                </div>
+              </div>
             </div>
 
-            <div style="text-align: right;">
-              <div style="font-size: 16px; font-weight: 800; color: var(--admin-text-primary);">
-                ₹{{ number_format($item->total ?: $item->price, 2) }}
+            <!-- Existing Attached Documents / Certificates on User Side -->
+            @php
+              $itemCerts = is_array($item->certificates) ? $item->certificates : [];
+              if (empty($itemCerts) && $item->certificate_url && !str_contains($item->certificate_url, 'sample-certificate.pdf')) {
+                  $itemCerts[] = [
+                      'name' => 'Certificate of Authenticity',
+                      'certificate_number' => $item->certificate_number ?: 'BIS-CERT',
+                      'certificate_url' => $item->certificate_url,
+                  ];
+              }
+            @endphp
+
+            @if(count($itemCerts) > 0)
+              <div style="margin-top: 14px; padding: 10px 14px; background: rgba(201, 169, 97, 0.08); border: 1px solid rgba(201, 169, 97, 0.25); border-radius: 8px;">
+                <div style="font-size: 11px; font-weight: 700; color: #92722A; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px;">
+                  Active Client Documents (Visible in Patron Collection)
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  @foreach($itemCerts as $cIdx => $cert)
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px;">
+                      <a href="{{ $cert['certificate_url'] ?? '#' }}" target="_blank" style="color: #1A1A1A; font-weight: 600; text-decoration: underline; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>📄 {{ $cert['name'] ?? 'Certificate' }}</span>
+                        @if(!empty($cert['certificate_number']))
+                          <span style="font-size: 10.5px; color: #666; font-family: monospace;">({{ $cert['certificate_number'] }})</span>
+                        @endif
+                      </a>
+                      <form action="{{ route('admin.orders.items.delete-cert', [$order->id, $item->id, $cIdx]) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Remove this certificate from client portal?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" style="background: none; border: none; color: #EF4444; font-size: 11px; cursor: pointer; padding: 2px 6px;">
+                          Remove
+                        </button>
+                      </form>
+                    </div>
+                  @endforeach
+                </div>
               </div>
-              <div style="font-size: 11px; color: var(--admin-text-muted);">
-                Qty: {{ $item->quantity ?: 1 }}
-              </div>
+            @endif
+
+            <!-- Upload Document & Piece Image Form -->
+            <div style="margin-top: 14px; padding: 14px; background: var(--admin-surface-elevated, #FAF9F5); border: 1px solid var(--admin-border); border-radius: 10px;">
+              <details>
+                <summary style="font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); cursor: pointer; outline: none; user-select: none;">
+                  + Upload Certificate, HUID &amp; Piece Photo for Client Portal
+                </summary>
+                
+                <form action="{{ route('admin.orders.items.upload-document', [$order->id, $item->id]) }}" method="POST" enctype="multipart/form-data" style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">
+                  @csrf
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <div>
+                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Certificate / Document File (PDF, PNG, JPG)</label>
+                      <input type="file" name="document_file" accept=".pdf,.png,.jpg,.jpeg,.webp" class="admin-input" style="padding: 5px; font-size: 11.5px;">
+                    </div>
+                    <div>
+                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Document Title</label>
+                      <input type="text" name="certificate_name" placeholder="e.g. Certificate of Authenticity" list="cert_names_list" class="admin-input" style="font-size: 12px;">
+                      <datalist id="cert_names_list">
+                        <option value="Certificate of Authenticity">
+                        <option value="BIS Hallmark Certificate">
+                        <option value="Diamond Quality Report (VVS-VS)">
+                        <option value="IGI Lab Certificate">
+                        <option value="Gemological Appraisal">
+                      </datalist>
+                    </div>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                    <div>
+                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Certificate Number (optional)</label>
+                      <input type="text" name="certificate_number" value="{{ $item->certificate_number }}" placeholder="e.g. BIS-CERT-772910" class="admin-input" style="font-size: 12px;">
+                    </div>
+                    <div>
+                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">BIS Hallmark HUID (optional)</label>
+                      <input type="text" name="huid" value="{{ $item->huid }}" placeholder="e.g. 916-HUID-88291" class="admin-input" style="font-size: 12px;">
+                    </div>
+                    <div>
+                      <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-muted); margin-bottom: 4px;">Custom Piece Photo (optional)</label>
+                      <input type="file" name="image_file" accept="image/*" class="admin-input" style="padding: 5px; font-size: 11.5px;">
+                    </div>
+                  </div>
+
+                  <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+                    <button type="submit" class="admin-btn admin-btn-primary" style="padding: 7px 16px; font-size: 12px; font-weight: 600; background: #C9A961; color: #000; border: none; border-radius: 6px; cursor: pointer;">
+                      Upload &amp; Show on User Side
+                    </button>
+                  </div>
+                </form>
+              </details>
             </div>
           </div>
         @endforeach

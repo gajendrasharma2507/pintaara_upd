@@ -440,6 +440,81 @@ class AdminWebController extends Controller
         return back()->with('success', "Order {$orderNum} has been permanently deleted.");
     }
 
+    public function uploadOrderItemDocument(Request $request, $orderId, $itemId)
+    {
+        $order = Order::withTrashed()->findOrFail($orderId);
+        $item = OrderItem::where('order_id', $order->id)->findOrFail($itemId);
+
+        $request->validate([
+            'document_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
+            'certificate_name' => 'nullable|string|max:150',
+            'certificate_number' => 'nullable|string|max:100',
+            'huid' => 'nullable|string|max:100',
+        ]);
+
+        // 1. Update HUID if provided
+        if ($request->filled('huid')) {
+            $item->huid = trim($request->input('huid'));
+        }
+
+        // 2. Upload Piece Image/Photo if provided
+        if ($request->hasFile('image_file')) {
+            $imageUrl = $this->saveUploadedFile($request->file('image_file'), 'piece_photo');
+            $item->image = $imageUrl;
+        }
+
+        // 3. Upload Document/Certificate if provided
+        if ($request->hasFile('document_file')) {
+            $file = $request->file('document_file');
+            $docUrl = $this->saveUploadedFile($file, 'certificate');
+            $certName = $request->input('certificate_name') ?: 'Certificate of Authenticity';
+            $certNum = $request->input('certificate_number') ?: ($item->huid ? 'HUID-' . $item->huid : 'BIS-' . strtoupper(uniqid()));
+
+            $item->certificate_url = $docUrl;
+            $item->certificate_number = $certNum;
+
+            $certs = is_array($item->certificates) ? $item->certificates : [];
+            $certs[] = [
+                'id' => 'cert_' . uniqid(),
+                'name' => $certName,
+                'certificate_number' => $certNum,
+                'certificate_url' => $docUrl,
+                'verification_url' => 'https://www.manakonline.in/MANAK/hallmarkHuidVerification',
+                'uploaded_at' => now()->toIso8601String(),
+            ];
+            $item->certificates = $certs;
+        } elseif ($request->filled('certificate_number')) {
+            $item->certificate_number = trim($request->input('certificate_number'));
+        }
+
+        $item->save();
+
+        return back()->with('success', 'Commissioned piece documentation updated successfully. Client portal will now display these documents.');
+    }
+
+    public function deleteOrderItemCertificate(Request $request, $orderId, $itemId, $certIndex)
+    {
+        $order = Order::withTrashed()->findOrFail($orderId);
+        $item = OrderItem::where('order_id', $order->id)->findOrFail($itemId);
+
+        $certs = is_array($item->certificates) ? $item->certificates : [];
+        if (isset($certs[$certIndex])) {
+            array_splice($certs, (int)$certIndex, 1);
+            $item->certificates = array_values($certs);
+            if (empty($item->certificates)) {
+                $item->certificate_url = null;
+                $item->certificate_number = null;
+            } else {
+                $item->certificate_url = $item->certificates[0]['certificate_url'] ?? null;
+                $item->certificate_number = $item->certificates[0]['certificate_number'] ?? null;
+            }
+            $item->save();
+        }
+
+        return back()->with('success', 'Certificate removed successfully.');
+    }
+
     public function orderInvoice($id)
     {
         $order = Order::with('items.product')->where('id', $id)->orWhere('order_number', $id)->firstOrFail();
