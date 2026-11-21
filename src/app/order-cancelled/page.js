@@ -49,25 +49,6 @@ function OrderCancelledContent() {
                         <span className="confirmed-meta-value" style={{ color: '#B91C1C' }}>CANCELLED</span>
                     </div>
                 </section>
-
-                <section className="confirmed-bottom">
-                    <div className="confirmed-bottom-col">
-                        <svg className="confirmed-mail-icon" viewBox="0 0 40 25" fill="none" stroke="#5E5E5E" strokeWidth="1" aria-hidden="true">
-                            <rect x="0.5" y="0.5" width="39" height="24" />
-                            <path d="M0.5 0.5 L20 14 L39.5 0.5" />
-                        </svg>
-                        <p className="confirmed-bottom-text">
-                            A cancellation confirmation has been recorded.<br />
-                            Updates and refund details will be sent to your registered email address.
-                        </p>
-                    </div>
-                    <div className="confirmed-bottom-col">
-                        <p className="confirmed-bottom-text">
-                            <strong>Need Assistance?</strong><br />
-                            <a href="mailto:info@pintaara.com">info@pintaara.com</a>
-                        </p>
-                    </div>
-                </section>
             </main>
 
             <footer className="collection-bottom-bar">
