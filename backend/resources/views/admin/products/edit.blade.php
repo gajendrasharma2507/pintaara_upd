@@ -287,13 +287,13 @@
       </div>
     </div>
 
-    <!-- OPTIONS AVAILABILITY PER METAL PURITY -->
+    <!-- COMPATIBILITY MASTER -->
     <div style="background: var(--admin-surface-elevated); padding: 22px; border-radius: 14px; border: 1px solid var(--admin-border); display: flex; flex-direction: column; gap: 16px;">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <label class="admin-label" style="font-size: 13.5px; font-weight: 800; color: var(--admin-text-primary); margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
-              OPTIONS AVAILABILITY PER METAL PURITY
+              COMPATIBILITY MASTER
             </label>
           </div>
           <p style="font-size: 12px; color: var(--admin-text-muted); margin: 4px 0 0 0;">
