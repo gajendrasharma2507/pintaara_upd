@@ -34,6 +34,7 @@ export default function InvoiceViewer({ orderIdProp }) {
                         const mapped = {
                             order_number: ord.order_number || cleanId,
                             invoice_number: `INV-${ord.order_number || cleanId}`,
+                            status: ord.status,
                             date: ord.created_at,
                             payment_date: ord.payment_date || ord.created_at,
                             total: ord.pricing?.total_amount || 26250,
@@ -81,6 +82,7 @@ export default function InvoiceViewer({ orderIdProp }) {
                     setInvoiceData({
                         order_number: matched.order_number || cleanId,
                         invoice_number: `INV-${matched.order_number || cleanId}`,
+                        status: matched.status,
                         date: matched.acquired_at || matched.created_at,
                         payment_date: matched.payment_date || matched.acquired_at || matched.created_at,
                         total: matched.total || matched.price || 26250,

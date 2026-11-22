@@ -14,6 +14,8 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
     if (!invoice) return null;
 
     // Normalize invoice data with fallback to official reference values
+    const orderStatusRaw = String(invoice.status || invoice.order_status || '').toLowerCase();
+    const isCancelled = orderStatusRaw === 'cancelled' || orderStatusRaw === 'canceled';
     const invoiceNo = invoice.invoice_number || (invoice.order_number ? `INV-${invoice.order_number}` : 'INV-001');
     const orderRef = invoice.order_number ? `REF-${invoice.order_number}` : 'REF-PNT001';
     const directInvoiceUrl = typeof window !== 'undefined' 
@@ -192,6 +194,20 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                         <span className="pnt-invoice-bar-title">Tax Invoice</span>
                     )}
                     <span className="pnt-inv-order-tag">{invoiceNo}</span>
+                    {isCancelled && (
+                        <span style={{
+                            background: '#B91C1C',
+                            color: '#FFFFFF',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.08em',
+                            padding: '2px 8px',
+                            borderRadius: '3px',
+                            textTransform: 'uppercase'
+                        }}>
+                            CANCELLED
+                        </span>
+                    )}
                 </div>
 
                 <div className="pnt-invoice-bar-actions">
@@ -245,6 +261,11 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                 className="pnt-invoice-sheet" 
                 onClick={(e) => e.stopPropagation()}
             >
+                {isCancelled && (
+                    <div className="pnt-inv-cancelled-stamp" aria-hidden="true">
+                        ORDER CANCELLED
+                    </div>
+                )}
                 {/* 1. Header: Brand Left & INVOICE Right */}
                 <div className="pnt-inv-header">
                     <div className="pnt-inv-brand-col">
@@ -256,6 +277,9 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                     </div>
                     <div className="pnt-inv-title-col">
                         <h1 className="pnt-inv-title">INVOICE</h1>
+                        {isCancelled && (
+                            <span className="pnt-inv-cancelled-badge">ORDER CANCELLED</span>
+                        )}
                     </div>
                 </div>
 
@@ -277,6 +301,9 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                         <div className="pnt-inv-meta-val">{invoiceNo}</div>
                         <div className="pnt-inv-meta-val">{invoiceDate}</div>
                         <div className="pnt-inv-meta-val">{orderRef}</div>
+                        {isCancelled && (
+                            <div className="pnt-inv-meta-val pnt-inv-meta-status-cancelled">ORDER STATUS: CANCELLED</div>
+                        )}
                     </div>
                 </div>
 
@@ -357,6 +384,11 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                         <div className="pnt-payment-detail">{paymentMethod}</div>
                         <div className="pnt-payment-detail">{paymentDate}</div>
                         <div className="pnt-payment-detail">Txn. ID: {paymentTxnId}</div>
+                        {isCancelled && (
+                            <div className="pnt-payment-detail" style={{ color: '#B91C1C', fontWeight: 600, marginTop: '3px' }}>
+                                Status: Order Cancelled
+                            </div>
+                        )}
                     </div>
 
                     <div className="pnt-inv-summary-col">
@@ -559,6 +591,27 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                     color: #111111;
                     display: flex;
                     flex-direction: column;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .pnt-inv-cancelled-stamp {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(-22deg);
+                    font-size: 48px;
+                    font-weight: 800;
+                    letter-spacing: 0.14em;
+                    color: rgba(185, 28, 28, 0.14);
+                    border: 4px solid rgba(185, 28, 28, 0.20);
+                    border-radius: 6px;
+                    padding: 8px 32px;
+                    text-transform: uppercase;
+                    pointer-events: none;
+                    user-select: none;
+                    z-index: 4;
+                    white-space: nowrap;
                 }
 
                 /* 1. Header */
@@ -585,8 +638,30 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
 
                 .pnt-inv-title-col {
                     display: flex;
-                    align-items: center;
-                    justify-content: flex-end;
+                    flex-direction: column;
+                    align-items: flex-end;
+                    justify-content: center;
+                    gap: 4px;
+                }
+
+                .pnt-inv-cancelled-badge {
+                    display: inline-block;
+                    padding: 3px 8px;
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
+                    color: #B91C1C;
+                    background-color: rgba(185, 28, 28, 0.08);
+                    border: 1px solid #B91C1C;
+                    border-radius: 2px;
+                    text-transform: uppercase;
+                    line-height: 1.2;
+                }
+
+                .pnt-inv-meta-status-cancelled {
+                    color: #B91C1C !important;
+                    font-weight: 700 !important;
+                    letter-spacing: 0.04em !important;
                 }
 
                 .pnt-inv-title {

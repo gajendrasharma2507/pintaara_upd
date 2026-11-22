@@ -1,4 +1,6 @@
 @php
+  $isCancelled = in_array(strtolower($order->status ?? ''), ['cancelled', 'canceled']);
+
   // Formatting Dates
   $orderDate = $order->created_at ? strtoupper($order->created_at->format('d F Y')) : '24 OCTOBER 2026';
   
@@ -131,6 +133,27 @@
     flex-direction: column !important;
     text-align: left !important;
     margin: 0 auto !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .pnt-inv-cancelled-stamp {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-22deg) !important;
+    font-size: 48px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.14em !important;
+    color: rgba(185, 28, 28, 0.14) !important;
+    border: 4px solid rgba(185, 28, 28, 0.20) !important;
+    border-radius: 6px !important;
+    padding: 8px 32px !important;
+    text-transform: uppercase !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    z-index: 4 !important;
+    white-space: nowrap !important;
   }
 
   /* 1. Header */
@@ -150,6 +173,14 @@
     display: block !important;
   }
 
+  .pnt-inv-title-col {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+
   .pnt-inv-title {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     font-size: 20px !important;
@@ -159,6 +190,26 @@
     margin: 0 !important;
     line-height: 1 !important;
     text-align: right !important;
+  }
+
+  .pnt-inv-cancelled-badge {
+    display: inline-block !important;
+    padding: 3px 8px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    color: #B91C1C !important;
+    background-color: rgba(185, 28, 28, 0.08) !important;
+    border: 1px solid #B91C1C !important;
+    border-radius: 2px !important;
+    text-transform: uppercase !important;
+    line-height: 1.2 !important;
+  }
+
+  .pnt-inv-meta-status-cancelled {
+    color: #B91C1C !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
   }
 
   /* 2. Created For & Metadata Row */
@@ -534,6 +585,9 @@
 
 <!-- The Exact Luxury Invoice Sheet Element -->
 <div id="official-invoice-print-area" class="pnt-invoice-sheet">
+  @if($isCancelled)
+    <div class="pnt-inv-cancelled-stamp" aria-hidden="true">ORDER CANCELLED</div>
+  @endif
 
   <!-- 1. Header: Brand Left & INVOICE Right -->
   <div class="pnt-inv-header">
@@ -546,6 +600,9 @@
     </div>
     <div class="pnt-inv-title-col">
       <h1 class="pnt-inv-title">INVOICE</h1>
+      @if($isCancelled)
+        <span class="pnt-inv-cancelled-badge">ORDER CANCELLED</span>
+      @endif
     </div>
   </div>
 
@@ -567,6 +624,9 @@
       <div class="pnt-inv-meta-val">{{ $invoiceNo }}</div>
       <div class="pnt-inv-meta-val">{{ $orderDate }}</div>
       <div class="pnt-inv-meta-val">{{ $orderRef }}</div>
+      @if($isCancelled)
+        <div class="pnt-inv-meta-val pnt-inv-meta-status-cancelled">ORDER STATUS: CANCELLED</div>
+      @endif
     </div>
   </div>
 
@@ -670,6 +730,9 @@
       <div class="pnt-payment-detail">{{ $paymentMethod }}</div>
       <div class="pnt-payment-detail">{{ $orderDate }}</div>
       <div class="pnt-payment-detail">Txn. ID: {{ $paymentTxnId }}</div>
+      @if($isCancelled)
+        <div class="pnt-payment-detail" style="color: #B91C1C !important; font-weight: 600 !important; margin-top: 3px !important;">Status: Order Cancelled</div>
+      @endif
     </div>
 
     <div class="pnt-inv-summary-col">
