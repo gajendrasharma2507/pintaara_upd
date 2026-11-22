@@ -649,13 +649,6 @@ function renderCompatibilityMasterCards() {
   updateMatrixPayload();
 }
 
-    card.innerHTML = html;
-    container.appendChild(card);
-  });
-
-  updateMatrixPayload();
-}
-
 function handleMatrixChange() {
   updateMatrixPayload();
   renderFinishTabs();
