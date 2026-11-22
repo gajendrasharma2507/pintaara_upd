@@ -886,7 +886,65 @@ export default function DynamicCollectionPage({ params }) {
         }
     }, [availablePurities, selectedPurity]);
 
-    // Compatibility Master Table data
+    // Compatibility Master Table data & logic
+    const compatMatrix = useMemo(() => {
+        const raw = productDetail?.compatibility_matrix;
+        if (!raw) return null;
+        if (typeof raw === 'object') return raw;
+        try {
+            return JSON.parse(raw);
+        } catch {
+            return null;
+        }
+    }, [productDetail?.compatibility_matrix]);
+
+    const isFinishCompatible = useCallback((finishKey, purity) => {
+        const rawP = (purity || '').toUpperCase();
+        const normP = rawP.includes('22') ? '22KT'
+            : rawP.includes('18') ? '18KT'
+            : rawP.includes('14') ? '14KT'
+            : rawP.includes('925') || rawP.includes('SILVER') ? '925 SILVER'
+            : rawP;
+
+        const cleanKey = normalizeFinishKey(finishKey);
+
+        if (compatMatrix && compatMatrix[normP] && Array.isArray(compatMatrix[normP].finishes)) {
+            return compatMatrix[normP].finishes.map(normalizeFinishKey).includes(cleanKey);
+        }
+
+        const rule = COMPATIBILITY_RULES_MASTER.finishes.find(f => f.key === cleanKey);
+        if (rule && rule.purities) {
+            return Boolean(rule.purities[normP]);
+        }
+        return true;
+    }, [compatMatrix]);
+
+    const isStoneCompatible = useCallback((stoneCodeOrName, purity) => {
+        const rawP = (purity || '').toUpperCase();
+        const normP = rawP.includes('22') ? '22KT'
+            : rawP.includes('18') ? '18KT'
+            : rawP.includes('14') ? '14KT'
+            : rawP.includes('925') || rawP.includes('SILVER') ? '925 SILVER'
+            : rawP;
+
+        const str = String(stoneCodeOrName || '').toLowerCase();
+        const matchedRule = COMPATIBILITY_RULES_MASTER.stones.find(s => {
+            const sName = s.name.toLowerCase();
+            return sName.includes(str) || str.includes(sName.split(' ')[0]);
+        });
+
+        const stoneCode = matchedRule?.code || stoneCodeOrName;
+
+        if (compatMatrix && compatMatrix[normP] && Array.isArray(compatMatrix[normP].stones)) {
+            return compatMatrix[normP].stones.includes(stoneCode);
+        }
+
+        if (matchedRule && matchedRule.purities) {
+            return Boolean(matchedRule.purities[normP]);
+        }
+        return true;
+    }, [compatMatrix]);
+
     const compatDisplayPurities = useMemo(() => {
         const raw = availablePurities?.map(p => (p.code || p.value || '').toUpperCase()) || [];
         const norm = (r) => {
@@ -917,6 +975,39 @@ export default function DynamicCollectionPage({ params }) {
         }
         return COMPATIBILITY_RULES_MASTER.stones;
     }, [gemGroup]);
+
+    // Auto-switch finish if currently selected finish is incompatible with newly selected purity
+    useEffect(() => {
+        if (!isFinishCompatible(selectedFinishCode, selectedPurity) && availableFinishes && availableFinishes.length > 0) {
+            const firstCompat = availableFinishes.find(f => {
+                const code = normalizeFinishKey(f.code || f.value || '');
+                return isFinishCompatible(code, selectedPurity);
+            });
+            if (firstCompat) {
+                const cleanCode = normalizeFinishKey(firstCompat.code || firstCompat.value || '');
+                setSelectedFinishCode(cleanCode);
+                const grpName = finishGroup?.name || 'Finish Options';
+                handleSelectOption(grpName, { value: firstCompat.value || firstCompat.code, code: cleanCode, price_delta: 0, image: firstCompat.image });
+            }
+        }
+    }, [selectedPurity, selectedFinishCode, availableFinishes, isFinishCompatible]);
+
+    // Auto-switch gem/stone if currently selected stone is incompatible with newly selected purity
+    useEffect(() => {
+        if (gemGroup && Array.isArray(gemGroup.values) && gemGroup.values.length > 0) {
+            const currentStone = selectedOptions[gemGroup.name]?.value;
+            if (currentStone && !isStoneCompatible(currentStone, selectedPurity)) {
+                const firstCompat = gemGroup.values.find(v => isStoneCompatible(v.value || v.code, selectedPurity));
+                if (firstCompat) {
+                    handleSelectOption(gemGroup.name, {
+                        value: firstCompat.value,
+                        code: firstCompat.code || '',
+                        price_delta: parseFloat(firstCompat.price_delta) || 0
+                    });
+                }
+            }
+        }
+    }, [selectedPurity, gemGroup, selectedOptions, isStoneCompatible]);
 
 
     // Ensure selected finish is always valid when availableFinishes changes
@@ -1734,15 +1825,23 @@ export default function DynamicCollectionPage({ params }) {
                                             style: fVal.hex_color ? { background: fVal.hex_color } : { background: '#D4AF37' }
                                         };
                                         const isSelected = normalizeFinishKey(selectedFinishCode) === cleanCode;
+                                        const isCompat = isFinishCompatible(cleanCode, selectedPurity);
                                         return (
                                             <button
                                                 key={fVal.id || code}
                                                 type="button"
-                                                title={matchedBar.name || valStr}
+                                                title={isCompat ? (matchedBar.name || valStr) : `${matchedBar.name || valStr} (Not offered in ${selectedPurity})`}
                                                 aria-label={matchedBar.name || valStr}
+                                                disabled={!isCompat}
                                                 className={`atelier-finish-bar ${isSelected ? 'active' : ''}`}
-                                                style={matchedBar.style}
+                                                style={{
+                                                    ...matchedBar.style,
+                                                    opacity: isCompat ? 1 : 0.22,
+                                                    cursor: isCompat ? 'pointer' : 'not-allowed',
+                                                    filter: isCompat ? 'none' : 'grayscale(60%)',
+                                                }}
                                                 onClick={() => {
+                                                    if (!isCompat) return;
                                                     setSelectedFinishCode(cleanCode);
                                                     setActiveImgIndex(0);
                                                     setMediaViewMode('photo');

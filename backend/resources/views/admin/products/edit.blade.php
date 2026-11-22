@@ -595,6 +595,39 @@ function normalizePurityKey(raw) {
   return u;
 }
 
+const existingCompatMatrix = {!! json_encode(old('compatibility_matrix', $product->compatibility_matrix ?? null)) !!};
+let currentMatrixData = existingCompatMatrix && typeof existingCompatMatrix === 'object' ? existingCompatMatrix : {};
+
+function handleMatrixCellChange() {
+  const matrix = {};
+  const normalizedPurities = Array.from(new Set(getCheckedPurities().map(normalizePurityKey)));
+
+  normalizedPurities.forEach(p => {
+    matrix[p] = { finishes: [], stones: [] };
+  });
+
+  document.querySelectorAll('.matrix-cell-chk').forEach(cb => {
+    const p = cb.getAttribute('data-purity');
+    const type = cb.getAttribute('data-type');
+    const key = cb.getAttribute('data-key');
+    if (!matrix[p]) matrix[p] = { finishes: [], stones: [] };
+
+    if (cb.checked) {
+      if (type === 'finish') {
+        if (!matrix[p].finishes.includes(key)) matrix[p].finishes.push(key);
+      } else if (type === 'stone') {
+        if (!matrix[p].stones.includes(key)) matrix[p].stones.push(key);
+      }
+    }
+  });
+
+  currentMatrixData = matrix;
+  const input = document.getElementById('compatibility_matrix_json');
+  if (input) {
+    input.value = JSON.stringify(matrix);
+  }
+}
+
 function renderCompatibilityMasterTable() {
   const container = document.getElementById('compatibility_master_table_container');
   if (!container) return;
@@ -614,10 +647,24 @@ function renderCompatibilityMasterTable() {
   if (gemGroup && gemGroup.id) {
     const checkedStoneCbs = document.querySelectorAll(`.group-val-chk-${gemGroup.id}:checked`);
     if (checkedStoneCbs.length > 0) {
-      const checkedValNames = Array.from(checkedStoneCbs).map(cb => (cb.getAttribute('data-val-name') || '').toLowerCase());
-      activeStones = COMPATIBILITY_RULES_MASTER.stones.filter(s => {
-        const sName = s.name.toLowerCase();
-        return checkedValNames.some(vName => sName.includes(vName) || vName.includes(sName.split(' ')[0]));
+      const checkedValNames = Array.from(checkedStoneCbs).map(cb => ({
+        name: cb.getAttribute('data-val-name') || cb.value,
+        id: cb.value
+      }));
+      activeStones = checkedValNames.map(v => {
+        const vLower = v.name.toLowerCase();
+        const matched = COMPATIBILITY_RULES_MASTER.stones.find(s => {
+          const sName = s.name.toLowerCase();
+          return sName.includes(vLower) || vLower.includes(sName.split(' ')[0]);
+        });
+        if (matched) {
+          return { code: matched.code, name: v.name, purities: matched.purities };
+        }
+        return {
+          code: 'CUSTOM_' + v.id,
+          name: v.name,
+          purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': true }
+        };
       });
     }
   }
@@ -631,20 +678,7 @@ function renderCompatibilityMasterTable() {
   const activeFinishes = COMPATIBILITY_RULES_MASTER.finishes.filter(f => selectedFinishKeys.includes(f.key));
   const finishesToDisplay = activeFinishes.length > 0 ? activeFinishes : COMPATIBILITY_RULES_MASTER.finishes.slice(0, 4);
 
-  // Compute matrix payload
-  const matrix = {};
-  normalizedPurities.forEach(p => {
-    matrix[p] = {
-      finishes: finishesToDisplay.filter(f => f.purities[p]).map(f => f.key),
-      stones: activeStones.filter(s => s.purities[p]).map(s => s.code),
-    };
-  });
-  const input = document.getElementById('compatibility_matrix_json');
-  if (input) {
-    input.value = JSON.stringify(matrix);
-  }
-
-  // Build clean normal table
+  // Build clean normal table with interactive checkboxes
   const purityBadges = {
     '22KT': '#D4AF37',
     '18KT': '#B8860B',
@@ -676,7 +710,7 @@ function renderCompatibilityMasterTable() {
       <tbody>
   `;
 
-  // 1. Finish rows
+  // 1. Finish rows with interactive checkboxes
   finishesToDisplay.forEach((f, idx) => {
     const bg = idx % 2 === 0 ? '#FFFFFF' : '#FDFDFD';
     html += `
@@ -687,12 +721,27 @@ function renderCompatibilityMasterTable() {
         </td>
     `;
     normalizedPurities.forEach(p => {
-      const isCompat = f.purities[p];
+      let isCompat = false;
+      if (currentMatrixData[p] && Array.isArray(currentMatrixData[p].finishes)) {
+        isCompat = currentMatrixData[p].finishes.includes(f.key);
+      } else {
+        isCompat = Boolean(f.purities && f.purities[p]);
+      }
+
       html += `
-        <td style="padding: 11px 14px; text-align: center;">
-          ${isCompat 
-            ? '<span style="color: #10B981; font-weight: 800; font-size: 15px;">✓</span>' 
-            : '<span style="color: #94A3B8; font-weight: 700; font-size: 16px;">—</span>'}
+        <td style="padding: 9px 14px; text-align: center;">
+          <label style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0; padding: 2px;">
+            <input
+              type="checkbox"
+              class="matrix-cell-chk"
+              data-type="finish"
+              data-key="${f.key}"
+              data-purity="${p}"
+              ${isCompat ? 'checked' : ''}
+              onchange="handleMatrixCellChange()"
+              style="width: 17px; height: 17px; accent-color: #10B981; cursor: pointer;"
+            />
+          </label>
         </td>
       `;
     });
@@ -708,7 +757,7 @@ function renderCompatibilityMasterTable() {
     </tr>
   `;
 
-  // 3. Stone rows
+  // 3. Stone rows with interactive checkboxes
   activeStones.forEach((s, idx) => {
     const bg = idx % 2 === 0 ? '#FFFFFF' : '#FDFDFD';
     html += `
@@ -718,12 +767,27 @@ function renderCompatibilityMasterTable() {
         </td>
     `;
     normalizedPurities.forEach(p => {
-      const isCompat = s.purities[p];
+      let isCompat = false;
+      if (currentMatrixData[p] && Array.isArray(currentMatrixData[p].stones)) {
+        isCompat = currentMatrixData[p].stones.includes(s.code);
+      } else {
+        isCompat = Boolean(s.purities && s.purities[p]);
+      }
+
       html += `
-        <td style="padding: 11px 14px; text-align: center;">
-          ${isCompat 
-            ? '<span style="color: #10B981; font-weight: 800; font-size: 15px;">✓</span>' 
-            : '<span style="color: #94A3B8; font-weight: 700; font-size: 16px;">—</span>'}
+        <td style="padding: 9px 14px; text-align: center;">
+          <label style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0; padding: 2px;">
+            <input
+              type="checkbox"
+              class="matrix-cell-chk"
+              data-type="stone"
+              data-key="${s.code}"
+              data-purity="${p}"
+              ${isCompat ? 'checked' : ''}
+              onchange="handleMatrixCellChange()"
+              style="width: 17px; height: 17px; accent-color: #10B981; cursor: pointer;"
+            />
+          </label>
         </td>
       `;
     });
@@ -736,12 +800,12 @@ function renderCompatibilityMasterTable() {
   `;
 
   container.innerHTML = html;
+  handleMatrixCellChange();
 }
 
 function getCompatibilityMatrixPayload() {
-  renderCompatibilityMasterTable();
-  const input = document.getElementById('compatibility_matrix_json');
-  return input && input.value ? JSON.parse(input.value) : {};
+  handleMatrixCellChange();
+  return currentMatrixData;
 }
 
 function renderFinishTabs() {
