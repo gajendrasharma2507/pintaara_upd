@@ -218,20 +218,17 @@
       </div>
     </div>
 
-    <!-- COMPATIBILITY MASTER: OPTIONS AVAILABILITY PER METAL PURITY -->
+    <!-- OPTIONS AVAILABILITY PER METAL PURITY -->
     <div style="background: var(--admin-surface-elevated); padding: 22px; border-radius: 14px; border: 1px solid var(--admin-border); display: flex; flex-direction: column; gap: 16px;">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <label class="admin-label" style="font-size: 13.5px; font-weight: 800; color: var(--admin-text-primary); margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
-              COMPATIBILITY MASTER — OPTIONS AVAILABILITY PER METAL PURITY
+              OPTIONS AVAILABILITY PER METAL PURITY
             </label>
-            <span style="font-size: 11px; font-weight: 700; color: #BD7F68; background: rgba(189,127,104,0.12); padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(189,127,104,0.25);">
-              Auto Rules Active
-            </span>
           </div>
           <p style="font-size: 12px; color: var(--admin-text-muted); margin: 4px 0 0 0;">
-            Select which Finishes and Stone / Gem Options are available for each selected Metal Purity (22K, 18K, 14K, 925 Silver) according to the Compatibility Master.
+            Select which Finishes and Stone / Gem Options are available for each selected Metal Purity (22K, 18K, 14K, 925 Silver).
           </p>
         </div>
       </div>
