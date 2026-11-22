@@ -83,6 +83,11 @@ Route::prefix('admin')->group(function () {
             return redirect()->route('admin.product-options');
         })->name('admin.masters');
 
+        // Compatibility Master - redirected to Products (all managed per product)
+        Route::get('/compatibility-master', function () {
+            return redirect()->route('admin.products');
+        });
+
         // Settings
         Route::get('/settings', [AdminWebController::class, 'settings'])->name('admin.settings');
         Route::post('/settings', [AdminWebController::class, 'updateSettings'])->name('admin.settings.update');

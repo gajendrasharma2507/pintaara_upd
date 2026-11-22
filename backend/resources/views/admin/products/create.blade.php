@@ -434,20 +434,20 @@ const COMPATIBILITY_RULES_MASTER = {
     badge: '#D4AF37',
     sub: '91.6% Hallmark Gold',
     finishes: [
-      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', compatible: true, default: true },
-      { key: 'WG', name: 'White Gold', color: '#94A3B8', compatible: true, default: true },
-      { key: 'RG', name: 'Rose Gold', color: '#B76E79', compatible: false, note: 'Incompatible in 22K' },
-      { key: 'BLK', name: 'Black Gold', color: '#1E293B', compatible: false, note: 'Incompatible in 22K' }
+      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', default: true },
+      { key: 'WG', name: 'White Gold', color: '#94A3B8', default: true },
+      { key: 'RG', name: 'Rose Gold', color: '#B76E79', default: false },
+      { key: 'BLK', name: 'Black Gold', color: '#1E293B', default: false }
     ],
     stones: [
-      { code: 'DIA', name: 'Natural Diamond', compatible: false, note: 'Incompatible in 22K' },
-      { code: 'LGD', name: 'Lab-grown Diamond', compatible: true, default: true },
-      { code: 'CZ', name: 'American Diamond (CZ)', compatible: true, default: true },
-      { code: 'MOI', name: 'Moissanite', compatible: true, default: true },
-      { code: 'SAP', name: 'Ceylon Blue Sapphire', compatible: true, default: true },
-      { code: 'EMR', name: 'Zambian Emerald', compatible: true, default: true },
-      { code: 'RUB', name: 'Burmese Ruby', compatible: true, default: true },
-      { code: 'NONE', name: 'No Stone / Plain Metal', compatible: true, default: true }
+      { code: 'DIA', name: 'Natural Diamond', default: false },
+      { code: 'LGD', name: 'Lab-grown Diamond', default: true },
+      { code: 'CZ', name: 'American Diamond (CZ)', default: true },
+      { code: 'MOI', name: 'Moissanite', default: true },
+      { code: 'SAP', name: 'Ceylon Blue Sapphire', default: true },
+      { code: 'EMR', name: 'Zambian Emerald', default: true },
+      { code: 'RUB', name: 'Burmese Ruby', default: true },
+      { code: 'NONE', name: 'No Stone / Plain Metal', default: true }
     ]
   },
   '18KT': {
@@ -456,20 +456,20 @@ const COMPATIBILITY_RULES_MASTER = {
     badge: '#B8860B',
     sub: '75.0% Fine Diamond Setting',
     finishes: [
-      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', compatible: true, default: true },
-      { key: 'WG', name: 'White Gold', color: '#94A3B8', compatible: true, default: true },
-      { key: 'RG', name: 'Rose Gold', color: '#B76E79', compatible: true, default: true },
-      { key: 'BLK', name: 'Black Gold', color: '#1E293B', compatible: true, default: true }
+      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', default: true },
+      { key: 'WG', name: 'White Gold', color: '#94A3B8', default: true },
+      { key: 'RG', name: 'Rose Gold', color: '#B76E79', default: true },
+      { key: 'BLK', name: 'Black Gold', color: '#1E293B', default: true }
     ],
     stones: [
-      { code: 'DIA', name: 'Natural Diamond (VVS-VS)', compatible: true, default: true },
-      { code: 'LGD', name: 'Lab-grown Diamond', compatible: true, default: true },
-      { code: 'CZ', name: 'American Diamond (CZ)', compatible: true, default: true },
-      { code: 'MOI', name: 'Moissanite', compatible: true, default: true },
-      { code: 'SAP', name: 'Ceylon Blue Sapphire', compatible: true, default: true },
-      { code: 'EMR', name: 'Zambian Emerald', compatible: true, default: true },
-      { code: 'RUB', name: 'Burmese Ruby', compatible: true, default: true },
-      { code: 'NONE', name: 'No Stone / Plain Metal', compatible: true, default: true }
+      { code: 'DIA', name: 'Natural Diamond (VVS-VS)', default: true },
+      { code: 'LGD', name: 'Lab-grown Diamond', default: true },
+      { code: 'CZ', name: 'American Diamond (CZ)', default: true },
+      { code: 'MOI', name: 'Moissanite', default: true },
+      { code: 'SAP', name: 'Ceylon Blue Sapphire', default: true },
+      { code: 'EMR', name: 'Zambian Emerald', default: true },
+      { code: 'RUB', name: 'Burmese Ruby', default: true },
+      { code: 'NONE', name: 'No Stone / Plain Metal', default: true }
     ]
   },
   '14KT': {
@@ -478,20 +478,20 @@ const COMPATIBILITY_RULES_MASTER = {
     badge: '#9A7C38',
     sub: '58.5% Everyday Atelier',
     finishes: [
-      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', compatible: true, default: true },
-      { key: 'WG', name: 'White Gold', color: '#94A3B8', compatible: true, default: true },
-      { key: 'RG', name: 'Rose Gold', color: '#B76E79', compatible: true, default: true },
-      { key: 'BLK', name: 'Black Gold', color: '#1E293B', compatible: true, default: true }
+      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', default: true },
+      { key: 'WG', name: 'White Gold', color: '#94A3B8', default: true },
+      { key: 'RG', name: 'Rose Gold', color: '#B76E79', default: true },
+      { key: 'BLK', name: 'Black Gold', color: '#1E293B', default: true }
     ],
     stones: [
-      { code: 'DIA', name: 'Natural Diamond (VVS-VS)', compatible: true, default: true },
-      { code: 'LGD', name: 'Lab-grown Diamond', compatible: true, default: true },
-      { code: 'CZ', name: 'American Diamond (CZ)', compatible: true, default: true },
-      { code: 'MOI', name: 'Moissanite', compatible: true, default: true },
-      { code: 'SAP', name: 'Ceylon Blue Sapphire', compatible: true, default: true },
-      { code: 'EMR', name: 'Zambian Emerald', compatible: true, default: true },
-      { code: 'RUB', name: 'Burmese Ruby', compatible: true, default: true },
-      { code: 'NONE', name: 'No Stone / Plain Metal', compatible: true, default: true }
+      { code: 'DIA', name: 'Natural Diamond (VVS-VS)', default: true },
+      { code: 'LGD', name: 'Lab-grown Diamond', default: true },
+      { code: 'CZ', name: 'American Diamond (CZ)', default: true },
+      { code: 'MOI', name: 'Moissanite', default: true },
+      { code: 'SAP', name: 'Ceylon Blue Sapphire', default: true },
+      { code: 'EMR', name: 'Zambian Emerald', default: true },
+      { code: 'RUB', name: 'Burmese Ruby', default: true },
+      { code: 'NONE', name: 'No Stone / Plain Metal', default: true }
     ]
   },
   '925 SILVER': {
@@ -500,20 +500,23 @@ const COMPATIBILITY_RULES_MASTER = {
     badge: '#64748B',
     sub: '92.5% Sterling Hallmark',
     finishes: [
-      { key: 'NAT_SILVER', name: 'Natural Silver', color: '#94A3B8', compatible: true, default: true },
-      { key: 'RHOD_SILVER', name: 'Rhodium-Plated Silver', color: '#CBD5E1', compatible: true, default: true },
-      { key: 'GOLD_SILVER', name: 'Gold-Plated Silver', color: '#D4AF37', compatible: true, default: false },
-      { key: 'SOLID_GOLD', name: 'Solid Gold Finishes', color: '#D4AF37', compatible: false, note: 'Incompatible in Silver' }
+      { key: 'NAT_SILVER', name: 'Natural Silver', color: '#94A3B8', default: true },
+      { key: 'RHOD_SILVER', name: 'Rhodium-Plated Silver', color: '#CBD5E1', default: true },
+      { key: 'GOLD_SILVER', name: 'Gold-Plated Silver', color: '#EAB308', default: false },
+      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', default: false },
+      { key: 'WG', name: 'White Gold', color: '#94A3B8', default: false },
+      { key: 'RG', name: 'Rose Gold', color: '#B76E79', default: false },
+      { key: 'BLK', name: 'Black Gold', color: '#1E293B', default: false }
     ],
     stones: [
-      { code: 'DIA', name: 'Natural Diamond', compatible: false, note: 'Incompatible in Silver' },
-      { code: 'LGD', name: 'Lab-grown Diamond', compatible: false, note: 'Incompatible in Silver' },
-      { code: 'CZ', name: 'American Diamond (CZ)', compatible: true, default: true },
-      { code: 'MOI', name: 'Moissanite', compatible: true, default: true },
-      { code: 'SAP', name: 'Sapphire', compatible: false, note: 'Incompatible in Silver' },
-      { code: 'EMR', name: 'Zambian Emerald', compatible: true, default: true },
-      { code: 'RUB', name: 'Ruby', compatible: false, note: 'Incompatible in Silver' },
-      { code: 'NONE', name: 'No Stone / Plain Metal', compatible: true, default: true }
+      { code: 'CZ', name: 'American Diamond (CZ)', default: true },
+      { code: 'MOI', name: 'Moissanite', default: true },
+      { code: 'EMR', name: 'Zambian Emerald', default: true },
+      { code: 'NONE', name: 'No Stone / Plain Metal', default: true },
+      { code: 'DIA', name: 'Natural Diamond', default: false },
+      { code: 'LGD', name: 'Lab-grown Diamond', default: false },
+      { code: 'SAP', name: 'Ceylon Blue Sapphire', default: false },
+      { code: 'RUB', name: 'Burmese Ruby', default: false }
     ]
   }
 };
@@ -553,8 +556,8 @@ function renderCompatibilityMasterCards() {
     const rule = COMPATIBILITY_RULES_MASTER[masterKey] || COMPATIBILITY_RULES_MASTER['18KT'];
     const savedPurityData = currentMatrixData[masterKey] || currentMatrixData[purityKey] || null;
 
-    const savedFinishes = savedPurityData?.finishes || rule.finishes.filter(f => f.compatible && f.default).map(f => f.key);
-    const savedStones = savedPurityData?.stones || rule.stones.filter(s => s.compatible && s.default).map(s => s.code);
+    const savedFinishes = savedPurityData?.finishes || rule.finishes.filter(f => f.default).map(f => f.key);
+    const savedStones = savedPurityData?.stones || rule.stones.filter(s => s.default).map(s => s.code);
 
     const card = document.createElement('div');
     card.id = `compat_card_${masterKey.replace(/\\s+/g, '_')}`;
@@ -594,28 +597,16 @@ function renderCompatibilityMasterCards() {
     `;
 
     rule.finishes.forEach(f => {
-      if (f.compatible) {
-        const isChecked = savedFinishes.includes(f.key);
-        html += `
-          <label style="display: flex; align-items: center; justify-content: space-between; background: var(--admin-surface-elevated); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--admin-border); cursor: pointer; user-select: none;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <input type="checkbox" class="compat-finish-checkbox" data-purity="${masterKey}" data-finish-key="${f.key}" value="${f.key}" ${isChecked ? 'checked' : ''} onchange="handleMatrixChange()" style="width: 15px; height: 15px; accent-color: ${f.color}; cursor: pointer;">
-              <span style="font-size: 13px; font-weight: 600; color: var(--admin-text-primary);">${f.name}</span>
-            </div>
-            <span style="width: 14px; height: 14px; border-radius: 50%; background: ${f.color}; border: 1px solid rgba(0,0,0,0.2);"></span>
-          </label>
-        `;
-      } else {
-        html += `
-          <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.1); padding: 8px 12px; border-radius: 8px; border: 1px dashed var(--admin-border); opacity: 0.55; user-select: none;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <input type="checkbox" disabled style="width: 15px; height: 15px;">
-              <span style="font-size: 13px; font-weight: 500; color: var(--admin-text-muted); text-decoration: line-through;">${f.name}</span>
-            </div>
-            <span style="font-size: 9.5px; font-weight: 700; color: #EF4444; background: rgba(239,68,68,0.12); padding: 2px 6px; border-radius: 4px;">✕ ${f.note || 'Incompatible'}</span>
+      const isChecked = savedFinishes.includes(f.key);
+      html += `
+        <label style="display: flex; align-items: center; justify-content: space-between; background: var(--admin-surface-elevated); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--admin-border); cursor: pointer; user-select: none;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" class="compat-finish-checkbox" data-purity="${masterKey}" data-finish-key="${f.key}" value="${f.key}" ${isChecked ? 'checked' : ''} onchange="handleMatrixChange()" style="width: 15px; height: 15px; accent-color: ${f.color}; cursor: pointer;">
+            <span style="font-size: 13px; font-weight: 600; color: var(--admin-text-primary);">${f.name}</span>
           </div>
-        `;
-      }
+          <span style="width: 14px; height: 14px; border-radius: 50%; background: ${f.color}; border: 1px solid rgba(0,0,0,0.2);"></span>
+        </label>
+      `;
     });
 
     html += `
@@ -634,34 +625,29 @@ function renderCompatibilityMasterCards() {
     `;
 
     rule.stones.forEach(s => {
-      if (s.compatible) {
-        const isChecked = savedStones.includes(s.code);
-        html += `
-          <label style="display: flex; align-items: center; justify-content: space-between; background: var(--admin-surface-elevated); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--admin-border); cursor: pointer; user-select: none;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <input type="checkbox" class="compat-stone-checkbox" data-purity="${masterKey}" data-stone-code="${s.code}" value="${s.code}" ${isChecked ? 'checked' : ''} onchange="handleMatrixChange()" style="width: 15px; height: 15px; accent-color: var(--admin-primary); cursor: pointer;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--admin-text-primary);">${s.name}</span>
-            </div>
-            <span style="font-size: 10px; font-weight: 700; color: #10B981;">✓</span>
-          </label>
-        `;
-      } else {
-        html += `
-          <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.1); padding: 8px 12px; border-radius: 8px; border: 1px dashed var(--admin-border); opacity: 0.55; user-select: none;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <input type="checkbox" disabled style="width: 15px; height: 15px;">
-              <span style="font-size: 12.5px; font-weight: 500; color: var(--admin-text-muted); text-decoration: line-through;">${s.name}</span>
-            </div>
-            <span style="font-size: 9.5px; font-weight: 700; color: #EF4444; background: rgba(239,68,68,0.12); padding: 2px 6px; border-radius: 4px;">✕ ${s.note || 'Incompatible'}</span>
+      const isChecked = savedStones.includes(s.code);
+      html += `
+        <label style="display: flex; align-items: center; justify-content: space-between; background: var(--admin-surface-elevated); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--admin-border); cursor: pointer; user-select: none;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" class="compat-stone-checkbox" data-purity="${masterKey}" data-stone-code="${s.code}" value="${s.code}" ${isChecked ? 'checked' : ''} onchange="handleMatrixChange()" style="width: 15px; height: 15px; accent-color: var(--admin-primary); cursor: pointer;">
+            <span style="font-size: 12.5px; font-weight: 600; color: var(--admin-text-primary);">${s.name}</span>
           </div>
-        `;
-      }
+          <span style="font-size: 10px; font-weight: 700; color: #10B981;">✓</span>
+        </label>
+      `;
     });
 
     html += `
         </div>
       </div>
     `;
+
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+
+  updateMatrixPayload();
+}
 
     card.innerHTML = html;
     container.appendChild(card);
