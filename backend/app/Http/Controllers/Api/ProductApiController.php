@@ -365,6 +365,7 @@ class ProductApiController extends Controller
                     'purity_name' => $fp->purity?->name,
                     'purity_code' => $fp->purity?->code,
                 ]),
+                'compatibility_matrix' => $product->compatibility_matrix,
                 'customization_masters' => $customizationMasters,
             ]
         ]);

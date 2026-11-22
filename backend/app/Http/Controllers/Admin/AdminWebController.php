@@ -701,6 +701,8 @@ class AdminWebController extends Controller
             'available_purities.*' => 'nullable|string',
             'available_finishes' => 'nullable|array',
             'available_finishes.*' => 'nullable|string',
+            'compatibility_matrix' => 'nullable',
+            'compatibility_matrix_json' => 'nullable|string',
             'other_charges' => 'nullable|numeric|min:0',
             'silver_weight_grams' => 'nullable|numeric|min:0',
             'silver_making_charge_percent' => 'nullable|numeric|min:0',
@@ -745,6 +747,12 @@ class AdminWebController extends Controller
         if ($foundDeliv !== null) {
             $validated['delivery_return'] = $foundDeliv;
         }
+
+        $rawMatrix = $request->input('compatibility_matrix_json') ?: $request->input('compatibility_matrix');
+        if ($rawMatrix) {
+            $validated['compatibility_matrix'] = is_string($rawMatrix) ? json_decode($rawMatrix, true) : $rawMatrix;
+        }
+
         $product = Product::create($validated);
 
         $this->syncFinishImages($product, $request);
@@ -786,6 +794,8 @@ class AdminWebController extends Controller
             'available_purities.*' => 'nullable|string',
             'available_finishes' => 'nullable|array',
             'available_finishes.*' => 'nullable|string',
+            'compatibility_matrix' => 'nullable',
+            'compatibility_matrix_json' => 'nullable|string',
             'other_charges' => 'nullable|numeric|min:0',
             'silver_weight_grams' => 'nullable|numeric|min:0',
             'silver_making_charge_percent' => 'nullable|numeric|min:0',
@@ -831,6 +841,12 @@ class AdminWebController extends Controller
         if ($foundDeliv !== null) {
             $validated['delivery_return'] = $foundDeliv;
         }
+
+        $rawMatrix = $request->input('compatibility_matrix_json') ?: $request->input('compatibility_matrix');
+        if ($rawMatrix) {
+            $validated['compatibility_matrix'] = is_string($rawMatrix) ? json_decode($rawMatrix, true) : $rawMatrix;
+        }
+
         $product->update($validated);
 
         $this->syncFinishImages($product, $request);

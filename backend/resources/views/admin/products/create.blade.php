@@ -218,70 +218,31 @@
       </div>
     </div>
 
-    <!-- FINISH OPTIONS SELECTION -->
+    <!-- COMPATIBILITY MASTER: OPTIONS AVAILABILITY PER METAL PURITY -->
     <div style="background: var(--admin-surface-elevated); padding: 22px; border-radius: 14px; border: 1px solid var(--admin-border); display: flex; flex-direction: column; gap: 16px;">
-      <div>
-        <label class="admin-label" style="font-size: 13.5px; font-weight: 800; color: var(--admin-text-primary); margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
-          FINISH OPTIONS
-        </label>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label class="admin-label" style="font-size: 13.5px; font-weight: 800; color: var(--admin-text-primary); margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+              COMPATIBILITY MASTER — OPTIONS AVAILABILITY PER METAL PURITY
+            </label>
+            <span style="font-size: 11px; font-weight: 700; color: #BD7F68; background: rgba(189,127,104,0.12); padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(189,127,104,0.25);">
+              Auto Rules Active
+            </span>
+          </div>
+          <p style="font-size: 12px; color: var(--admin-text-muted); margin: 4px 0 0 0;">
+            Select which Finishes and Stone / Gem Options are available for each selected Metal Purity (22K, 18K, 14K, 925 Silver) according to the Compatibility Master.
+          </p>
+        </div>
       </div>
 
-      @php
-        $selectedFinishes = old('available_finishes', ['YG', 'WG', 'RG', 'BLK']);
-        if (!is_array($selectedFinishes) || empty($selectedFinishes)) {
-          $selectedFinishes = ['YG', 'WG', 'RG', 'BLK'];
-        }
-        $allFinishesConfig = [
-          'YG' => [
-            'label' => 'Yellow Gold',
-            'badge' => '#D4AF37',
-            'gradient' => 'linear-gradient(180deg, #8B6508 0%, #C99700 15%, #E5B824 35%, #FBE580 50%, #C99700 80%, #7D5A02 100%)',
-          ],
-          'WG' => [
-            'label' => 'White Gold',
-            'badge' => '#94A3B8',
-            'gradient' => 'linear-gradient(180deg, #55585B 0%, #8A8E93 15%, #C2C6CC 35%, #F0F2F5 50%, #8A8E93 80%, #484A4D 100%)',
-          ],
-          'RG' => [
-            'label' => 'Rose Gold',
-            'badge' => '#B76E79',
-            'gradient' => 'linear-gradient(180deg, #874112 0%, #BA6222 15%, #DB7F3E 35%, #F5B37B 50%, #BA6222 80%, #75360B 100%)',
-          ],
-          'BLK' => [
-            'label' => 'Black Gold',
-            'badge' => '#1E293B',
-            'gradient' => 'linear-gradient(180deg, #111315 0%, #2A2E33 15%, #4C525A 35%, #828A94 50%, #2A2E33 80%, #111315 100%)',
-          ],
-        ];
-      @endphp
+      <!-- Hidden payload for form submission -->
+      <input type="hidden" name="compatibility_matrix_json" id="compatibility_matrix_json" value="">
+      <div id="hidden_available_finishes_container"></div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-        @foreach($allFinishesConfig as $key => $conf)
-          @php
-            $isChecked = in_array($key, $selectedFinishes ?? []);
-            $slug = strtolower($key);
-          @endphp
-          <div id="card_finish_{{ $slug }}" style="background: var(--admin-surface); border: 2px solid {{ $isChecked ? $conf['badge'] : 'var(--admin-border)' }}; border-radius: 12px; padding: 14px 16px; transition: all 0.2s;">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; font-size: 14px; color: var(--admin-text-primary); margin: 0;">
-                <input
-                  type="checkbox"
-                  name="available_finishes[]"
-                  value="{{ $key }}"
-                  class="finish-checkbox"
-                  data-finish-key="{{ $key }}"
-                  data-slug="{{ $slug }}"
-                  data-color="{{ $conf['badge'] }}"
-                  {{ $isChecked ? 'checked' : '' }}
-                  style="width: 16px; height: 16px; accent-color: {{ $conf['badge'] }}; cursor: pointer;"
-                  onchange="handleFinishToggle(this)"
-                />
-                <span>{{ $conf['label'] }}</span>
-              </label>
-              <div style="width: 32px; height: 16px; border-radius: 4px; background: {{ $conf['gradient'] }}; border: 1px solid rgba(0,0,0,0.25); box-shadow: 0 1px 2px rgba(0,0,0,0.1);"></div>
-            </div>
-          </div>
-        @endforeach
+      <!-- Container where per-purity availability cards render -->
+      <div id="compatibility_master_container" style="display: flex; flex-direction: column; gap: 16px;">
+        <!-- Populated dynamically by JS -->
       </div>
     </div>
 
@@ -426,7 +387,10 @@ const FINISH_CONFIG = [
   { key: 'YG', name: 'Yellow Gold', code: 'YG', color: '#D4AF37' },
   { key: 'WG', name: 'White Gold', code: 'WG', color: '#94A3B8' },
   { key: 'RG', name: 'Rose Gold', code: 'RG', color: '#B76E79' },
-  { key: 'BLK', name: 'Black Gold', code: 'BLK', color: '#1E293B' }
+  { key: 'BLK', name: 'Black Gold', code: 'BLK', color: '#1E293B' },
+  { key: 'NAT_SILVER', name: 'Natural Silver', code: 'NAT_SILVER', color: '#94A3B8' },
+  { key: 'RHOD_SILVER', name: 'Rhodium-Plated Silver', code: 'RHOD_SILVER', color: '#CBD5E1' },
+  { key: 'GOLD_SILVER', name: 'Gold-Plated Silver', code: 'GOLD_SILVER', color: '#EAB308' },
 ];
 
 let activeFinishKey = 'YG';
@@ -438,26 +402,331 @@ function switchFinishTab(key) {
 }
 
 function getSelectedFinishKeys() {
-  const checkboxes = document.querySelectorAll('.finish-checkbox:checked');
-  const selected = Array.from(checkboxes).map(cb => cb.getAttribute('data-finish-key'));
-  return selected.length > 0 ? selected : ['YG'];
+  const selected = new Set();
+  const compatCbs = document.querySelectorAll('.compat-finish-checkbox:checked');
+  compatCbs.forEach(cb => {
+    const val = cb.getAttribute('data-finish-key') || cb.value;
+    if (val) selected.add(val);
+  });
+  if (selected.size === 0) {
+    document.querySelectorAll('.finish-checkbox:checked').forEach(cb => {
+      const val = cb.getAttribute('data-finish-key') || cb.value;
+      if (val) selected.add(val);
+    });
+  }
+  return selected.size > 0 ? Array.from(selected) : ['YG'];
 }
 
-function handleFinishToggle(checkbox) {
-  const slug = checkbox.getAttribute('data-slug');
-  const color = checkbox.getAttribute('data-color') || '#D4AF37';
-  const card = document.getElementById('card_finish_' + slug);
+function handlePurityToggle(checkbox) {
+  const key = checkbox.getAttribute('data-purity-key');
+  const color = checkbox.getAttribute('data-color') || '#B8860B';
+  const card = document.getElementById('card_purity_' + key);
   if (card) {
     card.style.borderColor = checkbox.checked ? color : 'var(--admin-border)';
   }
+  renderCompatibilityMasterCards();
+}
 
-  const selectedKeys = getSelectedFinishKeys();
-  if (!selectedKeys.includes(activeFinishKey)) {
-    activeFinishKey = selectedKeys[0] || 'YG';
+const COMPATIBILITY_RULES_MASTER = {
+  '22KT': {
+    code: '22KT',
+    name: '22KT Gold',
+    badge: '#D4AF37',
+    sub: '91.6% Hallmark Gold',
+    finishes: [
+      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', compatible: true, default: true },
+      { key: 'WG', name: 'White Gold', color: '#94A3B8', compatible: true, default: true },
+      { key: 'RG', name: 'Rose Gold', color: '#B76E79', compatible: false, note: 'Incompatible in 22K' },
+      { key: 'BLK', name: 'Black Gold', color: '#1E293B', compatible: false, note: 'Incompatible in 22K' }
+    ],
+    stones: [
+      { code: 'DIA', name: 'Natural Diamond', compatible: false, note: 'Incompatible in 22K' },
+      { code: 'LGD', name: 'Lab-grown Diamond', compatible: true, default: true },
+      { code: 'CZ', name: 'American Diamond (CZ)', compatible: true, default: true },
+      { code: 'MOI', name: 'Moissanite', compatible: true, default: true },
+      { code: 'SAP', name: 'Ceylon Blue Sapphire', compatible: true, default: true },
+      { code: 'EMR', name: 'Zambian Emerald', compatible: true, default: true },
+      { code: 'RUB', name: 'Burmese Ruby', compatible: true, default: true },
+      { code: 'NONE', name: 'No Stone / Plain Metal', compatible: true, default: true }
+    ]
+  },
+  '18KT': {
+    code: '18KT',
+    name: '18KT Gold',
+    badge: '#B8860B',
+    sub: '75.0% Fine Diamond Setting',
+    finishes: [
+      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', compatible: true, default: true },
+      { key: 'WG', name: 'White Gold', color: '#94A3B8', compatible: true, default: true },
+      { key: 'RG', name: 'Rose Gold', color: '#B76E79', compatible: true, default: true },
+      { key: 'BLK', name: 'Black Gold', color: '#1E293B', compatible: true, default: true }
+    ],
+    stones: [
+      { code: 'DIA', name: 'Natural Diamond (VVS-VS)', compatible: true, default: true },
+      { code: 'LGD', name: 'Lab-grown Diamond', compatible: true, default: true },
+      { code: 'CZ', name: 'American Diamond (CZ)', compatible: true, default: true },
+      { code: 'MOI', name: 'Moissanite', compatible: true, default: true },
+      { code: 'SAP', name: 'Ceylon Blue Sapphire', compatible: true, default: true },
+      { code: 'EMR', name: 'Zambian Emerald', compatible: true, default: true },
+      { code: 'RUB', name: 'Burmese Ruby', compatible: true, default: true },
+      { code: 'NONE', name: 'No Stone / Plain Metal', compatible: true, default: true }
+    ]
+  },
+  '14KT': {
+    code: '14KT',
+    name: '14KT Gold',
+    badge: '#9A7C38',
+    sub: '58.5% Everyday Atelier',
+    finishes: [
+      { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', compatible: true, default: true },
+      { key: 'WG', name: 'White Gold', color: '#94A3B8', compatible: true, default: true },
+      { key: 'RG', name: 'Rose Gold', color: '#B76E79', compatible: true, default: true },
+      { key: 'BLK', name: 'Black Gold', color: '#1E293B', compatible: true, default: true }
+    ],
+    stones: [
+      { code: 'DIA', name: 'Natural Diamond (VVS-VS)', compatible: true, default: true },
+      { code: 'LGD', name: 'Lab-grown Diamond', compatible: true, default: true },
+      { code: 'CZ', name: 'American Diamond (CZ)', compatible: true, default: true },
+      { code: 'MOI', name: 'Moissanite', compatible: true, default: true },
+      { code: 'SAP', name: 'Ceylon Blue Sapphire', compatible: true, default: true },
+      { code: 'EMR', name: 'Zambian Emerald', compatible: true, default: true },
+      { code: 'RUB', name: 'Burmese Ruby', compatible: true, default: true },
+      { code: 'NONE', name: 'No Stone / Plain Metal', compatible: true, default: true }
+    ]
+  },
+  '925 SILVER': {
+    code: '925 SILVER',
+    name: '925 Sterling Silver',
+    badge: '#64748B',
+    sub: '92.5% Sterling Hallmark',
+    finishes: [
+      { key: 'NAT_SILVER', name: 'Natural Silver', color: '#94A3B8', compatible: true, default: true },
+      { key: 'RHOD_SILVER', name: 'Rhodium-Plated Silver', color: '#CBD5E1', compatible: true, default: true },
+      { key: 'GOLD_SILVER', name: 'Gold-Plated Silver', color: '#D4AF37', compatible: true, default: false },
+      { key: 'SOLID_GOLD', name: 'Solid Gold Finishes', color: '#D4AF37', compatible: false, note: 'Incompatible in Silver' }
+    ],
+    stones: [
+      { code: 'DIA', name: 'Natural Diamond', compatible: false, note: 'Incompatible in Silver' },
+      { code: 'LGD', name: 'Lab-grown Diamond', compatible: false, note: 'Incompatible in Silver' },
+      { code: 'CZ', name: 'American Diamond (CZ)', compatible: true, default: true },
+      { code: 'MOI', name: 'Moissanite', compatible: true, default: true },
+      { code: 'SAP', name: 'Sapphire', compatible: false, note: 'Incompatible in Silver' },
+      { code: 'EMR', name: 'Zambian Emerald', compatible: true, default: true },
+      { code: 'RUB', name: 'Ruby', compatible: false, note: 'Incompatible in Silver' },
+      { code: 'NONE', name: 'No Stone / Plain Metal', compatible: true, default: true }
+    ]
+  }
+};
+
+const existingCompatMatrix = {!! json_encode(old('compatibility_matrix', null)) !!};
+let currentMatrixData = existingCompatMatrix && typeof existingCompatMatrix === 'object' ? existingCompatMatrix : {};
+
+function getCheckedPurities() {
+  const cbs = document.querySelectorAll('.purity-checkbox:checked');
+  return Array.from(cbs).map(cb => cb.value.toUpperCase().trim());
+}
+
+function renderCompatibilityMasterCards() {
+  const container = document.getElementById('compatibility_master_container');
+  if (!container) return;
+
+  const checkedPurities = getCheckedPurities();
+  if (checkedPurities.length === 0) {
+    container.innerHTML = `
+      <div style="padding: 24px; text-align: center; border: 1px dashed var(--admin-border); border-radius: 10px; color: var(--admin-text-muted); font-size: 13px;">
+        Please select at least one <strong>Metal Purity</strong> above to configure options availability.
+      </div>
+    `;
+    updateMatrixPayload();
+    return;
   }
 
+  container.innerHTML = '';
+
+  checkedPurities.forEach(purityKey => {
+    let masterKey = '18KT';
+    if (purityKey.includes('22')) masterKey = '22KT';
+    else if (purityKey.includes('18')) masterKey = '18KT';
+    else if (purityKey.includes('14')) masterKey = '14KT';
+    else if (purityKey.includes('SILVER') || purityKey.includes('925')) masterKey = '925 SILVER';
+
+    const rule = COMPATIBILITY_RULES_MASTER[masterKey] || COMPATIBILITY_RULES_MASTER['18KT'];
+    const savedPurityData = currentMatrixData[masterKey] || currentMatrixData[purityKey] || null;
+
+    const savedFinishes = savedPurityData?.finishes || rule.finishes.filter(f => f.compatible && f.default).map(f => f.key);
+    const savedStones = savedPurityData?.stones || rule.stones.filter(s => s.compatible && s.default).map(s => s.code);
+
+    const card = document.createElement('div');
+    card.id = `compat_card_${masterKey.replace(/\\s+/g, '_')}`;
+    card.style.background = 'var(--admin-surface)';
+    card.style.border = '1px solid var(--admin-border)';
+    card.style.borderLeft = `5px solid ${rule.badge}`;
+    card.style.borderRadius = '12px';
+    card.style.padding = '18px 20px';
+    card.style.display = 'flex';
+    card.style.flexDirection = 'column';
+    card.style.gap = '16px';
+
+    let html = `
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--admin-border); padding-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 11px; font-weight: 800; color: #FFFFFF; background: ${rule.badge}; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.06em;">
+            ${rule.code}
+          </span>
+          <span style="font-size: 14.5px; font-weight: 800; color: var(--admin-text-primary);">
+            ${rule.name} Options Availability
+          </span>
+          <span style="font-size: 11.5px; color: var(--admin-text-muted);">
+            (${rule.sub})
+          </span>
+        </div>
+      </div>
+    `;
+
+    // 1. Finish Options Row
+    html += `
+      <div>
+        <div style="font-size: 11.5px; font-weight: 800; color: var(--admin-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <span>FINISH OPTIONS:</span>
+          <span style="font-size: 10.5px; font-weight: normal; color: var(--admin-text-muted);">(Select finishes offered in ${rule.code})</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px;">
+    `;
+
+    rule.finishes.forEach(f => {
+      if (f.compatible) {
+        const isChecked = savedFinishes.includes(f.key);
+        html += `
+          <label style="display: flex; align-items: center; justify-content: space-between; background: var(--admin-surface-elevated); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--admin-border); cursor: pointer; user-select: none;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" class="compat-finish-checkbox" data-purity="${masterKey}" data-finish-key="${f.key}" value="${f.key}" ${isChecked ? 'checked' : ''} onchange="handleMatrixChange()" style="width: 15px; height: 15px; accent-color: ${f.color}; cursor: pointer;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--admin-text-primary);">${f.name}</span>
+            </div>
+            <span style="width: 14px; height: 14px; border-radius: 50%; background: ${f.color}; border: 1px solid rgba(0,0,0,0.2);"></span>
+          </label>
+        `;
+      } else {
+        html += `
+          <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.1); padding: 8px 12px; border-radius: 8px; border: 1px dashed var(--admin-border); opacity: 0.55; user-select: none;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" disabled style="width: 15px; height: 15px;">
+              <span style="font-size: 13px; font-weight: 500; color: var(--admin-text-muted); text-decoration: line-through;">${f.name}</span>
+            </div>
+            <span style="font-size: 9.5px; font-weight: 700; color: #EF4444; background: rgba(239,68,68,0.12); padding: 2px 6px; border-radius: 4px;">✕ ${f.note || 'Incompatible'}</span>
+          </div>
+        `;
+      }
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    // 2. Product Options (Stones / Gems) Row
+    html += `
+      <div>
+        <div style="font-size: 11.5px; font-weight: 800; color: var(--admin-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <span>PRODUCT OPTIONS (STONE / GEM TYPES):</span>
+          <span style="font-size: 10.5px; font-weight: normal; color: var(--admin-text-muted);">(Select stones offered in ${rule.code})</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px;">
+    `;
+
+    rule.stones.forEach(s => {
+      if (s.compatible) {
+        const isChecked = savedStones.includes(s.code);
+        html += `
+          <label style="display: flex; align-items: center; justify-content: space-between; background: var(--admin-surface-elevated); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--admin-border); cursor: pointer; user-select: none;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" class="compat-stone-checkbox" data-purity="${masterKey}" data-stone-code="${s.code}" value="${s.code}" ${isChecked ? 'checked' : ''} onchange="handleMatrixChange()" style="width: 15px; height: 15px; accent-color: var(--admin-primary); cursor: pointer;">
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--admin-text-primary);">${s.name}</span>
+            </div>
+            <span style="font-size: 10px; font-weight: 700; color: #10B981;">✓</span>
+          </label>
+        `;
+      } else {
+        html += `
+          <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.1); padding: 8px 12px; border-radius: 8px; border: 1px dashed var(--admin-border); opacity: 0.55; user-select: none;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" disabled style="width: 15px; height: 15px;">
+              <span style="font-size: 12.5px; font-weight: 500; color: var(--admin-text-muted); text-decoration: line-through;">${s.name}</span>
+            </div>
+            <span style="font-size: 9.5px; font-weight: 700; color: #EF4444; background: rgba(239,68,68,0.12); padding: 2px 6px; border-radius: 4px;">✕ ${s.note || 'Incompatible'}</span>
+          </div>
+        `;
+      }
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+
+  updateMatrixPayload();
+}
+
+function handleMatrixChange() {
+  updateMatrixPayload();
   renderFinishTabs();
   renderActiveGallery();
+}
+
+function updateMatrixPayload() {
+  const matrix = {};
+  const checkedPurities = getCheckedPurities();
+
+  checkedPurities.forEach(purityKey => {
+    let masterKey = '18KT';
+    if (purityKey.includes('22')) masterKey = '22KT';
+    else if (purityKey.includes('18')) masterKey = '18KT';
+    else if (purityKey.includes('14')) masterKey = '14KT';
+    else if (purityKey.includes('SILVER') || purityKey.includes('925')) masterKey = '925 SILVER';
+
+    const fCbs = document.querySelectorAll(`.compat-finish-checkbox[data-purity="${masterKey}"]:checked`);
+    const sCbs = document.querySelectorAll(`.compat-stone-checkbox[data-purity="${masterKey}"]:checked`);
+
+    matrix[masterKey] = {
+      finishes: Array.from(fCbs).map(cb => cb.value),
+      stones: Array.from(sCbs).map(cb => cb.value),
+    };
+  });
+
+  currentMatrixData = matrix;
+  const input = document.getElementById('compatibility_matrix_json');
+  if (input) {
+    input.value = JSON.stringify(matrix);
+  }
+
+  const hiddenContainer = document.getElementById('hidden_available_finishes_container');
+  if (hiddenContainer) {
+    hiddenContainer.innerHTML = '';
+    const allSelectedFinishes = new Set();
+    Object.values(matrix).forEach(item => {
+      (item.finishes || []).forEach(f => allSelectedFinishes.add(f));
+    });
+
+    if (allSelectedFinishes.size === 0) {
+      allSelectedFinishes.add('YG');
+    }
+
+    allSelectedFinishes.forEach(fKey => {
+      const hInput = document.createElement('input');
+      hInput.type = 'hidden';
+      hInput.name = 'available_finishes[]';
+      hInput.value = fKey;
+      hiddenContainer.appendChild(hInput);
+    });
+  }
+}
+
+function getCompatibilityMatrixPayload() {
+  updateMatrixPayload();
+  return currentMatrixData;
 }
 
 function renderFinishTabs() {
@@ -726,6 +995,12 @@ function syncFormInputs() {
     });
   }
 
+  // Sync Compatibility Matrix
+  const compatJson = document.getElementById('compatibility_matrix_json');
+  if (compatJson && typeof getCompatibilityMatrixPayload === 'function') {
+    compatJson.value = JSON.stringify(getCompatibilityMatrixPayload());
+  }
+
   // Sync Options Assignments
   const optAssignJson = document.getElementById('option_assignments_json');
   if (optAssignJson && typeof getOptionAssignmentsPayload === 'function') {
@@ -750,6 +1025,7 @@ function escapeHtml(str) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  renderCompatibilityMasterCards();
   renderFinishTabs();
   renderActiveGallery();
   initCustomSections();
