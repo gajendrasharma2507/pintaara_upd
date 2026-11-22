@@ -1045,7 +1045,7 @@ export default function DynamicCollectionPage({ params }) {
             if (r.includes('22')) return '22KT';
             if (r.includes('18')) return '18KT';
             if (r.includes('14')) return '14KT';
-            if (r.includes('925') || r.includes('SILVER')) return '925 Silver';
+            if (r.includes('925') || r.includes('SILVER')) return '925 SILVER';
             return r;
         };
         const unique = Array.from(new Set(raw.map(norm).filter(Boolean)));
@@ -2269,7 +2269,7 @@ export default function DynamicCollectionPage({ params }) {
                                 <table className="atelier-compat-table">
                                     <thead>
                                         <tr>
-                                            <th className="atelier-compat-th-main">Finish / appearance</th>
+                                            <th className="atelier-compat-th-main">FINISH / APPEARANCE</th>
                                             {compatDisplayPurities.map((p) => (
                                                 <th key={p} className="atelier-compat-th-purity">{p}</th>
                                             ))}
@@ -2283,8 +2283,7 @@ export default function DynamicCollectionPage({ params }) {
                                                     <span>{f.name}</span>
                                                 </td>
                                                 {compatDisplayPurities.map((p) => {
-                                                    const normP = p === '925 Silver' ? '925 SILVER' : p;
-                                                    const isCompat = f.purities?.[normP] ?? f.purities?.[p];
+                                                    const isCompat = isFinishCompatible(f.key, p);
                                                     return (
                                                         <td key={p} className="atelier-compat-td-val">
                                                             {isCompat ? (
@@ -2302,7 +2301,7 @@ export default function DynamicCollectionPage({ params }) {
         <React.Fragment key={grp.id || grp.name}>
             <tr className="atelier-compat-subhead-row">
                 <td colSpan={compatDisplayPurities.length + 1} className="atelier-compat-subhead-td">
-                    {grp.name}
+                    {grp.name.toUpperCase()}
                 </td>
             </tr>
             {grp.values?.map((val, vIdx) => {
