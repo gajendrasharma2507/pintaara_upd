@@ -534,19 +534,38 @@ function handleMatrixCellChange() {
   const normalizedPurities = Array.from(new Set(getCheckedPurities().map(normalizePurityKey)));
 
   normalizedPurities.forEach(p => {
-    matrix[p] = { finishes: [], stones: [] };
+    matrix[p] = { finishes: [], options: {}, options_by_name: {}, stones: [] };
   });
 
   document.querySelectorAll('.matrix-cell-chk').forEach(cb => {
     const p = cb.getAttribute('data-purity');
     const type = cb.getAttribute('data-type');
     const key = cb.getAttribute('data-key');
-    if (!matrix[p]) matrix[p] = { finishes: [], stones: [] };
+    const groupId = cb.getAttribute('data-group-id');
+    const groupName = cb.getAttribute('data-group-name');
+    const valName = cb.getAttribute('data-val-name');
+
+    if (!matrix[p]) matrix[p] = { finishes: [], options: {}, options_by_name: {}, stones: [] };
 
     if (cb.checked) {
       if (type === 'finish') {
         if (!matrix[p].finishes.includes(key)) matrix[p].finishes.push(key);
+      } else if (type === 'option') {
+        if (!matrix[p].options[groupId]) matrix[p].options[groupId] = [];
+        if (!matrix[p].options[groupId].includes(key)) matrix[p].options[groupId].push(key);
+
+        if (!matrix[p].options_by_name[groupName]) matrix[p].options_by_name[groupName] = [];
+        if (!matrix[p].options_by_name[groupName].includes(valName)) matrix[p].options_by_name[groupName].push(valName);
+
+        const gLower = (groupName || '').toLowerCase();
+        if (gLower.includes('gem') || gLower.includes('stone') || gLower.includes('diamond')) {
+          if (!matrix[p].stones) matrix[p].stones = [];
+          if (!matrix[p].stones.includes(key) && !matrix[p].stones.includes(valName)) {
+            matrix[p].stones.push(valName);
+          }
+        }
       } else if (type === 'stone') {
+        if (!matrix[p].stones) matrix[p].stones = [];
         if (!matrix[p].stones.includes(key)) matrix[p].stones.push(key);
       }
     }
@@ -567,47 +586,32 @@ function renderCompatibilityMasterTable() {
   const normalizedPurities = Array.from(new Set(rawPurities.map(normalizePurityKey)));
   const selectedFinishKeys = getSelectedFinishKeys();
 
-  // Find selected stones from GEM / STONE group if present
-  let activeStones = [];
-  const gemGroup = (typeof optionGroupsData !== 'undefined' ? optionGroupsData : []).find(g => {
-    const code = (g.code || '').toUpperCase();
-    const name = (g.name || '').toUpperCase();
-    return code === 'GEM' || name.includes('STONE') || name.includes('GEM');
-  });
-
-  if (gemGroup && gemGroup.id) {
-    const checkedStoneCbs = document.querySelectorAll(`.group-val-chk-${gemGroup.id}:checked`);
-    if (checkedStoneCbs.length > 0) {
-      const checkedValNames = Array.from(checkedStoneCbs).map(cb => ({
-        name: cb.getAttribute('data-val-name') || cb.value,
-        id: cb.value
-      }));
-      activeStones = checkedValNames.map(v => {
-        const vLower = v.name.toLowerCase();
-        const matched = COMPATIBILITY_RULES_MASTER.stones.find(s => {
-          const sName = s.name.toLowerCase();
-          return sName.includes(vLower) || vLower.includes(sName.split(' ')[0]);
-        });
-        if (matched) {
-          return { code: matched.code, name: v.name, purities: matched.purities };
-        }
-        return {
-          code: 'CUSTOM_' + v.id,
-          name: v.name,
-          purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': true }
-        };
-      });
-    }
-  }
-
-  // If no stones selected specifically or group disabled, show all standard stones
-  if (activeStones.length === 0) {
-    activeStones = COMPATIBILITY_RULES_MASTER.stones;
-  }
-
   // Active finishes from selectedFinishKeys
   const activeFinishes = COMPATIBILITY_RULES_MASTER.finishes.filter(f => selectedFinishKeys.includes(f.key));
   const finishesToDisplay = activeFinishes.length > 0 ? activeFinishes : COMPATIBILITY_RULES_MASTER.finishes.slice(0, 4);
+
+  // Active option groups selected by admin in Product Options
+  const activeGroups = [];
+  if (typeof optionGroupsData !== 'undefined' && Array.isArray(optionGroupsData)) {
+    optionGroupsData.forEach(group => {
+      const chkEnable = document.getElementById(`chk_group_enable_${group.id}`);
+      if (chkEnable && chkEnable.checked) {
+        const checkedValCbs = document.querySelectorAll(`.group-val-chk-${group.id}:checked`);
+        if (checkedValCbs.length > 0) {
+          const values = Array.from(checkedValCbs).map(cb => ({
+            id: cb.value,
+            name: cb.getAttribute('data-val-name') || cb.value,
+          }));
+          activeGroups.push({
+            id: group.id,
+            name: group.name,
+            code: group.code,
+            values: values
+          });
+        }
+      }
+    });
+  }
 
   // Build clean normal table with interactive checkboxes
   const purityBadges = {
@@ -679,50 +683,78 @@ function renderCompatibilityMasterTable() {
     html += `</tr>`;
   });
 
-  // 2. Stone type section header
-  html += `
-    <tr style="background: #F8FAFC; border-top: 2px solid #E2E8F0; border-bottom: 1px solid #E2E8F0;">
-      <td colspan="${normalizedPurities.length + 1}" style="padding: 10px 18px; font-weight: 800; color: #1E293B; letter-spacing: 0.04em; text-transform: uppercase; font-size: 12px;">
-        Stone type
-      </td>
-    </tr>
-  `;
-
-  // 3. Stone rows with interactive checkboxes
-  activeStones.forEach((s, idx) => {
-    const bg = idx % 2 === 0 ? '#FFFFFF' : '#FDFDFD';
+  // 2. Loop through each active option group (e.g. SIZE, GEM / STONE OPTIONS, etc.)
+  activeGroups.forEach(grp => {
     html += `
-      <tr style="border-bottom: 1px solid #F1F5F9; background: ${bg};">
-        <td style="padding: 11px 18px; color: #334155; font-weight: 500;">
-          ${escapeHtml(s.name)}
+      <tr style="background: #F8FAFC; border-top: 2px solid #E2E8F0; border-bottom: 1px solid #E2E8F0;">
+        <td colspan="${normalizedPurities.length + 1}" style="padding: 10px 18px; font-weight: 800; color: #1E293B; letter-spacing: 0.04em; text-transform: uppercase; font-size: 12px;">
+          ${escapeHtml(grp.name)}
         </td>
+      </tr>
     `;
-    normalizedPurities.forEach(p => {
-      let isCompat = false;
-      if (currentMatrixData[p] && Array.isArray(currentMatrixData[p].stones)) {
-        isCompat = currentMatrixData[p].stones.includes(s.code);
-      } else {
-        isCompat = Boolean(s.purities && s.purities[p]);
-      }
 
+    const isGemGroup = (grp.name.toLowerCase().includes('gem') || grp.name.toLowerCase().includes('stone')) && !grp.name.toLowerCase().includes('clarity');
+
+    grp.values.forEach((val, vIdx) => {
+      const bg = vIdx % 2 === 0 ? '#FFFFFF' : '#FDFDFD';
       html += `
-        <td style="padding: 9px 14px; text-align: center;">
-          <label style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0; padding: 2px;">
-            <input
-              type="checkbox"
-              class="matrix-cell-chk"
-              data-type="stone"
-              data-key="${s.code}"
-              data-purity="${p}"
-              ${isCompat ? 'checked' : ''}
-              onchange="handleMatrixCellChange()"
-              style="width: 17px; height: 17px; accent-color: #10B981; cursor: pointer;"
-            />
-          </label>
-        </td>
+        <tr style="border-bottom: 1px solid #F1F5F9; background: ${bg};">
+          <td style="padding: 11px 18px; color: #334155; font-weight: 500;">
+            ${escapeHtml(val.name)}
+          </td>
       `;
+
+      normalizedPurities.forEach(p => {
+        let isCompat = false;
+        const savedOptions = currentMatrixData[p]?.options;
+        const savedOptionsByName = currentMatrixData[p]?.options_by_name;
+        const savedStones = currentMatrixData[p]?.stones;
+
+        if (savedOptions && savedOptions[grp.id]) {
+          isCompat = savedOptions[grp.id].includes(String(val.id)) || savedOptions[grp.id].includes(Number(val.id));
+        } else if (savedOptionsByName && savedOptionsByName[grp.name]) {
+          isCompat = savedOptionsByName[grp.name].includes(val.name);
+        } else if (isGemGroup && savedStones) {
+          isCompat = savedStones.includes(val.name) || savedStones.includes(String(val.id));
+        } else if (isGemGroup) {
+          // Fallback to Master Rules for stones
+          const vLower = val.name.toLowerCase();
+          const matched = COMPATIBILITY_RULES_MASTER.stones.find(s => {
+            const sName = s.name.toLowerCase();
+            return sName.includes(vLower) || vLower.includes(sName.split(' ')[0]);
+          });
+          if (matched) {
+            isCompat = Boolean(matched.purities && matched.purities[p]);
+          } else {
+            isCompat = true;
+          }
+        } else {
+          // Default for sizes or other groups: true
+          isCompat = true;
+        }
+
+        html += `
+          <td style="padding: 9px 14px; text-align: center;">
+            <label style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0; padding: 2px;">
+              <input
+                type="checkbox"
+                class="matrix-cell-chk"
+                data-type="option"
+                data-group-id="${grp.id}"
+                data-group-name="${escapeHtml(grp.name)}"
+                data-key="${val.id}"
+                data-val-name="${escapeHtml(val.name)}"
+                data-purity="${p}"
+                ${isCompat ? 'checked' : ''}
+                onchange="handleMatrixCellChange()"
+                style="width: 17px; height: 17px; accent-color: #10B981; cursor: pointer;"
+              />
+            </label>
+          </td>
+        `;
+      });
+      html += `</tr>`;
     });
-    html += `</tr>`;
   });
 
   html += `

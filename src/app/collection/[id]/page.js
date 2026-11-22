@@ -945,6 +945,41 @@ export default function DynamicCollectionPage({ params }) {
         return true;
     }, [compatMatrix]);
 
+    const isOptionValueCompatible = useCallback((group, val, purity) => {
+        const rawP = (purity || '').toUpperCase();
+        const normP = rawP.includes('22') ? '22KT'
+            : rawP.includes('18') ? '18KT'
+            : rawP.includes('14') ? '14KT'
+            : rawP.includes('925') || rawP.includes('SILVER') ? '925 SILVER'
+            : rawP;
+
+        const valId = typeof val === 'object' ? val.id : val;
+        const valName = typeof val === 'object' ? (val.value || val.name || '') : String(val);
+
+        if (compatMatrix && compatMatrix[normP]) {
+            const pData = compatMatrix[normP];
+            if (pData.options && group?.id && pData.options[group.id]) {
+                const list = pData.options[group.id];
+                return list.includes(String(valId)) || list.includes(Number(valId));
+            }
+            if (pData.options_by_name && group?.name && pData.options_by_name[group.name]) {
+                const list = pData.options_by_name[group.name];
+                return list.includes(valName);
+            }
+            const gLower = (group?.name || '').toLowerCase();
+            if ((gLower.includes('gem') || gLower.includes('stone') || gLower.includes('diamond')) && pData.stones) {
+                return pData.stones.includes(valName) || pData.stones.includes(String(valId));
+            }
+        }
+
+        const gLower = (group?.name || '').toLowerCase();
+        if ((gLower.includes('gem') || gLower.includes('stone')) && !gLower.includes('clarity')) {
+            return isStoneCompatible(valName, purity);
+        }
+
+        return true;
+    }, [compatMatrix, isStoneCompatible]);
+
     const compatDisplayPurities = useMemo(() => {
         const raw = availablePurities?.map(p => (p.code || p.value || '').toUpperCase()) || [];
         const norm = (r) => {
@@ -992,22 +1027,30 @@ export default function DynamicCollectionPage({ params }) {
         }
     }, [selectedPurity, selectedFinishCode, availableFinishes, isFinishCompatible]);
 
-    // Auto-switch gem/stone if currently selected stone is incompatible with newly selected purity
+    // Auto-switch any option group (dropdown, swatch, or buttons) if current selection is incompatible with purity
     useEffect(() => {
-        if (gemGroup && Array.isArray(gemGroup.values) && gemGroup.values.length > 0) {
-            const currentStone = selectedOptions[gemGroup.name]?.value;
-            if (currentStone && !isStoneCompatible(currentStone, selectedPurity)) {
-                const firstCompat = gemGroup.values.find(v => isStoneCompatible(v.value || v.code, selectedPurity));
+        if (!activeOptionGroups || activeOptionGroups.length === 0) return;
+
+        activeOptionGroups.forEach(grp => {
+            const curVal = selectedOptions[grp.name]?.value;
+            if (curVal && !isOptionValueCompatible(grp, curVal, selectedPurity)) {
+                const firstCompat = grp.values?.find(v => isOptionValueCompatible(grp, v, selectedPurity));
                 if (firstCompat) {
-                    handleSelectOption(gemGroup.name, {
-                        value: firstCompat.value,
+                    const isChain = grp.name.toLowerCase().includes('chain');
+                    const isSize = grp.name.toLowerCase().includes('size');
+                    const rawVal = firstCompat.value || firstCompat;
+                    if (isChain) setSelectedChain(rawVal);
+                    if (isSize) setSelectedSize(rawVal);
+                    handleSelectOption(grp.name, {
+                        value: rawVal,
                         code: firstCompat.code || '',
-                        price_delta: parseFloat(firstCompat.price_delta) || 0
+                        price_delta: parseFloat(firstCompat.price_delta) || 0,
+                        image: firstCompat.image || null
                     });
                 }
             }
-        }
-    }, [selectedPurity, gemGroup, selectedOptions, isStoneCompatible]);
+        });
+    }, [selectedPurity, activeOptionGroups, selectedOptions, isOptionValueCompatible]);
 
 
     // Ensure selected finish is always valid when availableFinishes changes
@@ -1894,9 +1937,10 @@ export default function DynamicCollectionPage({ params }) {
                                                         {grp.values.map((vObj) => {
                                                             const rawVal = typeof vObj === 'string' ? vObj : vObj.value;
                                                             const displayVal = isSize ? rawVal.replace(/^(Ring\s*Size|Size)\s*/i, '').trim() : rawVal;
+                                                            const isCompat = isOptionValueCompatible(grp, vObj, selectedPurity);
                                                             return (
-                                                                <option key={vObj.id || rawVal} value={rawVal}>
-                                                                    {displayVal}
+                                                                <option key={vObj.id || rawVal} value={rawVal} disabled={!isCompat}>
+                                                                    {displayVal} {!isCompat ? `(${selectedPurity} N/A)` : ''}
                                                                 </option>
                                                             );
                                                         })}
@@ -1925,6 +1969,7 @@ export default function DynamicCollectionPage({ params }) {
 
                                                         const currentVal = selectedOptions[grp.name]?.value;
                                                         const isSelected = currentVal ? currentVal === sVal.value : (idx === 0);
+                                                        const isValCompat = isOptionValueCompatible(grp, sVal, selectedPurity);
 
                                                         const rawDelta = parseFloat(sVal.price_delta) || 0;
                                                         const delta = Math.abs(rawDelta);
@@ -2151,31 +2196,67 @@ export default function DynamicCollectionPage({ params }) {
                                                 })}
                                             </tr>
                                         ))}
-                                        <tr className="atelier-compat-subhead-row">
-                                            <td colSpan={compatDisplayPurities.length + 1} className="atelier-compat-subhead-td">
-                                                Stone type
-                                            </td>
-                                        </tr>
-                                        {compatDisplayStones.map((s, sIdx) => (
-                                            <tr key={s.code || sIdx}>
-                                                <td className="atelier-compat-td-label">
-                                                    <span>{s.name}</span>
-                                                </td>
-                                                {compatDisplayPurities.map((p) => {
-                                                    const normP = p === '925 Silver' ? '925 SILVER' : p;
-                                                    const isCompat = s.purities?.[normP] ?? s.purities?.[p];
-                                                    return (
-                                                        <td key={p} className="atelier-compat-td-val">
-                                                            {isCompat ? (
-                                                                <span className="atelier-compat-check">✓</span>
-                                                            ) : (
-                                                                <span className="atelier-compat-dash">—</span>
-                                                            )}
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
-                                        ))}
+                                        {activeOptionGroups && activeOptionGroups.length > 0 ? (
+    activeOptionGroups.map((grp) => (
+        <React.Fragment key={grp.id || grp.name}>
+            <tr className="atelier-compat-subhead-row">
+                <td colSpan={compatDisplayPurities.length + 1} className="atelier-compat-subhead-td">
+                    {grp.name}
+                </td>
+            </tr>
+            {grp.values?.map((val, vIdx) => {
+                const valId = typeof val === 'object' ? val.id : val;
+                const valName = typeof val === 'object' ? (val.value || val.name || '') : String(val);
+                return (
+                    <tr key={valId || vIdx}>
+                        <td className="atelier-compat-td-label">
+                            <span>{valName}</span>
+                        </td>
+                        {compatDisplayPurities.map((p) => {
+                            const isCompat = isOptionValueCompatible(grp, val, p);
+                            return (
+                                <td key={p} className="atelier-compat-td-val">
+                                    {isCompat ? (
+                                        <span className="atelier-compat-check">✓</span>
+                                    ) : (
+                                        <span className="atelier-compat-dash">—</span>
+                                    )}
+                                </td>
+                            );
+                        })}
+                    </tr>
+                );
+            })}
+        </React.Fragment>
+    ))
+) : (
+    <>
+        <tr className="atelier-compat-subhead-row">
+            <td colSpan={compatDisplayPurities.length + 1} className="atelier-compat-subhead-td">
+                Stone type
+            </td>
+        </tr>
+        {compatDisplayStones.map((s, sIdx) => (
+            <tr key={s.code || sIdx}>
+                <td className="atelier-compat-td-label">
+                    <span>{s.name}</span>
+                </td>
+                {compatDisplayPurities.map((p) => {
+                    const isCompat = isStoneCompatible(s.code || s.name, p);
+                    return (
+                        <td key={p} className="atelier-compat-td-val">
+                            {isCompat ? (
+                                <span className="atelier-compat-check">✓</span>
+                            ) : (
+                                <span className="atelier-compat-dash">—</span>
+                            )}
+                        </td>
+                    );
+                })}
+            </tr>
+        ))}
+    </>
+)}
                                     </tbody>
                                 </table>
                             </div>
