@@ -53,7 +53,7 @@ export default function PasswordPage() {
 
         safeStorage.setItem("pintaara_unlocked", "1");
         safeStorage.setItem("pintaara_unlocked_expires_at", String(expiresAt));
-        safeStorage.setItem("pintaara_entered", "true");
+        safeStorage.removeItem("pintaara_entered");
         safeSessionStorage.setItem("pintaara_entered", "true");
 
         try {

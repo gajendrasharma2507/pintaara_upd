@@ -22,8 +22,8 @@ export default function Home() {
     if (scrollToSlideRef.current) {
       scrollToSlideRef.current(0);
     }
-    safeStorage.setItem('pintaara_entered', 'true');
     safeSessionStorage.setItem('pintaara_entered', 'true');
+    safeStorage.removeItem('pintaara_entered');
     setTimeout(() => {
       setHasEntered(true);
       setIsExiting(false);
@@ -59,16 +59,13 @@ export default function Home() {
         window.history.scrollRestoration = 'manual';
       } catch (e) {}
 
-      // Once user entered password, NEVER show the Enter page again
-      const isUnlocked =
-        safeStorage.getItem("pintaara_unlocked") === "1" &&
-        Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0") > Date.now();
+      // Clean up any legacy persistent entered flag
+      safeStorage.removeItem('pintaara_entered');
 
-      const entered =
-        safeSessionStorage.getItem('pintaara_entered') === 'true' ||
-        safeStorage.getItem('pintaara_entered') === 'true';
+      // Check if user already clicked Enter in this current browser tab session
+      const enteredInSession = safeSessionStorage.getItem('pintaara_entered') === 'true';
 
-      if (isUnlocked || entered) {
+      if (enteredInSession) {
         setHasEntered(true);
       }
     }
