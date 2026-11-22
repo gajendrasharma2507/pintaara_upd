@@ -227,9 +227,6 @@
               COMPATIBILITY MASTER
             </label>
           </div>
-          <p style="font-size: 12px; color: var(--admin-text-muted); margin: 4px 0 0 0;">
-            Select which Finishes and Stone / Gem Options are available for each selected Metal Purity (22K, 18K, 14K, 925 Silver).
-          </p>
         </div>
       </div>
 
