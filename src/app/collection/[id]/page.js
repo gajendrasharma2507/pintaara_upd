@@ -981,39 +981,52 @@ export default function DynamicCollectionPage({ params }) {
         if (compatMatrix && compatMatrix[normP]) {
             const pData = compatMatrix[normP];
 
-            // 1. Check in pData.options by groupId
-            if (pData.options && group?.id && pData.options[group.id]) {
-                const list = pData.options[group.id].map(String);
-                if (valId && list.includes(valId)) return true;
-                // If val was passed as name string, match against group.values
-                if (Array.isArray(group.values)) {
+            let hasOptIdCheck = false;
+            let matchedOptId = false;
+            const grpId = String(group?.id || '');
+            if (pData.options && grpId && pData.options[grpId] !== undefined) {
+                hasOptIdCheck = true;
+                const list = pData.options[grpId].map(String);
+                if (valId && list.includes(valId)) {
+                    matchedOptId = true;
+                } else if (Array.isArray(group.values)) {
                     const matchedVal = group.values.find(v => String(v.value || '').trim().toLowerCase() === valNameClean);
-                    if (matchedVal && list.includes(String(matchedVal.id))) return true;
+                    if (matchedVal && list.includes(String(matchedVal.id))) {
+                        matchedOptId = true;
+                    }
                 }
             }
 
-            // 2. Check in pData.options_by_name by groupName (case-insensitive)
+            let hasOptNameCheck = false;
+            let matchedOptName = false;
             if (pData.options_by_name && group?.name) {
                 const grpNameLower = group.name.trim().toLowerCase();
                 const targetKey = Object.keys(pData.options_by_name).find(
                     k => k.trim().toLowerCase() === grpNameLower
                 );
                 if (targetKey && Array.isArray(pData.options_by_name[targetKey])) {
+                    hasOptNameCheck = true;
                     const list = pData.options_by_name[targetKey].map(s => String(s).trim().toLowerCase());
-                    if (list.includes(valNameClean)) return true;
-                    // Also partial match for sizes like "10" vs "Ring Size 10"
-                    if (list.some(s => s === valNameClean || valNameClean.replace(/^(ring\s*size|size)\s*/i, '').trim() === s)) {
-                        return true;
+                    if (list.includes(valNameClean) || list.some(s => s === valNameClean || valNameClean.replace(/^(ring\s*size|size)\s*/i, '').trim() === s)) {
+                        matchedOptName = true;
                     }
-                    return false;
                 }
             }
 
-            // 3. Check in pData.stones if gem/stone group
+            let hasStonesCheck = false;
+            let matchedStones = false;
             const gLower = (group?.name || '').toLowerCase();
-            if ((gLower.includes('gem') || gLower.includes('stone') || gLower.includes('diamond')) && pData.stones) {
+            const isGemGrp = (gLower.includes('gem') || gLower.includes('stone') || gLower.includes('diamond')) && !gLower.includes('clarity');
+            if (isGemGrp && Array.isArray(pData.stones)) {
+                hasStonesCheck = true;
                 const list = pData.stones.map(s => String(s).trim().toLowerCase());
-                return list.some(s => s === valNameClean || valNameClean.includes(s) || s.includes(valNameClean));
+                if (list.some(s => s === valNameClean || valNameClean.includes(s) || s.includes(valNameClean))) {
+                    matchedStones = true;
+                }
+            }
+
+            if (hasOptIdCheck || hasOptNameCheck || hasStonesCheck) {
+                return Boolean(matchedOptId || matchedOptName || matchedStones);
             }
         }
 
@@ -1086,6 +1099,7 @@ export default function DynamicCollectionPage({ params }) {
             const curVal = currentSelected?.value;
             const isChain = grp.name.toLowerCase().includes('chain');
             const isSize = grp.name.toLowerCase().includes('size');
+            const isGem = (grp.name.toLowerCase().includes('gem') || grp.name.toLowerCase().includes('stone')) && !grp.name.toLowerCase().includes('clarity');
             const effectiveVal = curVal || (isChain ? selectedChain : isSize ? selectedSize : grp.values[0]?.value);
 
             const isCompat = effectiveVal ? isOptionValueCompatible(grp, effectiveVal, selectedPurity) : false;
@@ -1096,6 +1110,10 @@ export default function DynamicCollectionPage({ params }) {
                     const rawVal = firstCompat.value || firstCompat;
                     if (isChain) setSelectedChain(rawVal);
                     if (isSize) setSelectedSize(rawVal);
+                    if (isGem) {
+                        const valLower = String(rawVal).toLowerCase();
+                        setSelectedGem(valLower.includes('emerald') ? 'emerald' : valLower.includes('sapphire') ? 'sapphire' : valLower.includes('ruby') ? 'ruby' : valLower.includes('diamond') ? 'diamond' : 'none');
+                    }
                     handleSelectOption(grp.name, {
                         value: rawVal,
                         code: firstCompat.code || '',
@@ -1117,7 +1135,10 @@ export default function DynamicCollectionPage({ params }) {
                 return normalizeFinishKey(selectedFinishCode) === normalizeFinishKey(code);
             });
             if (!isCurrentAvailable) {
-                const first = availableFinishes[0];
+                const first = availableFinishes.find(f => {
+                    const code = normalizeFinishKey(f.code || f.value || '');
+                    return isFinishCompatible(code, selectedPurity);
+                }) || availableFinishes[0];
                 const valStr = typeof first === 'string' ? first : first.value;
                 const code = first.code || normalizeFinishKey(valStr);
                 const cleanCode = normalizeFinishKey(code);
@@ -1127,9 +1148,9 @@ export default function DynamicCollectionPage({ params }) {
                 handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: first.image });
             }
         }
-    }, [availableFinishes, selectedFinishCode, finishGroup]);
+    }, [availableFinishes, selectedFinishCode, finishGroup, selectedPurity, isFinishCompatible]);
 
-    // Synchronize default selections: ALWAYS default select the FIRST option for every group
+    // Synchronize default selections: ALWAYS default select the first COMPATIBLE option for every group
     useEffect(() => {
         if (activeOptionGroups && activeOptionGroups.length > 0) {
             setSelectedOptions((prev) => {
@@ -1142,8 +1163,10 @@ export default function DynamicCollectionPage({ params }) {
                         if (v.code && currentSelected.code && normalizeFinishKey(v.code) === normalizeFinishKey(currentSelected.code)) return true;
                         return false;
                     });
-                    if (!exists && group.values.length > 0) {
-                        const firstVal = group.values[0];
+                    const isCompat = currentSelected ? isOptionValueCompatible(group, currentSelected, selectedPurity) : false;
+
+                    if ((!exists || !isCompat) && group.values.length > 0) {
+                        const firstVal = group.values.find(v => isOptionValueCompatible(group, v, selectedPurity)) || group.values[0];
                         next[gName] = firstVal;
                         const l = gName.toLowerCase();
                         if (l.includes('purity') || l.includes('metal') || l.includes('karat')) {
@@ -1166,7 +1189,7 @@ export default function DynamicCollectionPage({ params }) {
                 return next;
             });
         }
-    }, [activeOptionGroups]);
+    }, [activeOptionGroups, selectedPurity, isOptionValueCompatible]);
 
     const handleSelectOption = (groupName, valueObj) => {
         setHasCustomized(true);
@@ -1174,6 +1197,16 @@ export default function DynamicCollectionPage({ params }) {
             ...prev,
             [groupName]: valueObj,
         }));
+        const valStr = typeof valueObj === 'object' ? (valueObj?.value || '') : String(valueObj || '');
+        const l = (groupName || '').toLowerCase();
+        if (l.includes('size')) {
+            setSelectedSize(valStr.replace(/^(Ring\s*Size|Size)\s*/i, ''));
+        } else if (l.includes('chain')) {
+            setSelectedChain(valStr.replace(/\s*Chain\s*/i, ' ').trim());
+        } else if (l.includes('gem') || l.includes('stone')) {
+            const valLower = valStr.toLowerCase();
+            setSelectedGem(valLower.includes('emerald') ? 'emerald' : valLower.includes('sapphire') ? 'sapphire' : valLower.includes('ruby') ? 'ruby' : valLower.includes('diamond') ? 'diamond' : 'none');
+        }
     };
 
     // Dynamic Variant Resolution: find the matching variant from productDetail.variants
@@ -2064,22 +2097,29 @@ export default function DynamicCollectionPage({ params }) {
                                                             <button
                                                                 key={sVal.id || sVal.value || idx}
                                                                 type="button"
-                                                                title={titleStr}
-                                                                onClick={() => handleSelectOption(grp.name, { value: sVal.value, code: sVal.code, price_delta: delta, image: sVal.image })}
+                                                                title={isValCompat ? titleStr : `${sVal.value} (Not offered in ${selectedPurity})`}
+                                                                disabled={!isValCompat}
+                                                                onClick={() => {
+                                                                    if (!isValCompat) return;
+                                                                    handleSelectOption(grp.name, { value: sVal.value, code: sVal.code, price_delta: delta, image: sVal.image });
+                                                                }}
                                                                 style={{
                                                                     width: '32px',
                                                                     height: '32px',
                                                                     borderRadius: '50%',
-                                                                    border: isSelected ? '2px solid #C9A961' : '1px solid #CBD5E1',
+                                                                    border: (isSelected && isValCompat) ? '2px solid #C9A961' : '1px solid #CBD5E1',
                                                                     padding: 0,
                                                                     background: sVal.hex_color || '#fff',
-                                                                    cursor: 'pointer',
+                                                                    cursor: isValCompat ? 'pointer' : 'not-allowed',
+                                                                    opacity: isValCompat ? 1 : 0.18,
+                                                                    pointerEvents: isValCompat ? 'auto' : 'none',
+                                                                    filter: isValCompat ? 'none' : 'grayscale(80%)',
                                                                     display: 'flex',
                                                                     alignItems: 'center',
                                                                     justifyContent: 'center',
                                                                     overflow: 'hidden',
                                                                     outline: 'none',
-                                                                    boxShadow: isSelected ? '0 0 0 2px rgba(201,169,97,0.3)' : 'none',
+                                                                    boxShadow: (isSelected && isValCompat) ? '0 0 0 2px rgba(201,169,97,0.3)' : 'none',
                                                                 }}
                                                             >
                                                                 {sVal.image ? (
