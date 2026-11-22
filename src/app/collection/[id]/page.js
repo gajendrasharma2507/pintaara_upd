@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use, useMemo } from 'react';
+import React, { useState, useEffect, use, useMemo, useCallback } from 'react';
 import Header from '@/components/Header';
 import Link from 'next/link';
 import Script from 'next/script';
