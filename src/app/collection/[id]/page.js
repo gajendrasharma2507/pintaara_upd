@@ -73,17 +73,24 @@ const normalizeFinishKey = (raw) => {
 };
 
 // 57-Facet Brilliant Cut Gemstone Component (supports custom uploaded image or SVG facet fallback)
-function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, title }) {
+function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, title, disabled = false }) {
     const [imgFailed, setImgFailed] = useState(false);
 
     if (type === 'none') {
         return (
             <button
                 type="button"
-                onClick={onClick}
+                onClick={disabled ? undefined : onClick}
+                disabled={disabled}
                 title={title || 'No Stone / Solid Gold'}
                 aria-label={title || 'No Stone / Solid Gold'}
                 className={`atelier-gem-btn ${isSelected ? 'active' : ''}`}
+                style={{
+                    opacity: disabled ? 0.18 : 1,
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    pointerEvents: disabled ? 'none' : 'auto',
+                    filter: disabled ? 'grayscale(80%)' : 'none'
+                }}
             >
                 <svg width="25" height="25" viewBox="0 0 32 32" fill="none">
                     <circle cx="16" cy="16" r="14" fill="url(#solid-gold-grad)" stroke="#B8860B" strokeWidth="1.2" />
@@ -104,10 +111,17 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
         return (
             <button
                 type="button"
-                onClick={onClick}
+                onClick={disabled ? undefined : onClick}
+                disabled={disabled}
                 title={title}
                 aria-label={title}
                 className={`atelier-gem-btn ${isSelected ? 'active' : ''}`}
+                style={{
+                    opacity: disabled ? 0.18 : 1,
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    pointerEvents: disabled ? 'none' : 'auto',
+                    filter: disabled ? 'grayscale(80%)' : 'none'
+                }}
             >
                 <img
                     src={resolveImageUrl(imageUrl)}
@@ -127,10 +141,17 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
     return (
         <button
             type="button"
-            onClick={onClick}
+            onClick={disabled ? undefined : onClick}
+            disabled={disabled}
             title={title}
             aria-label={title}
             className={`atelier-gem-btn ${isSelected ? 'active' : ''}`}
+            style={{
+                opacity: disabled ? 0.18 : 1,
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                pointerEvents: disabled ? 'none' : 'auto',
+                filter: disabled ? 'grayscale(80%)' : 'none'
+            }}
         >
             <svg width="25" height="25" viewBox="0 0 32 32" fill="none">
                 <defs>
@@ -953,25 +974,50 @@ export default function DynamicCollectionPage({ params }) {
             : rawP.includes('925') || rawP.includes('SILVER') ? '925 SILVER'
             : rawP;
 
-        const valId = typeof val === 'object' ? val.id : val;
-        const valName = typeof val === 'object' ? (val.value || val.name || '') : String(val);
+        const valId = typeof val === 'object' && val !== null ? String(val.id || '') : String(val || '');
+        const valName = typeof val === 'object' && val !== null ? String(val.value || val.name || '') : String(val || '');
+        const valNameClean = valName.trim().toLowerCase();
 
         if (compatMatrix && compatMatrix[normP]) {
             const pData = compatMatrix[normP];
+
+            // 1. Check in pData.options by groupId
             if (pData.options && group?.id && pData.options[group.id]) {
-                const list = pData.options[group.id];
-                return list.includes(String(valId)) || list.includes(Number(valId));
+                const list = pData.options[group.id].map(String);
+                if (valId && list.includes(valId)) return true;
+                // If val was passed as name string, match against group.values
+                if (Array.isArray(group.values)) {
+                    const matchedVal = group.values.find(v => String(v.value || '').trim().toLowerCase() === valNameClean);
+                    if (matchedVal && list.includes(String(matchedVal.id))) return true;
+                }
             }
-            if (pData.options_by_name && group?.name && pData.options_by_name[group.name]) {
-                const list = pData.options_by_name[group.name];
-                return list.includes(valName);
+
+            // 2. Check in pData.options_by_name by groupName (case-insensitive)
+            if (pData.options_by_name && group?.name) {
+                const grpNameLower = group.name.trim().toLowerCase();
+                const targetKey = Object.keys(pData.options_by_name).find(
+                    k => k.trim().toLowerCase() === grpNameLower
+                );
+                if (targetKey && Array.isArray(pData.options_by_name[targetKey])) {
+                    const list = pData.options_by_name[targetKey].map(s => String(s).trim().toLowerCase());
+                    if (list.includes(valNameClean)) return true;
+                    // Also partial match for sizes like "10" vs "Ring Size 10"
+                    if (list.some(s => s === valNameClean || valNameClean.replace(/^(ring\s*size|size)\s*/i, '').trim() === s)) {
+                        return true;
+                    }
+                    return false;
+                }
             }
+
+            // 3. Check in pData.stones if gem/stone group
             const gLower = (group?.name || '').toLowerCase();
             if ((gLower.includes('gem') || gLower.includes('stone') || gLower.includes('diamond')) && pData.stones) {
-                return pData.stones.includes(valName) || pData.stones.includes(String(valId));
+                const list = pData.stones.map(s => String(s).trim().toLowerCase());
+                return list.some(s => s === valNameClean || valNameClean.includes(s) || s.includes(valNameClean));
             }
         }
 
+        // Fallback to Master Rules if gem/stone group and not in matrix
         const gLower = (group?.name || '').toLowerCase();
         if ((gLower.includes('gem') || gLower.includes('stone')) && !gLower.includes('clarity')) {
             return isStoneCompatible(valName, purity);
@@ -1013,7 +1059,11 @@ export default function DynamicCollectionPage({ params }) {
 
     // Auto-switch finish if currently selected finish is incompatible with newly selected purity
     useEffect(() => {
-        if (!isFinishCompatible(selectedFinishCode, selectedPurity) && availableFinishes && availableFinishes.length > 0) {
+        if (!availableFinishes || availableFinishes.length === 0) return;
+        const currentCode = normalizeFinishKey(selectedFinishCode);
+        const isCurrentCompat = isFinishCompatible(currentCode, selectedPurity);
+
+        if (!isCurrentCompat) {
             const firstCompat = availableFinishes.find(f => {
                 const code = normalizeFinishKey(f.code || f.value || '');
                 return isFinishCompatible(code, selectedPurity);
@@ -1032,12 +1082,17 @@ export default function DynamicCollectionPage({ params }) {
         if (!activeOptionGroups || activeOptionGroups.length === 0) return;
 
         activeOptionGroups.forEach(grp => {
-            const curVal = selectedOptions[grp.name]?.value;
-            if (curVal && !isOptionValueCompatible(grp, curVal, selectedPurity)) {
-                const firstCompat = grp.values?.find(v => isOptionValueCompatible(grp, v, selectedPurity));
+            const currentSelected = selectedOptions[grp.name];
+            const curVal = currentSelected?.value;
+            const isChain = grp.name.toLowerCase().includes('chain');
+            const isSize = grp.name.toLowerCase().includes('size');
+            const effectiveVal = curVal || (isChain ? selectedChain : isSize ? selectedSize : grp.values[0]?.value);
+
+            const isCompat = effectiveVal ? isOptionValueCompatible(grp, effectiveVal, selectedPurity) : false;
+
+            if (!isCompat && grp.values && grp.values.length > 0) {
+                const firstCompat = grp.values.find(v => isOptionValueCompatible(grp, v, selectedPurity));
                 if (firstCompat) {
-                    const isChain = grp.name.toLowerCase().includes('chain');
-                    const isSize = grp.name.toLowerCase().includes('size');
                     const rawVal = firstCompat.value || firstCompat;
                     if (isChain) setSelectedChain(rawVal);
                     if (isSize) setSelectedSize(rawVal);
@@ -1934,16 +1989,20 @@ export default function DynamicCollectionPage({ params }) {
                                                             });
                                                         }}
                                                     >
-                                                        {grp.values.map((vObj) => {
-                                                            const rawVal = typeof vObj === 'string' ? vObj : vObj.value;
-                                                            const displayVal = isSize ? rawVal.replace(/^(Ring\s*Size|Size)\s*/i, '').trim() : rawVal;
-                                                            const isCompat = isOptionValueCompatible(grp, vObj, selectedPurity);
-                                                            return (
-                                                                <option key={vObj.id || rawVal} value={rawVal} disabled={!isCompat}>
-                                                                    {displayVal} {!isCompat ? `(${selectedPurity} N/A)` : ''}
-                                                                </option>
-                                                            );
-                                                        })}
+                                                        {(() => {
+                                                            const compatibleVals = grp.values.filter(v => isOptionValueCompatible(grp, v, selectedPurity));
+                                                            const renderVals = compatibleVals.length > 0 ? compatibleVals : grp.values;
+
+                                                            return renderVals.map((vObj) => {
+                                                                const rawVal = typeof vObj === 'string' ? vObj : vObj.value;
+                                                                const displayVal = isSize ? rawVal.replace(/^(Ring\s*Size|Size)\s*/i, '').trim() : rawVal;
+                                                                return (
+                                                                    <option key={vObj.id || rawVal} value={rawVal}>
+                                                                        {displayVal}
+                                                                    </option>
+                                                                );
+                                                            });
+                                                        })()}
                                                     </select>
                                                 </div>
                                             </div>
@@ -1988,9 +2047,11 @@ export default function DynamicCollectionPage({ params }) {
                                                                     key={sVal.id || sVal.code || sVal.value || idx}
                                                                     type={typeStr}
                                                                     imageUrl={isNoStone ? null : (sVal.image || `/images/gems/${typeStr}.png`)}
-                                                                    title={titleStr}
-                                                                    isSelected={isSelected}
+                                                                    title={isValCompat ? titleStr : `${sVal.value} (Not offered in ${selectedPurity})`}
+                                                                    isSelected={isSelected && isValCompat}
+                                                                    disabled={!isValCompat}
                                                                     onClick={() => {
+                                                                        if (!isValCompat) return;
                                                                         setSelectedGem(typeStr);
                                                                         handleSelectOption(grp.name, { value: sVal.value, code: sVal.code, price_delta: delta, image: sVal.image });
                                                                     }}
