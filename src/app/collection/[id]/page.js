@@ -329,7 +329,7 @@ export default function DynamicCollectionPage({ params }) {
     const { addToCart, cartCount } = useCart();
     const { user, loading: authLoading } = useAuth();
 
-    const resolvedParams = use(params);
+    const resolvedParams = (params && typeof params.then === "function") ? use(params) : (params || {});
     const rawParam = resolvedParams?.id || '';
     const paramId = rawParam.toLowerCase().trim();
     const paramNorm = paramId.replace(/s$/, '');
@@ -967,6 +967,7 @@ export default function DynamicCollectionPage({ params }) {
     }, [compatMatrix]);
 
     const isOptionValueCompatible = useCallback((group, val, purity) => {
+        if (!group) return true;
         const rawP = (purity || '').toUpperCase();
         const normP = rawP.includes('22') ? '22KT'
             : rawP.includes('18') ? '18KT'
@@ -978,20 +979,21 @@ export default function DynamicCollectionPage({ params }) {
         const valName = typeof val === 'object' && val !== null ? String(val.value || val.name || '') : String(val || '');
         const valNameClean = valName.trim().toLowerCase();
 
-        if (compatMatrix && compatMatrix[normP]) {
+        if (compatMatrix && compatMatrix[normP] && typeof compatMatrix[normP] === 'object') {
             const pData = compatMatrix[normP];
 
             let hasOptIdCheck = false;
             let matchedOptId = false;
             const grpId = String(group?.id || '');
-            if (pData.options && grpId && pData.options[grpId] !== undefined) {
+            if (pData.options && typeof pData.options === 'object' && !Array.isArray(pData.options) && grpId && pData.options[grpId] !== undefined) {
                 hasOptIdCheck = true;
-                const list = pData.options[grpId].map(String);
+                const rawList = pData.options[grpId];
+                const list = Array.isArray(rawList) ? rawList.map(String) : [];
                 if (valId && list.includes(valId)) {
                     matchedOptId = true;
                 } else if (Array.isArray(group.values)) {
-                    const matchedVal = group.values.find(v => String(v.value || '').trim().toLowerCase() === valNameClean);
-                    if (matchedVal && list.includes(String(matchedVal.id))) {
+                    const matchedVal = group.values.find(v => String(v?.value || v || '').trim().toLowerCase() === valNameClean);
+                    if (matchedVal && list.includes(String(matchedVal?.id || ''))) {
                         matchedOptId = true;
                     }
                 }
@@ -999,7 +1001,7 @@ export default function DynamicCollectionPage({ params }) {
 
             let hasOptNameCheck = false;
             let matchedOptName = false;
-            if (pData.options_by_name && group?.name) {
+            if (pData.options_by_name && typeof pData.options_by_name === 'object' && !Array.isArray(pData.options_by_name) && group?.name) {
                 const grpNameLower = group.name.trim().toLowerCase();
                 const targetKey = Object.keys(pData.options_by_name).find(
                     k => k.trim().toLowerCase() === grpNameLower
@@ -1072,6 +1074,7 @@ export default function DynamicCollectionPage({ params }) {
 
     // Auto-switch finish if currently selected finish is incompatible with newly selected purity
     useEffect(() => {
+        if (categoryInfo || !productDetail) return;
         if (!availableFinishes || availableFinishes.length === 0) return;
         const currentCode = normalizeFinishKey(selectedFinishCode);
         const isCurrentCompat = isFinishCompatible(currentCode, selectedPurity);
@@ -1092,6 +1095,7 @@ export default function DynamicCollectionPage({ params }) {
 
     // Auto-switch any option group (dropdown, swatch, or buttons) if current selection is incompatible with purity
     useEffect(() => {
+        if (categoryInfo || !productDetail) return;
         if (!activeOptionGroups || activeOptionGroups.length === 0) return;
 
         activeOptionGroups.forEach(grp => {
@@ -1100,14 +1104,15 @@ export default function DynamicCollectionPage({ params }) {
             const isChain = grp.name.toLowerCase().includes('chain');
             const isSize = grp.name.toLowerCase().includes('size');
             const isGem = (grp.name.toLowerCase().includes('gem') || grp.name.toLowerCase().includes('stone')) && !grp.name.toLowerCase().includes('clarity');
-            const effectiveVal = curVal || (isChain ? selectedChain : isSize ? selectedSize : grp.values[0]?.value);
+            const vals = Array.isArray(grp.values) ? grp.values : [];
+            const effectiveVal = curVal || (isChain ? selectedChain : isSize ? selectedSize : (vals[0]?.value || vals[0] || ''));
 
             const isCompat = effectiveVal ? isOptionValueCompatible(grp, effectiveVal, selectedPurity) : false;
 
-            if (!isCompat && grp.values && grp.values.length > 0) {
-                const firstCompat = grp.values.find(v => isOptionValueCompatible(grp, v, selectedPurity));
+            if (!isCompat && vals.length > 0) {
+                const firstCompat = vals.find(v => isOptionValueCompatible(grp, v, selectedPurity));
                 if (firstCompat) {
-                    const rawVal = firstCompat.value || firstCompat;
+                    const rawVal = typeof firstCompat === 'object' ? (firstCompat?.value || '') : String(firstCompat || '');
                     if (isChain) setSelectedChain(rawVal);
                     if (isSize) setSelectedSize(rawVal);
                     if (isGem) {
@@ -1116,9 +1121,9 @@ export default function DynamicCollectionPage({ params }) {
                     }
                     handleSelectOption(grp.name, {
                         value: rawVal,
-                        code: firstCompat.code || '',
-                        price_delta: parseFloat(firstCompat.price_delta) || 0,
-                        image: firstCompat.image || null
+                        code: (typeof firstCompat === 'object' && firstCompat?.code) ? firstCompat.code : '',
+                        price_delta: parseFloat(firstCompat?.price_delta) || 0,
+                        image: (typeof firstCompat === 'object' && firstCompat?.image) ? firstCompat.image : null
                     });
                 }
             }
@@ -1128,61 +1133,68 @@ export default function DynamicCollectionPage({ params }) {
 
     // Ensure selected finish is always valid when availableFinishes changes
     useEffect(() => {
+        if (categoryInfo || !productDetail) return;
         if (availableFinishes && availableFinishes.length > 0) {
             const isCurrentAvailable = availableFinishes.some((fVal) => {
-                const valStr = typeof fVal === 'string' ? fVal : fVal.value;
-                const code = fVal.code || normalizeFinishKey(valStr);
+                const valStr = typeof fVal === 'string' ? fVal : (fVal?.value || '');
+                const code = (typeof fVal === 'object' && fVal?.code) ? fVal.code : normalizeFinishKey(valStr);
                 return normalizeFinishKey(selectedFinishCode) === normalizeFinishKey(code);
             });
             if (!isCurrentAvailable) {
                 const first = availableFinishes.find(f => {
-                    const code = normalizeFinishKey(f.code || f.value || '');
+                    const code = normalizeFinishKey((typeof f === 'object' && f?.code) ? f.code : (f?.value || f || ''));
                     return isFinishCompatible(code, selectedPurity);
                 }) || availableFinishes[0];
-                const valStr = typeof first === 'string' ? first : first.value;
-                const code = first.code || normalizeFinishKey(valStr);
+                const valStr = typeof first === 'string' ? first : (first?.value || '');
+                const code = (typeof first === 'object' && first?.code) ? first.code : normalizeFinishKey(valStr);
                 const cleanCode = normalizeFinishKey(code);
                 setSelectedFinishCode(cleanCode);
                 setActiveImgIndex(0);
                 const grpName = finishGroup?.name || 'Finish Options';
-                handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: first.image });
+                handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: (typeof first === 'object' ? first?.image : null) });
             }
         }
     }, [availableFinishes, selectedFinishCode, finishGroup, selectedPurity, isFinishCompatible]);
 
     // Synchronize default selections: ALWAYS default select the first COMPATIBLE option for every group
     useEffect(() => {
+        if (categoryInfo || !productDetail) return;
         if (activeOptionGroups && activeOptionGroups.length > 0) {
             setSelectedOptions((prev) => {
                 const next = { ...prev };
                 activeOptionGroups.forEach((group) => {
                     const gName = group.name;
                     const currentSelected = next[gName];
-                    const exists = currentSelected && group.values.some((v) => {
-                        if (v.value === currentSelected.value) return true;
-                        if (v.code && currentSelected.code && normalizeFinishKey(v.code) === normalizeFinishKey(currentSelected.code)) return true;
+                    const vals = Array.isArray(group.values) ? group.values : [];
+                    const exists = currentSelected && vals.some((v) => {
+                        const vVal = typeof v === 'object' ? v?.value : v;
+                        if (vVal === currentSelected?.value) return true;
+                        if (typeof v === 'object' && v?.code && currentSelected?.code && normalizeFinishKey(v.code) === normalizeFinishKey(currentSelected.code)) return true;
                         return false;
                     });
                     const isCompat = currentSelected ? isOptionValueCompatible(group, currentSelected, selectedPurity) : false;
 
-                    if ((!exists || !isCompat) && group.values.length > 0) {
-                        const firstVal = group.values.find(v => isOptionValueCompatible(group, v, selectedPurity)) || group.values[0];
-                        next[gName] = firstVal;
-                        const l = gName.toLowerCase();
-                        if (l.includes('purity') || l.includes('metal') || l.includes('karat')) {
-                            const match = firstVal.value.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i);
-                            setSelectedPurity(match ? match[0].toUpperCase() : firstVal.value);
-                        } else if (l.includes('finish')) {
-                            const cleanCode = normalizeFinishKey(firstVal.code || firstVal.value || 'YG');
-                            setSelectedFinishCode(cleanCode);
-                            setActiveImgIndex(0);
-                        } else if (l.includes('size')) {
-                            setSelectedSize(firstVal.value.replace(/^(Ring\s*Size|Size)\s*/i, ''));
-                        } else if (l.includes('chain')) {
-                            setSelectedChain(firstVal.value.replace(/\s*Chain\s*/i, ' ').trim());
-                        } else if (l.includes('gem') || l.includes('stone')) {
-                            const valLower = firstVal.value.toLowerCase();
-                            setSelectedGem(valLower.includes('emerald') ? 'emerald' : valLower.includes('sapphire') ? 'sapphire' : valLower.includes('ruby') ? 'ruby' : valLower.includes('diamond') ? 'diamond' : 'none');
+                    if ((!exists || !isCompat) && vals.length > 0) {
+                        const firstVal = vals.find(v => isOptionValueCompatible(group, v, selectedPurity)) || vals[0];
+                        if (firstVal) {
+                            next[gName] = firstVal;
+                            const firstValStr = typeof firstVal === 'string' ? firstVal : (firstVal?.value || '');
+                            const l = gName.toLowerCase();
+                            if (l.includes('purity') || l.includes('metal') || l.includes('karat')) {
+                                const match = firstValStr.match(/(\d+KT|\d+\s*SILVER|PT\d+)/i);
+                                setSelectedPurity(match ? match[0].toUpperCase() : firstValStr);
+                            } else if (l.includes('finish')) {
+                                const cleanCode = normalizeFinishKey((typeof firstVal === 'object' && firstVal?.code) ? firstVal.code : (firstValStr || 'YG'));
+                                setSelectedFinishCode(cleanCode);
+                                setActiveImgIndex(0);
+                            } else if (l.includes('size')) {
+                                setSelectedSize(firstValStr.replace(/^(Ring\s*Size|Size)\s*/i, ''));
+                            } else if (l.includes('chain')) {
+                                setSelectedChain(firstValStr.replace(/\s*Chain\s*/i, ' ').trim());
+                            } else if (l.includes('gem') || l.includes('stone')) {
+                                const valLower = firstValStr.toLowerCase();
+                                setSelectedGem(valLower.includes('emerald') ? 'emerald' : valLower.includes('sapphire') ? 'sapphire' : valLower.includes('ruby') ? 'ruby' : valLower.includes('diamond') ? 'diamond' : 'none');
+                            }
                         }
                     }
                 });
@@ -1197,7 +1209,7 @@ export default function DynamicCollectionPage({ params }) {
             ...prev,
             [groupName]: valueObj,
         }));
-        const valStr = typeof valueObj === 'object' ? (valueObj?.value || '') : String(valueObj || '');
+        const valStr = typeof valueObj === 'object' && valueObj !== null ? (valueObj?.value || '') : String(valueObj || '');
         const l = (groupName || '').toLowerCase();
         if (l.includes('size')) {
             setSelectedSize(valStr.replace(/^(Ring\s*Size|Size)\s*/i, ''));
@@ -1625,40 +1637,45 @@ export default function DynamicCollectionPage({ params }) {
                             categoryProducts.map((item, pIdx) => {
                                 // Calculate live price for each item in grid
                                 const rate22kt_g = (rates?.gold_22kt_per_10g || 100000) / 10;
-                                const metalVal = rate22kt_g * item.defaultWeight;
-                                const sub = metalVal + Number(item.makingCharge || 0);
+                                const weight = Number(item?.defaultWeight) || 8.5;
+                                const metalVal = rate22kt_g * weight;
+                                const sub = metalVal + Number(item?.makingCharge || 0);
                                 const calculatedTotal = Math.round(sub * 1.03);
-                                const total = Number(item.livePrice || calculatedTotal || 0);
+                                const total = Number(item?.livePrice || calculatedTotal || 0);
                                 const formattedPrice = Math.round(total).toLocaleString('en-IN');
 
-                                // Website Design.pdf p.11: design line tag (e.g. ORIGIN), code, then price
-                                const codeUpper = (item.code || '').toUpperCase();
+                                const itemCode = String(item?.code || item?.id || '');
+                                const codeUpper = itemCode.toUpperCase();
+                                const colStr = typeof item?.collection === 'object' ? String(item?.collection?.name || '') : String(item?.collection || '');
+                                const colUpper = colStr.toUpperCase();
+                                const nameStr = String(item?.name || '');
+
                                 let collectionTag = 'ORIGIN';
                                 if (codeUpper.includes('-OR-') || codeUpper.includes('ORIGIN')) {
                                     collectionTag = 'ORIGIN';
-                                } else if (item.collection && !['BRACELETS', 'BRACELET', 'PENDANTS', 'PENDANT', 'NECKLACES', 'NECKLACE', 'RINGS', 'RING', 'EARRINGS', 'EARRING', 'CHAINS', 'CHAIN', 'BANGLES', 'BANGLE'].includes(item.collection.toUpperCase())) {
-                                    collectionTag = item.collection.toUpperCase();
-                                } else if (item.name && !item.name.toLowerCase().startsWith('piece') && item.name.toUpperCase() !== codeUpper) {
-                                    collectionTag = item.name.toUpperCase();
+                                } else if (colStr && !['BRACELETS', 'BRACELET', 'PENDANTS', 'PENDANT', 'NECKLACES', 'NECKLACE', 'RINGS', 'RING', 'EARRINGS', 'EARRING', 'CHAINS', 'CHAIN', 'BANGLES', 'BANGLE'].includes(colUpper)) {
+                                    collectionTag = colUpper;
+                                } else if (nameStr && !nameStr.toLowerCase().startsWith('piece') && nameStr.toUpperCase() !== codeUpper) {
+                                    collectionTag = nameStr.toUpperCase();
                                 }
 
                                 return (
                                     <Link
-                                        href={`/collection/${item.code}`}
-                                        key={`${item.id || item.code}-${pIdx}`}
+                                        href={`/collection/${itemCode}`}
+                                        key={`${item?.id || itemCode || pIdx}-${pIdx}`}
                                         className="category-product-card"
                                     >
                                         <div className="card-media-frame">
                                             <img
-                                                src={item.image}
-                                                alt={item.code}
+                                                src={item?.image || '/images/products/ring.png'}
+                                                alt={itemCode || 'Product'}
                                                 className="card-media-img"
-                                                style={{ filter: item.filterStyle }}
+                                                style={{ filter: item?.filterStyle || 'none' }}
                                             />
                                         </div>
                                         <div className="category-product-info">
                                             <span className="cat-prod-collection">{collectionTag}</span>
-                                            <h3 className="cat-prod-code">{item.code}</h3>
+                                            <h3 className="cat-prod-code">{itemCode || nameStr}</h3>
                                             <span className="cat-prod-price">₹ {formattedPrice}</span>
                                         </div>
                                     </Link>
@@ -1924,22 +1941,24 @@ export default function DynamicCollectionPage({ params }) {
                     {/* FINISH OPTION — only render if configured for this product */}
                     {availableFinishes && availableFinishes.length > 0 && (() => {
                         const compatibleFinishes = availableFinishes.filter((fVal, idx) => {
-                            const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                            if (!fVal) return false;
+                            const valStr = typeof fVal === 'string' ? fVal : (fVal?.value || '');
                             const valLower = String(valStr || '').toLowerCase();
-                            const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
+                            const code = (typeof fVal === 'object' && fVal?.code) ? fVal.code : (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
                             const cleanCode = normalizeFinishKey(code);
                             return isFinishCompatible(cleanCode, selectedPurity);
                         });
                         const displayFinishes = compatibleFinishes.length > 0 ? compatibleFinishes : availableFinishes;
 
                         const activeFinishObj = displayFinishes.find((fVal, idx) => {
-                            const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                            if (!fVal) return false;
+                            const valStr = typeof fVal === 'string' ? fVal : (fVal?.value || '');
                             const valLower = String(valStr || '').toLowerCase();
-                            const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
+                            const code = (typeof fVal === 'object' && fVal?.code) ? fVal.code : (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
                             return normalizeFinishKey(selectedFinishCode) === normalizeFinishKey(code);
                         }) || displayFinishes[0];
 
-                        const activeValStr = activeFinishObj ? (typeof activeFinishObj === 'string' ? activeFinishObj : activeFinishObj.value) : '';
+                        const activeValStr = activeFinishObj ? (typeof activeFinishObj === 'string' ? activeFinishObj : (activeFinishObj?.value || '')) : '';
                         const matchedActiveBar = finishBarsData.find(b => b.code === normalizeFinishKey(selectedFinishCode) || (activeValStr && b.name.toLowerCase() === activeValStr.toLowerCase()));
                         const selectedFinishDisplayName = matchedActiveBar?.name || activeValStr || (normalizeFinishKey(selectedFinishCode) === 'YG' ? 'Yellow Gold' : normalizeFinishKey(selectedFinishCode) === 'WG' ? 'White Gold' : normalizeFinishKey(selectedFinishCode) === 'RG' ? 'Rose Gold' : normalizeFinishKey(selectedFinishCode) === 'BLK' ? 'Black Gold' : '');
 
@@ -1955,20 +1974,22 @@ export default function DynamicCollectionPage({ params }) {
                                     }}
                                 >
                                     {displayFinishes.map((fVal, idx) => {
-                                        const valStr = typeof fVal === 'string' ? fVal : fVal.value;
+                                        if (!fVal) return null;
+                                        const valStr = typeof fVal === 'string' ? fVal : (fVal?.value || '');
                                         const valLower = String(valStr || '').toLowerCase();
-                                        const code = fVal.code || (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
+                                        const code = (typeof fVal === 'object' && fVal?.code) ? fVal.code : (valLower.includes('yellow') ? 'YG' : valLower.includes('white') ? 'WG' : valLower.includes('rose') ? 'RG' : valLower.includes('black') ? 'BLK' : `F${idx}`);
                                         const cleanCode = normalizeFinishKey(code);
+                                        const hexColor = (typeof fVal === 'object' && fVal?.hex_color) ? fVal.hex_color : null;
                                         const matchedBar = finishBarsData.find((b) => b.code === cleanCode || b.name.toLowerCase() === valLower) || {
                                             name: valStr,
                                             code: cleanCode,
                                             label: String(valStr || '').toUpperCase(),
-                                            style: fVal.hex_color ? { background: fVal.hex_color } : { background: '#D4AF37' }
+                                            style: hexColor ? { background: hexColor } : { background: '#D4AF37' }
                                         };
                                         const isSelected = normalizeFinishKey(selectedFinishCode) === cleanCode;
                                         return (
                                             <button
-                                                key={fVal.id || code}
+                                                key={(typeof fVal === 'object' && fVal?.id) ? fVal.id : (cleanCode || idx)}
                                                 type="button"
                                                 title={matchedBar.name || valStr}
                                                 aria-label={matchedBar.name || valStr}
@@ -1982,7 +2003,7 @@ export default function DynamicCollectionPage({ params }) {
                                                     setActiveImgIndex(0);
                                                     setMediaViewMode('photo');
                                                     const grpName = finishGroup?.name || 'Finish Options';
-                                                    handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: fVal.image });
+                                                    handleSelectOption(grpName, { value: valStr, code: cleanCode, price_delta: 0, image: (typeof fVal === 'object' ? fVal?.image : null) });
                                                 }}
                                             >
                                                 <span
@@ -1996,7 +2017,6 @@ export default function DynamicCollectionPage({ params }) {
                             </div>
                         );
                     })()}
-
                     {/* TWO-COLUMN LAYOUT: LEFT = DROPDOWNS | RIGHT = IMAGE SWATCHES */}
                     {(hasDropdowns || hasSwatches) && (
                         <div className={hasDropdowns && hasSwatches ? "atelier-size-gem-row" : "atelier-single-option-row"}>
@@ -2006,12 +2026,13 @@ export default function DynamicCollectionPage({ params }) {
                                     {dropdownGroups.map((grp) => {
                                         const isChain = grp.name.toLowerCase().includes('chain');
                                         const isSize = grp.name.toLowerCase().includes('size');
-                                        const compatibleVals = grp.values.filter(v => isOptionValueCompatible(grp, v, selectedPurity));
-                                        const renderVals = compatibleVals.length > 0 ? compatibleVals : grp.values;
+                                        const vals = Array.isArray(grp.values) ? grp.values : [];
+                                        const compatibleVals = vals.filter(v => isOptionValueCompatible(grp, v, selectedPurity));
+                                        const renderVals = compatibleVals.length > 0 ? compatibleVals : vals;
 
-                                        const currentRaw = selectedOptions[grp.name]?.value || (isChain ? selectedChain : isSize ? selectedSize : (renderVals[0]?.value || ''));
-                                        const hasCurrent = renderVals.some(v => (v.value || v) === currentRaw);
-                                        const currentVal = hasCurrent ? currentRaw : (renderVals[0]?.value || renderVals[0] || '');
+                                        const currentRaw = selectedOptions[grp.name]?.value || (isChain ? selectedChain : isSize ? selectedSize : (renderVals[0]?.value || renderVals[0] || ''));
+                                        const hasCurrent = renderVals.some(v => (typeof v === 'object' ? v?.value : v) === currentRaw);
+                                        const currentVal = hasCurrent ? currentRaw : (typeof renderVals[0] === 'object' ? renderVals[0]?.value : (renderVals[0] || ''));
 
                                         return (
                                             <div key={grp.id || grp.name} className="atelier-control-group" style={{ marginBottom: 0 }}>
@@ -2022,21 +2043,21 @@ export default function DynamicCollectionPage({ params }) {
                                                         value={currentVal}
                                                         onChange={(e) => {
                                                             const chosenVal = e.target.value;
-                                                            const foundObj = renderVals.find((v) => (v.value || v) === chosenVal || (v.code || '') === chosenVal || (isSize && (v.value || v).replace(/^(Ring\s*Size|Size)\s*/i, '').trim() === chosenVal));
+                                                            const foundObj = renderVals.find((v) => (typeof v === 'object' ? v?.value : v) === chosenVal || (typeof v === 'object' ? v?.code : '') === chosenVal || (isSize && (typeof v === 'object' ? (v?.value || '') : String(v)).replace(/^(Ring\s*Size|Size)\s*/i, '').trim() === chosenVal));
                                                             if (isChain) setSelectedChain(chosenVal);
                                                             if (isSize) setSelectedSize(chosenVal);
                                                             handleSelectOption(grp.name, {
-                                                                value: foundObj ? foundObj.value : chosenVal,
-                                                                code: foundObj?.code || '',
-                                                                price_delta: Number(foundObj?.price_delta || (isChain && chosenVal === 'None' ? -8000 : isChain && chosenVal === 'Rope' ? 3000 : 0))
+                                                                value: (typeof foundObj === 'object' && foundObj?.value) ? foundObj.value : chosenVal,
+                                                                code: (typeof foundObj === 'object' && foundObj?.code) ? foundObj.code : '',
+                                                                price_delta: Number((typeof foundObj === 'object' && foundObj?.price_delta) ? foundObj.price_delta : (isChain && chosenVal === 'None' ? -8000 : isChain && chosenVal === 'Rope' ? 3000 : 0))
                                                             });
                                                         }}
                                                     >
-                                                        {renderVals.map((vObj) => {
-                                                            const rawVal = typeof vObj === 'string' ? vObj : vObj.value;
+                                                        {renderVals.map((vObj, vIdx) => {
+                                                            const rawVal = typeof vObj === 'string' ? vObj : (vObj?.value || '');
                                                             const displayVal = isSize ? rawVal.replace(/^(Ring\s*Size|Size)\s*/i, '').trim() : rawVal;
                                                             return (
-                                                                <option key={vObj.id || rawVal} value={rawVal}>
+                                                                <option key={(typeof vObj === 'object' && vObj?.id) ? vObj.id : (rawVal || vIdx)} value={rawVal}>
                                                                     {displayVal}
                                                                 </option>
                                                             );
@@ -2054,86 +2075,89 @@ export default function DynamicCollectionPage({ params }) {
                                 <div className="atelier-swatches-col" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                                     {swatchGroups.map((grp) => {
                                         const isGem = (grp.name.toLowerCase().includes('gem') || grp.name.toLowerCase().includes('stone')) && !grp.name.toLowerCase().includes('clarity');
-                                        const compatibleVals = grp.values.filter(sVal => isOptionValueCompatible(grp, sVal, selectedPurity));
-                                        const renderVals = compatibleVals.length > 0 ? compatibleVals : grp.values;
+                                        const vals = Array.isArray(grp.values) ? grp.values : [];
+                                        const compatibleVals = vals.filter(sVal => isOptionValueCompatible(grp, sVal, selectedPurity));
+                                        const renderVals = compatibleVals.length > 0 ? compatibleVals : vals;
 
                                         return (
                                             <div key={grp.id || grp.name} className="atelier-control-group" style={{ marginBottom: 0 }}>
                                                 <div className="atelier-spec-label" style={{ marginBottom: '6px' }}>{grp.name.toUpperCase()}</div>
                                                 <div className="atelier-gems-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                                                     {renderVals.map((sVal, idx) => {
-                                                        const valLower = (sVal.value || '').toLowerCase();
-                                                        const codeLower = (sVal.code || '').toLowerCase();
+                                                        const valStr = typeof sVal === 'object' ? (sVal?.value || '') : String(sVal || '');
+                                                        const valLower = valStr.toLowerCase();
+                                                        const codeStr = typeof sVal === 'object' ? (sVal?.code || '') : '';
+                                                        const codeLower = codeStr.toLowerCase();
                                                         const isNoStone = valLower.includes('no stone') || valLower.includes('solid gold') || valLower.includes('none');
 
                                                         const currentVal = selectedOptions[grp.name]?.value;
-                                                        const isSelected = currentVal ? currentVal === sVal.value : (idx === 0);
+                                                        const isSelected = currentVal ? currentVal === valStr : (idx === 0);
 
-                                                        const rawDelta = parseFloat(sVal.price_delta) || 0;
+                                                        const rawDelta = typeof sVal === 'object' ? (parseFloat(sVal?.price_delta) || 0) : 0;
                                                         const delta = Math.abs(rawDelta);
-                                                        const titleStr = delta > 0 ? `${sVal.value} (+₹${delta.toLocaleString('en-IN')})` : sVal.value;
+                                                        const titleStr = delta > 0 ? `${valStr} (+₹${delta.toLocaleString('en-IN')})` : valStr;
 
                                                         if (isGem) {
-                                                            const typeStr = isNoStone ? 'none'
-                                                                : codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
-                                                                    : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
-                                                                        : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
-                                                                            : codeLower.includes('rub') || valLower.includes('rub') ? 'ruby'
-                                                                                : 'diamond';
+                                                             const typeStr = isNoStone ? 'none'
+                                                                 : codeLower.includes('dia') || valLower.includes('dia') ? 'diamond'
+                                                                     : codeLower.includes('emr') || valLower.includes('eme') ? 'emerald'
+                                                                         : codeLower.includes('sap') || valLower.includes('sap') ? 'sapphire'
+                                                                             : codeLower.includes('rub') || valLower.includes('rub') ? 'ruby'
+                                                                                 : 'diamond';
 
-                                                            return (
+                                                             return (
                                                                  <FacetedGemstone
-                                                                     key={sVal.id || sVal.code || sVal.value || idx}
+                                                                     key={(typeof sVal === 'object' && sVal?.id) ? sVal.id : (codeStr || valStr || idx)}
                                                                      type={typeStr}
-                                                                     imageUrl={isNoStone ? null : (sVal.image || `/images/gems/${typeStr}.png`)}
+                                                                     imageUrl={isNoStone ? null : ((typeof sVal === 'object' && sVal?.image) ? sVal.image : `/images/gems/${typeStr}.png`)}
                                                                      title={titleStr}
                                                                      isSelected={isSelected}
                                                                      disabled={false}
                                                                      onClick={() => {
                                                                          setSelectedGem(typeStr);
-                                                                         handleSelectOption(grp.name, { value: sVal.value, code: sVal.code, price_delta: delta, image: sVal.image });
+                                                                         handleSelectOption(grp.name, { value: valStr, code: codeStr, price_delta: delta, image: (typeof sVal === 'object' ? sVal?.image : null) });
                                                                      }}
                                                                  />
-                                                            );
-                                                        }
+                                                             );
+                                                         }
 
-                                                        // Non-gem image/color swatches (e.g. Chain image swatches)
-                                                        return (
-                                                            <button
-                                                                key={sVal.id || sVal.value || idx}
-                                                                type="button"
-                                                                title={titleStr}
-                                                                onClick={() => {
-                                                                    handleSelectOption(grp.name, { value: sVal.value, code: sVal.code, price_delta: delta, image: sVal.image });
-                                                                }}
-                                                                style={{
-                                                                    width: '32px',
-                                                                    height: '32px',
-                                                                    borderRadius: '50%',
-                                                                    border: isSelected ? '2px solid #C9A961' : '1px solid #CBD5E1',
-                                                                    padding: 0,
-                                                                    background: sVal.hex_color || '#fff',
-                                                                    cursor: 'pointer',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'center',
-                                                                    overflow: 'hidden',
-                                                                    outline: 'none',
-                                                                    boxShadow: isSelected ? '0 0 0 2px rgba(201,169,97,0.3)' : 'none',
-                                                                }}
-                                                            >
-                                                                {sVal.image ? (
-                                                                    <img src={sVal.image} alt={sVal.value} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                ) : (
-                                                                    <span style={{ fontSize: '10px', fontWeight: 600 }}>{sVal.code || sVal.value.slice(0, 2)}</span>
-                                                                )}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                                         // Non-gem image/color swatches (e.g. Chain image swatches)
+                                                         return (
+                                                             <button
+                                                                 key={(typeof sVal === 'object' && sVal?.id) ? sVal.id : (valStr || idx)}
+                                                                 type="button"
+                                                                 title={titleStr}
+                                                                 onClick={() => {
+                                                                     handleSelectOption(grp.name, { value: valStr, code: codeStr, price_delta: delta, image: (typeof sVal === 'object' ? sVal?.image : null) });
+                                                                 }}
+                                                                 style={{
+                                                                     width: '32px',
+                                                                     height: '32px',
+                                                                     borderRadius: '50%',
+                                                                     border: isSelected ? '2px solid #C9A961' : '1px solid #CBD5E1',
+                                                                     padding: 0,
+                                                                     background: (typeof sVal === 'object' && sVal?.hex_color) ? sVal.hex_color : '#fff',
+                                                                     cursor: 'pointer',
+                                                                     display: 'flex',
+                                                                     alignItems: 'center',
+                                                                     justifyContent: 'center',
+                                                                     overflow: 'hidden',
+                                                                     outline: 'none',
+                                                                     boxShadow: isSelected ? '0 0 0 2px rgba(201,169,97,0.3)' : 'none',
+                                                                 }}
+                                                             >
+                                                                 {(typeof sVal === 'object' && sVal?.image) ? (
+                                                                     <img src={sVal.image} alt={valStr} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                 ) : (
+                                                                     <span style={{ fontSize: '10px', fontWeight: 600 }}>{codeStr || valStr.slice(0, 2)}</span>
+                                                                 )}
+                                                             </button>
+                                                         );
+                                                     })}
+                                                 </div>
+                                             </div>
+                                         );
+                                     })}
                                 </div>
                             )}
                         </div>
@@ -2142,8 +2166,9 @@ export default function DynamicCollectionPage({ params }) {
                     {/* TEXT BUTTON GROUPS (e.g. SIZE when set to Text Button, Diamond Clarity when set to Text Button, etc.) */}
                     {hasButtons && buttonGroups.map((grp) => {
                         const isSize = grp.name.toLowerCase().includes('size');
-                        const compatibleVals = grp.values.filter(v => isOptionValueCompatible(grp, v, selectedPurity));
-                        const renderVals = compatibleVals.length > 0 ? compatibleVals : grp.values;
+                        const vals = Array.isArray(grp.values) ? grp.values : [];
+                        const compatibleVals = vals.filter(v => isOptionValueCompatible(grp, v, selectedPurity));
+                        const renderVals = compatibleVals.length > 0 ? compatibleVals : vals;
                         const currentVal = selectedOptions[grp.name]?.value;
 
                         return (
@@ -2151,20 +2176,21 @@ export default function DynamicCollectionPage({ params }) {
                                 <div className="atelier-spec-label">{grp.name.toUpperCase()}</div>
                                 <div className="atelier-purity-row">
                                     {renderVals.map((v, vIdx) => {
-                                        const isSel = currentVal ? currentVal === v.value : (vIdx === 0);
-                                        const label = isSize ? v.value.replace(/^(Ring\s*Size|Size)\s*/i, '').trim() : v.value;
-                                        const delta = Number(v.price_delta || 0);
+                                        const vStr = typeof v === 'object' ? (v?.value || '') : String(v || '');
+                                        const isSel = currentVal ? currentVal === vStr : (vIdx === 0);
+                                        const label = isSize ? vStr.replace(/^(Ring\s*Size|Size)\s*/i, '').trim() : vStr;
+                                        const delta = Number((typeof v === 'object' && v?.price_delta) ? v.price_delta : 0);
 
                                         return (
                                             <button
-                                                key={v.id || v.value || vIdx}
+                                                key={(typeof v === 'object' && v?.id) ? v.id : (vStr || vIdx)}
                                                 type="button"
                                                 className={`atelier-purity-btn ${isSel ? 'active' : ''}`}
                                                 onClick={() => {
                                                     if (isSize) setSelectedSize(label);
                                                     handleSelectOption(grp.name, {
-                                                        value: v.value,
-                                                        code: v.code || '',
+                                                        value: vStr,
+                                                        code: (typeof v === 'object' && v?.code) ? v.code : '',
                                                         price_delta: delta
                                                     });
                                                 }}
