@@ -38,10 +38,26 @@ export default function Error({ error, reset }) {
         letterSpacing: "0.08em",
         maxWidth: "340px",
         lineHeight: 1.7,
-        marginBottom: "32px",
+        marginBottom: error?.message ? "16px" : "32px",
       }}>
         Something went wrong loading this page. Please try again.
       </p>
+      {error?.message && (
+        <div style={{
+          fontSize: "11px",
+          color: "#E2A03F",
+          background: "rgba(201, 169, 97, 0.08)",
+          border: "1px solid rgba(201, 169, 97, 0.2)",
+          padding: "10px 16px",
+          borderRadius: "6px",
+          maxWidth: "500px",
+          marginBottom: "24px",
+          fontFamily: "monospace",
+          wordBreak: "break-word"
+        }}>
+          {error.message}
+        </div>
+      )}
       <button
         onClick={() => reset()}
         style={{
