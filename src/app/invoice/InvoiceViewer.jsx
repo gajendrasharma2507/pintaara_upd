@@ -33,7 +33,7 @@ export default function InvoiceViewer({ orderIdProp }) {
                         const firstItem = ord.items?.[0] || {};
                         const mapped = {
                             order_number: ord.order_number || cleanId,
-                            invoice_number: `INV-${ord.order_number || cleanId}`,
+                            invoice_number: ord.invoice_number || ord.invoice_no || (ord.order_number?.startsWith('INV-') || ord.order_number?.startsWith('PIN-') ? ord.order_number : `INV-${ord.order_number || cleanId}`),
                             status: ord.status,
                             date: ord.created_at,
                             payment_date: ord.payment_date || ord.created_at,
@@ -81,7 +81,7 @@ export default function InvoiceViewer({ orderIdProp }) {
                 if (matched && isMounted) {
                     setInvoiceData({
                         order_number: matched.order_number || cleanId,
-                        invoice_number: `INV-${matched.order_number || cleanId}`,
+                        invoice_number: matched.invoice_number || matched.invoice_no || (matched.order_number?.startsWith('INV-') || matched.order_number?.startsWith('PIN-') ? matched.order_number : `INV-${matched.order_number || cleanId}`),
                         status: matched.status,
                         date: matched.acquired_at || matched.created_at,
                         payment_date: matched.payment_date || matched.acquired_at || matched.created_at,

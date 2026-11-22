@@ -1,4 +1,4 @@
-"use client";
+    "use client";
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -20,7 +20,7 @@ export default function BookAppointmentPage() {
         contact: '',
         date: '',
         time: '',
-        purpose: 'Design a Jewellery Piece / Explore & Try on collection / Complain / Refund / Others',
+        purpose: 'Design a Jewellery Piece',
         notes: ''
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -184,13 +184,10 @@ export default function BookAppointmentPage() {
                                         value={formData.purpose}
                                         onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
                                     >
-                                        <option value="Design a Jewellery Piece / Explore & Try on collection / Complain / Refund / Others">
-                                            Design a Jewellery Piece / Explore &amp; Try on collection / Complain / Refund / Others
-                                        </option>
-                                        <option value="Bespoke Bridal Commission">Bespoke Bridal Commission</option>
-                                        <option value="Explore & Try on Collection">Explore &amp; Try on Collection</option>
-                                        <option value="Gold Hallmarking Verification">Gold Hallmarking Verification</option>
-                                        <option value="Private Vault Consultation">Private Vault Consultation</option>
+                                        <option value="Design a Jewellery Piece">Design a Jewellery Piece</option>
+                                        <option value="Explore & Try on collection">Explore &amp; Try on collection</option>
+                                        <option value="Complain">Complain</option>
+                                        <option value="Refund">Refund</option>
                                         <option value="Others">Others</option>
                                     </select>
                                     <span className="appointment-select-arrow">v</span>

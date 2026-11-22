@@ -87,13 +87,13 @@ export default function ContactPage() {
                     <div className="contact-map-wrapper">
                         <iframe
                             id="contact-map-frame"
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.4847!2d72.8376!3d23.0225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e848abad1c28b%3A0xd68f59ac09753ec4!2sBababhai%20Jewellers!5e0!3m2!1sen!2sin!4v1690000000000!5m2!1sen!2sin"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3691.4036942821576!2d73.2092581!3d22.3005673!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc553805b7a33%3A0x694e30386e73313!2sPINTAARA!5e0!3m2!1sen!2sin!4v1793018583300!5m2!1sen!2sin"
                             width="100%"
                             height="100%"
                             style={{ border: 0 }}
                             allowFullScreen=""
                             loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
+                            referrerPolicy="strict-origin-when-cross-origin"
                             title="Pintaara Store Location"
                         />
                     </div>

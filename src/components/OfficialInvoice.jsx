@@ -16,8 +16,8 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
     // Normalize invoice data with fallback to official reference values
     const orderStatusRaw = String(invoice.status || invoice.order_status || '').toLowerCase();
     const isCancelled = orderStatusRaw === 'cancelled' || orderStatusRaw === 'canceled';
-    const invoiceNo = invoice.invoice_number || (invoice.order_number ? `INV-${invoice.order_number}` : 'INV-001');
-    const orderRef = invoice.order_number ? `REF-${invoice.order_number}` : 'REF-PNT001';
+    const invoiceNo = invoice.invoice_number || invoice.invoice_no || (invoice.order_number ? (String(invoice.order_number).startsWith('INV-') || String(invoice.order_number).startsWith('PIN-') ? invoice.order_number : `INV-${invoice.order_number}`) : 'INV-001');
+    const orderRef = invoice.order_ref || invoice.order_reference || (invoice.order_number ? (String(invoice.order_number).startsWith('REF-') ? invoice.order_number : `REF-${invoice.order_number}`) : 'REF-PNT001');
     const directInvoiceUrl = typeof window !== 'undefined' 
         ? `${window.location.origin}/invoice/${invoice.order_number || invoice.id || 'INV-001'}?download=true`
         : `/invoice/${invoice.order_number || invoice.id || 'INV-001'}?download=true`;
