@@ -540,11 +540,28 @@
             @endif
           </div>
         @else
+          @php
+            $extractedPin = '';
+            if (!empty($order->shipping_address) && preg_match('/\b[1-9][0-9]{5}\b/', $order->shipping_address, $pm)) {
+              $extractedPin = $pm[0];
+            }
+          @endphp
           <form action="{{ route('admin.orders.sequel-docket', $order->id) }}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
             @csrf
             
             <div style="font-size: 12.5px; color: var(--admin-text-secondary); line-height: 1.5;">
               Generate an official Sequel Armored Docket (AWB) directly from the registered Vadodara vault to client destination with high-value insurance.
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Destination Pincode *</label>
+                <input type="text" name="pin_code" value="{{ $extractedPin ?: '390007' }}" required class="admin-input" style="font-size: 12px; padding: 6px 10px; font-family: monospace;">
+              </div>
+              <div>
+                <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">City</label>
+                <input type="text" name="city" value="Vadodara" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
+              </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">

@@ -70,4 +70,22 @@ class Order extends Model
     {
         return self::$statuses[$this->status] ?? ucfirst(str_replace('_', ' ', $this->status));
     }
+
+    public function getTrackingLinkAttribute(): ?string
+    {
+        if (!empty($this->tracking_data['data']['tracking_link'])) {
+            return $this->tracking_data['data']['tracking_link'];
+        }
+        if (!empty($this->docket_number)) {
+            $isProd = Setting::get('sequel_env', config('services.sequel247.env', 'test')) === 'production';
+            $base = $isProd ? 'https://sequel247.com/track/' : 'https://test.sequel247.com/track/';
+            return $base . $this->docket_number;
+        }
+        return null;
+    }
+
+    public function getDocketPrintUrlAttribute(): ?string
+    {
+        return $this->tracking_data['data']['docket_print'] ?? null;
+    }
 }
