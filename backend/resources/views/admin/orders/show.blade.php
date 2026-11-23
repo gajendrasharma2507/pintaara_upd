@@ -589,17 +589,6 @@
             </button>
           </form>
         @endif
-
-        <!-- Docket & Delivery Explanation Box -->
-        <div style="background: rgba(189, 127, 104, 0.06); border: 1px solid rgba(189, 127, 104, 0.2); border-radius: 10px; padding: 12px 14px; margin-top: 14px;">
-          <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <span style="font-size: 16px; line-height: 1;">💡</span>
-            <div style="font-size: 11.5px; color: var(--admin-text-secondary); line-height: 1.5;">
-              <strong style="color: var(--admin-text-primary);">What is Sequel Docket?</strong>
-              A Docket is the official tracking ID & barcode label for high-value jewelry. Once generated, print and stick it on your sealed tamper pouch. Sequel's bulletproof van with armed escort will collect it directly from your studio vault with 100% insurance coverage.
-            </div>
-          </div>
-        </div>
       </div>
 
     </div>
