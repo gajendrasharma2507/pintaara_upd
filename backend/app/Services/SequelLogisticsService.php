@@ -25,10 +25,10 @@ class SequelLogisticsService
         $this->originPincode = (string) Setting::get('sequel_origin_pincode', config('services.sequel247.origin_pincode', '390001'));
 
         if ($this->env === 'production' || $this->env === 'prod') {
-            $this->token = Setting::get('sequel_prod_token', config('services.sequel247.prod_token', 'e27b75bc3b396ee53d2349adae6884ed'));
+            $this->token = (string) Setting::get('sequel_prod_token', config('services.sequel247.prod_token', ''));
             $this->endpoint = rtrim(Setting::get('sequel_prod_endpoint', config('services.sequel247.prod_endpoint', 'https://sequel247.com/')), '/') . '/';
         } else {
-            $this->token = Setting::get('sequel_test_token', config('services.sequel247.test_token', '7418b689f9b4fbf82c9f67588206fecc'));
+            $this->token = (string) Setting::get('sequel_test_token', config('services.sequel247.test_token', ''));
             $this->endpoint = rtrim(Setting::get('sequel_test_endpoint', config('services.sequel247.test_endpoint', 'https://test.sequel247.com/')), '/') . '/';
         }
     }

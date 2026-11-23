@@ -40,9 +40,9 @@ return [
         'client_code' => env('SEQUEL247_CLIENT_CODE', '31492'),
         'store_code' => env('SEQUEL247_STORE_CODE', 'PINTARA'),
         'origin_pincode' => env('SEQUEL247_ORIGIN_PINCODE', '390001'),
-        'test_token' => env('SEQUEL247_TEST_TOKEN', '7418b689f9b4fbf82c9f67588206fecc'),
+        'test_token' => env('SEQUEL247_TEST_TOKEN', ''),
         'test_endpoint' => env('SEQUEL247_TEST_ENDPOINT', 'https://test.sequel247.com/'),
-        'prod_token' => env('SEQUEL247_PROD_TOKEN', 'e27b75bc3b396ee53d2349adae6884ed'),
+        'prod_token' => env('SEQUEL247_PROD_TOKEN', ''),
         'prod_endpoint' => env('SEQUEL247_PROD_ENDPOINT', 'https://sequel247.com/'),
     ],
 
