@@ -119,6 +119,13 @@
                 <span class="admin-badge admin-badge-{{ $badgeClass }}">
                   {{ ucfirst(str_replace('_', ' ', $ord->status)) }}
                 </span>
+                @if(!empty($ord->docket_number))
+                  <div style="margin-top: 4px;">
+                    <span style="font-size: 10px; font-family: monospace; background: rgba(189, 127, 104, 0.12); color: #BD7F68; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                      🛡️ Sequel #{{ $ord->docket_number }}
+                    </span>
+                  </div>
+                @endif
                 @if($ord->trashed())
                   <span class="admin-badge admin-badge-danger" style="margin-left: 4px;">Deleted</span>
                 @endif

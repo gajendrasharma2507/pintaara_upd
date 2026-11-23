@@ -415,7 +415,7 @@
               Sequel 247 Armored Logistics
             </h3>
             <div style="font-size: 11.5px; color: var(--admin-text-muted); margin-top: 2px;">
-              Door-to-door armored transport for fine jewelry
+              Door-to-door armored transport with 100% transit insurance
             </div>
           </div>
           @if(!empty($order->docket_number))
@@ -431,19 +431,79 @@
           @endif
         </div>
 
+        <!-- Visual Multi-Step Delivery Progress Tracker -->
+        @php
+          $currentStep = 1;
+          if (!empty($order->docket_number)) {
+            $currentStep = 2; // Docket Created
+            if ($order->fulfillment_status === 'Armored In-Transit' || in_array($order->status, ['shipped', 'dispatched'])) {
+              $currentStep = 3; // In Transit
+            }
+            if ($order->status === 'out_for_delivery') {
+              $currentStep = 4; // Out for Delivery
+            }
+            if ($order->status === 'delivered') {
+              $currentStep = 5; // Delivered
+            }
+          }
+          $steps = [
+            1 => ['title' => 'Atelier', 'sub' => 'Piece Packed', 'icon' => '📦'],
+            2 => ['title' => 'Docket Created', 'sub' => !empty($order->docket_number) ? ('#' . $order->docket_number) : 'Pending', 'icon' => '🏷️'],
+            3 => ['title' => 'Armored Transit', 'sub' => 'Armed Escort', 'icon' => '🛡️'],
+            4 => ['title' => 'Out for Delivery', 'sub' => 'Arriving Today', 'icon' => '🚚'],
+            5 => ['title' => 'Delivered', 'sub' => 'OTP & Signed', 'icon' => '✨'],
+          ];
+        @endphp
+
+        <div style="margin: 16px 0; padding: 16px 10px; background: var(--admin-bg); border-radius: 12px; border: 1px solid var(--admin-border-light);">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; position: relative;">
+            <!-- Connector Line -->
+            <div style="position: absolute; top: 18px; left: 24px; right: 24px; height: 3px; background: var(--admin-border); z-index: 1;">
+              <div style="height: 100%; width: {{ ($currentStep - 1) * 25 }}%; background: #BD7F68; transition: width 0.3s;"></div>
+            </div>
+
+            @foreach($steps as $sNum => $sInfo)
+              @php
+                $isDone = $sNum <= $currentStep;
+                $isCurrent = $sNum === $currentStep;
+              @endphp
+              <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center; width: 19%;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; transition: all 0.2s;
+                  background: {{ $isDone ? '#BD7F68' : 'var(--admin-surface)' }};
+                  color: {{ $isDone ? '#FFFFFF' : 'var(--admin-text-muted)' }};
+                  border: 2px solid {{ $isDone ? '#BD7F68' : 'var(--admin-border)' }};
+                  box-shadow: {{ $isCurrent ? '0 0 0 4px rgba(189, 127, 104, 0.25)' : 'none' }};
+                ">
+                  @if($sNum < $currentStep)
+                    ✓
+                  @else
+                    {{ $sInfo['icon'] }}
+                  @endif
+                </div>
+                <div style="font-size: 11px; font-weight: 700; margin-top: 8px; color: {{ $isDone ? 'var(--admin-text-primary)' : 'var(--admin-text-muted)' }};">
+                  {{ $sInfo['title'] }}
+                </div>
+                <div style="font-size: 9.5px; color: var(--admin-text-muted); margin-top: 2px; font-family: {{ $sNum === 2 && !empty($order->docket_number) ? 'monospace' : 'inherit' }};">
+                  {{ $sInfo['sub'] }}
+                </div>
+              </div>
+            @endforeach
+          </div>
+        </div>
+
         @if(!empty($order->docket_number))
           <div style="background: var(--admin-bg); border: 1px solid var(--admin-border-light); border-radius: 10px; padding: 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 12px; color: var(--admin-text-muted);">Docket / AWB No:</span>
+              <span style="font-size: 12px; color: var(--admin-text-muted);">Docket / Tracking No:</span>
               <span style="font-size: 14px; font-family: monospace; font-weight: 700; color: #BD7F68;">{{ $order->docket_number }}</span>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 12px; color: var(--admin-text-muted);">Courier Partner:</span>
+              <span style="font-size: 12px; color: var(--admin-text-muted);">Logistics Partner:</span>
               <span style="font-size: 12.5px; font-weight: 600; color: var(--admin-text-primary);">{{ $order->courier_partner ?: 'Sequel 247 Logistics' }}</span>
             </div>
             @if(!empty($order->pickup_token))
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 12px; color: var(--admin-text-muted);">Pickup Token / BRN:</span>
+                <span style="font-size: 12px; color: var(--admin-text-muted);">Pickup BRN Token:</span>
                 <span style="font-size: 12.5px; font-family: monospace; color: var(--admin-text-primary);">{{ $order->pickup_token }}</span>
               </div>
             @endif
@@ -512,6 +572,17 @@
             </button>
           </form>
         @endif
+
+        <!-- Docket & Delivery Explanation Box -->
+        <div style="background: rgba(189, 127, 104, 0.06); border: 1px solid rgba(189, 127, 104, 0.2); border-radius: 10px; padding: 12px 14px; margin-top: 14px;">
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <span style="font-size: 16px; line-height: 1;">💡</span>
+            <div style="font-size: 11.5px; color: var(--admin-text-secondary); line-height: 1.5;">
+              <strong style="color: var(--admin-text-primary);">What is Sequel Docket?</strong>
+              A Docket is the official tracking ID & barcode label for high-value jewelry. Once generated, print and stick it on your sealed tamper pouch. Sequel's bulletproof van with armed escort will collect it directly from your studio vault with 100% insurance coverage.
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
