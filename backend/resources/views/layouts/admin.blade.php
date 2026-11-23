@@ -349,6 +349,26 @@
           </div>
         @endif
 
+        @if(session('error'))
+          <div style="background: #FEF2F2; border: 1px solid #EF4444; color: #991B1B; padding: 12px 18px; border-radius: 10px; margin-bottom: 24px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 15px;">⚠️</span>
+              <span>{{ session('error') }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #991B1B; cursor: pointer; font-size: 16px;">&times;</button>
+          </div>
+        @endif
+
+        @if(session('warning'))
+          <div style="background: #FFFBEB; border: 1px solid #F59E0B; color: #92400E; padding: 12px 18px; border-radius: 10px; margin-bottom: 24px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 15px;">⚠️</span>
+              <span>{{ session('warning') }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #92400E; cursor: pointer; font-size: 16px;">&times;</button>
+          </div>
+        @endif
+
         @yield('content')
       </main>
 

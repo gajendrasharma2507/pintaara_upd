@@ -409,10 +409,20 @@
               Sequel 247 Armored Logistics
             </h3>
           </div>
-          @if(!empty($order->docket_number))
+          @if($order->status === 'delivered')
+            <span style="background: #ECFDF5; color: #059669; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 5px;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
+              Delivered
+            </span>
+          @elseif(!empty($order->docket_number))
             <span style="background: #ECFDF5; color: #059669; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 5px;">
               <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
               Docket Dispatched
+            </span>
+          @elseif(in_array($order->status, ['shipped', 'dispatched']))
+            <span style="background: #ECFDF5; color: #059669; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 5px;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
+              Shipped (In Transit)
             </span>
           @else
             <span style="background: #FFFBEB; color: #D97706; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 5px;">
@@ -425,22 +435,29 @@
         <!-- Visual Multi-Step Delivery Progress Tracker -->
         @php
           $currentStep = 1;
-          if (!empty($order->docket_number)) {
-            $currentStep = 2; // Docket Created
-            if ($order->fulfillment_status === 'Armored In-Transit' || in_array($order->status, ['shipped', 'dispatched'])) {
-              $currentStep = 3; // In Transit
-            }
-            if ($order->status === 'out_for_delivery') {
-              $currentStep = 4; // Out for Delivery
-            }
-            if ($order->status === 'delivered') {
-              $currentStep = 5; // Delivered
-            }
+          if ($order->status === 'delivered') {
+            $currentStep = 5;
+          } elseif ($order->status === 'out_for_delivery') {
+            $currentStep = 4;
+          } elseif (in_array($order->status, ['shipped', 'dispatched']) || $order->fulfillment_status === 'Armored In-Transit') {
+            $currentStep = 3;
+          } elseif (!empty($order->docket_number)) {
+            $currentStep = 2;
+          } elseif (in_array($order->status, ['in_production', 'inspection'])) {
+            $currentStep = 1;
           }
+
+          $docketSub = 'Pending';
+          if (!empty($order->docket_number)) {
+            $docketSub = '#' . $order->docket_number;
+          } elseif (in_array($order->status, ['shipped', 'dispatched', 'out_for_delivery', 'delivered'])) {
+            $docketSub = 'Dispatched';
+          }
+
           $steps = [
-            1 => ['title' => 'Atelier', 'sub' => 'Piece Packed', 'icon' => '📦'],
-            2 => ['title' => 'Docket Created', 'sub' => !empty($order->docket_number) ? ('#' . $order->docket_number) : 'Pending', 'icon' => '🏷️'],
-            3 => ['title' => 'Armored Transit', 'sub' => 'Armed Escort', 'icon' => '🛡️'],
+            1 => ['title' => 'Atelier', 'sub' => in_array($order->status, ['in_production', 'inspection']) ? 'In Workshop' : 'Piece Packed', 'icon' => '📦'],
+            2 => ['title' => 'Docket Created', 'sub' => $docketSub, 'icon' => '🏷️'],
+            3 => ['title' => 'Armored Transit', 'sub' => in_array($order->status, ['shipped', 'dispatched']) ? 'In Transit' : 'Armed Escort', 'icon' => '🛡️'],
             4 => ['title' => 'Out for Delivery', 'sub' => 'Arriving Today', 'icon' => '🚚'],
             5 => ['title' => 'Delivered', 'sub' => 'OTP & Signed', 'icon' => '✨'],
           ];
@@ -500,7 +517,7 @@
             @endif
           </div>
 
-          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
             <a 
               href="{{ $order->tracking_link ?: ('https://sequel247.com/tracking?docket=' . urlencode($order->docket_number)) }}" 
               target="_blank" 
@@ -529,6 +546,14 @@
                 Print Official Sequel Docket &nearr;
               </a>
             @endif
+
+            <form action="{{ route('admin.orders.tracking', $order->id) }}" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Clear tracking info for this order?')">
+              @csrf
+              <input type="hidden" name="clear_tracking" value="1">
+              <button type="submit" class="admin-btn admin-btn-ghost" style="font-size: 11.5px; color: var(--admin-text-muted); padding: 6px 10px;">
+                Reset / Change Tracking
+              </button>
+            </form>
           </div>
         @else
           @php
@@ -537,48 +562,79 @@
               $extractedPin = $pm[0];
             }
           @endphp
-          <form action="{{ route('admin.orders.sequel-docket', $order->id) }}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
-            @csrf
-            
-            <div style="font-size: 12.5px; color: var(--admin-text-secondary); line-height: 1.5;">
-              Generate an official Sequel Armored Docket (AWB) directly from the registered Vadodara vault to client destination with high-value insurance.
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <!-- Method 1: Official Sequel 247 Armored Dispatch -->
+            <div style="background: var(--admin-bg); border: 1px solid var(--admin-border-light); border-radius: 12px; padding: 16px;">
+              <div style="font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 4px;">
+                Option 1: Official Sequel 247 Armored Van Dispatch
+              </div>
+              <div style="font-size: 11.5px; color: var(--admin-text-muted); line-height: 1.4; margin-bottom: 12px;">
+                Direct vault pickup with 100% transit insurance. 
+                <span style="color: #BD7F68;">Note: Sequel armored vans service main city hubs (e.g. Vadodara 390007). If client pincode is rural or unserviceable, use hub pincode or Option 2 below.</span>
+              </div>
+
+              <form action="{{ route('admin.orders.sequel-docket', $order->id) }}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+                @csrf
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div>
+                    <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Destination Pincode *</label>
+                    <input type="text" name="pin_code" value="{{ $extractedPin ?: '390007' }}" required class="admin-input" style="font-size: 12px; padding: 6px 10px; font-family: monospace;">
+                  </div>
+                  <div>
+                    <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">City</label>
+                    <input type="text" name="city" value="Vadodara" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div>
+                    <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Gross Weight (kg)</label>
+                    <input type="number" step="0.001" name="gross_weight" value="0.250" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
+                  </div>
+                  <div>
+                    <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Boxes Count</label>
+                    <input type="number" name="boxes" value="1" min="1" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
+                  </div>
+                </div>
+
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--admin-text-primary); margin-top: 2px;">
+                  <input type="checkbox" name="notify_customer" value="1" checked style="accent-color: #BD7F68;">
+                  <span>Send Order Dispatched (A-3) certified email to client</span>
+                </label>
+
+                <button type="submit" class="admin-btn admin-btn-primary" style="margin-top: 4px; padding: 9px 16px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                  Generate Sequel 247 Docket Now
+                </button>
+              </form>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <div>
-                <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Destination Pincode *</label>
-                <input type="text" name="pin_code" value="{{ $extractedPin ?: '390007' }}" required class="admin-input" style="font-size: 12px; padding: 6px 10px; font-family: monospace;">
-              </div>
-              <div>
-                <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">City</label>
-                <input type="text" name="city" value="Vadodara" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <div>
-                <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Gross Weight (kg)</label>
-                <input type="number" step="0.001" name="gross_weight" value="0.250" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
-              </div>
-              <div>
-                <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Boxes Count</label>
-                <input type="number" name="boxes" value="1" min="1" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
-              </div>
-            </div>
-
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--admin-text-primary); margin-top: 4px;">
-              <input type="checkbox" name="notify_customer" value="1" checked style="accent-color: #BD7F68;">
-              <span>Send Order Dispatched (A-3) certified email to client</span>
-            </label>
-
-            <button type="submit" class="admin-btn admin-btn-primary" style="margin-top: 4px; padding: 10px 16px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-              Generate Sequel 247 Docket Now
-            </button>
-          </form>
+            <!-- Method 2: Manual / Alternative Courier Tracking -->
+            <details style="background: var(--admin-bg); border: 1px dashed var(--admin-border); border-radius: 12px; padding: 12px 16px;">
+              <summary style="font-size: 12px; font-weight: 700; color: var(--admin-text-secondary); cursor: pointer; user-select: none;">
+                Option 2: Manual AWB or Alternative Courier (Blue Dart, Speed Post, BVC) &darr;
+              </summary>
+              <form action="{{ route('admin.orders.tracking', $order->id) }}" method="POST" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
+                @csrf
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div>
+                    <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Courier Partner</label>
+                    <input type="text" name="courier_partner" value="Sequel 247 Logistics" placeholder="e.g. Sequel / Blue Dart" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
+                  </div>
+                  <div>
+                    <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Docket / AWB Tracking No *</label>
+                    <input type="text" name="docket_number" placeholder="Enter tracking / docket number" required class="admin-input" style="font-size: 12px; padding: 6px 10px; font-family: monospace;">
+                  </div>
+                </div>
+                <button type="submit" class="admin-btn admin-btn-secondary" style="align-self: flex-start; padding: 7px 14px; font-size: 12px; font-weight: 600;">
+                  Save Tracking & Mark Shipped
+                </button>
+              </form>
+            </details>
+          </div>
         @endif
       </div>
 

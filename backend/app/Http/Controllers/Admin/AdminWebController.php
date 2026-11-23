@@ -566,7 +566,13 @@ class AdminWebController extends Controller
         $oldStatus = $order->status;
         $order->status = $request->input('status', $order->status);
         if (in_array($order->status, ['shipped', 'delivered'])) {
-            $order->fulfillment_status = 'fulfilled';
+            $order->fulfillment_status = $order->courier_partner === 'Sequel 247 Logistics' ? 'Armored In-Transit' : 'fulfilled';
+        }
+        if ($request->filled('docket_number')) {
+            $order->docket_number = trim($request->input('docket_number'));
+        }
+        if ($request->filled('courier_partner')) {
+            $order->courier_partner = trim($request->input('courier_partner'));
         }
         $order->save();
 
@@ -582,6 +588,40 @@ class AdminWebController extends Controller
         }
 
         return back()->with('success', 'Order status updated successfully' . ($oldStatus !== $order->status ? ' and customer notification dispatched.' : '.'));
+    }
+
+    public function updateTrackingDetails(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+        
+        if ($request->has('clear_tracking')) {
+            $order->update([
+                'docket_number' => null,
+                'courier_partner' => null,
+                'pickup_token' => null,
+                'tracking_data' => null,
+            ]);
+            return back()->with('success', 'Tracking details cleared.');
+        }
+
+        $request->validate([
+            'docket_number' => 'required|string|max:100',
+            'courier_partner' => 'nullable|string|max:100',
+        ]);
+
+        $order->docket_number = trim($request->input('docket_number'));
+        $order->courier_partner = trim($request->input('courier_partner', 'Sequel 247 Logistics'));
+        if (in_array($order->status, ['confirmed', 'in_production', 'inspection'])) {
+            $order->status = 'shipped';
+            $order->fulfillment_status = 'Armored In-Transit';
+        }
+        $order->save();
+
+        if ($request->boolean('notify_customer', true)) {
+            CustomerNotificationService::sendOrderDispatched($order);
+        }
+
+        return back()->with('success', "Tracking details saved (#{$order->docket_number}) and order marked as Shipped.");
     }
 
     public function createSequelDocket(Request $request, $id)

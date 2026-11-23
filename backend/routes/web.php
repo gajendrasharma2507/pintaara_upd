@@ -23,6 +23,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/orders/{id}', [AdminWebController::class, 'orderDetail'])->name('admin.orders.show');
         Route::get('/orders/{id}/invoice', [AdminWebController::class, 'orderInvoice'])->name('admin.orders.invoice');
         Route::post('/orders/{id}/status', [AdminWebController::class, 'updateOrderStatus'])->name('admin.orders.status');
+        Route::post('/orders/{id}/tracking', [AdminWebController::class, 'updateTrackingDetails'])->name('admin.orders.tracking');
         Route::post('/orders/{id}/send-email', [AdminWebController::class, 'sendOrderEmail'])->name('admin.orders.send-email');
         Route::get('/orders/{id}/preview-email/{type}', [AdminWebController::class, 'previewOrderEmail'])->name('admin.orders.preview-email');
         Route::delete('/orders/{id}', [AdminWebController::class, 'deleteOrder'])->name('admin.orders.delete');
