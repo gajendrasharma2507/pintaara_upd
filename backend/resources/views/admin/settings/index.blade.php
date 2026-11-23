@@ -78,6 +78,15 @@
         'type' => 'modal',
         'action_type' => 'smtp',
       ],
+      'sequel' => [
+        'name' => 'Sequel 247 Delivery (Armored Logistics)',
+        'raw_val' => $settings['sequel_client_code'] ?? '31492',
+        'display_val' => !empty($settings['sequel_prod_token'] ?? $settings['sequel_test_token'] ?? '')
+          ? ((($settings['sequel_env'] ?? 'test') === 'production' ? 'Production (Live)' : 'Sandbox (Test)') . ' · Client Code: ' . ($settings['sequel_client_code'] ?? '31492') . ' · Origin: ' . ($settings['sequel_origin_pincode'] ?? '390001'))
+          : 'Pending Credentials (Click Edit to configure)',
+        'type' => 'modal',
+        'action_type' => 'sequel',
+      ],
     ];
   @endphp
 
@@ -144,6 +153,10 @@
                   </button>
                 @elseif($item['action_type'] === 'smtp')
                   <button type="button" onclick="openSmtpModal()" class="admin-btn admin-btn-edit">
+                    Edit
+                  </button>
+                @elseif($item['action_type'] === 'sequel')
+                  <button type="button" onclick="openSequelModal()" class="admin-btn admin-btn-edit">
                     Edit
                   </button>
                 @else
@@ -439,6 +452,125 @@
   </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- 4. SEQUEL 247 ARMORED LOGISTICS SETUP MODAL -->
+<!-- ============================================================ -->
+<div id="sequelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+  <div style="background: var(--admin-surface); width: 100%; max-width: 620px; border-radius: 14px; border: 1px solid var(--admin-border); box-shadow: 0 20px 40px rgba(0,0,0,0.25); overflow: hidden;">
+    <div style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--admin-text-primary);">
+          Sequel 247 Logistics Setup
+        </h3>
+        <span style="font-size: 11.5px; color: var(--admin-text-muted);">Armored door-to-door transit for high-value fine jewelry (<a href="https://sequel247.com" target="_blank" style="color: #3C50E0; text-decoration: underline;">sequel247.com</a>)</span>
+      </div>
+      <button type="button" onclick="closeSequelModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--admin-text-muted);">&times;</button>
+    </div>
+
+    <form action="{{ route('admin.settings.update') }}" method="POST" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+      @csrf
+
+      <div>
+        <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 6px;">Environment Mode</label>
+        <div style="display: flex; gap: 20px; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--admin-text-primary); margin: 0;">
+            <input 
+              type="radio" 
+              name="sequel_env" 
+              value="production" 
+              {{ ($settings['sequel_env'] ?? 'test') === 'production' ? 'checked' : '' }} 
+              style="width: 17px; height: 17px; accent-color: #3C50E0; cursor: pointer;"
+            >
+            <span style="color: #059669; font-weight: 700;">Production (Live - sequel247.com)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--admin-text-primary); margin: 0;">
+            <input 
+              type="radio" 
+              name="sequel_env" 
+              value="test" 
+              {{ ($settings['sequel_env'] ?? 'test') !== 'production' ? 'checked' : '' }} 
+              style="width: 17px; height: 17px; accent-color: #3C50E0; cursor: pointer;"
+            >
+            <span style="color: #D97706; font-weight: 700;">Sandbox / Test (test.sequel247.com)</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div>
+          <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 5px;">Client Code *</label>
+          <input 
+            type="text" 
+            name="sequel_client_code" 
+            value="{{ $settings['sequel_client_code'] ?? config('services.sequel247.client_code', '31492') }}" 
+            required 
+            placeholder="31492" 
+            class="admin-input" 
+            style="font-family: monospace;"
+          >
+          <div style="font-size: 11px; color: var(--admin-text-muted); margin-top: 3px;">Assigned by Sequel 247 account manager</div>
+        </div>
+
+        <div>
+          <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 5px;">Store Code *</label>
+          <input 
+            type="text" 
+            name="sequel_store_code" 
+            value="{{ $settings['sequel_store_code'] ?? config('services.sequel247.store_code', 'PINTAARA') }}" 
+            required 
+            placeholder="PINTAARA" 
+            class="admin-input" 
+            style="font-family: monospace;"
+          >
+          <div style="font-size: 11px; color: var(--admin-text-muted); margin-top: 3px;">Store / Vault branch identifier</div>
+        </div>
+      </div>
+
+      <div>
+        <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 5px;">Origin Vault Pincode *</label>
+        <input 
+          type="text" 
+          name="sequel_origin_pincode" 
+          value="{{ $settings['sequel_origin_pincode'] ?? config('services.sequel247.origin_pincode', '390001') }}" 
+          required 
+          placeholder="390001" 
+          class="admin-input" 
+          style="font-family: monospace;"
+        >
+        <div style="font-size: 11px; color: var(--admin-text-muted); margin-top: 3px;">Vadodara studio pickup pincode for armored vehicle dispatch</div>
+      </div>
+
+      <div>
+        <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 5px;">Production API Token</label>
+        <input 
+          type="password" 
+          name="sequel_prod_token" 
+          placeholder="{{ !empty($settings['sequel_prod_token']) ? '•••••••••••••••••••••••• (Configured - leave blank to keep)' : 'Enter production token from Sequel247 portal' }}" 
+          class="admin-input" 
+          style="font-family: monospace;"
+        >
+        <div style="font-size: 11px; color: var(--admin-text-muted); margin-top: 3px;">API Bearer Token provided by Sequel for live shipments</div>
+      </div>
+
+      <div>
+        <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 5px;">Test / Sandbox API Token</label>
+        <input 
+          type="password" 
+          name="sequel_test_token" 
+          placeholder="{{ !empty($settings['sequel_test_token']) ? '•••••••••••••••••••••••• (Configured - leave blank to keep)' : 'Enter staging test token' }}" 
+          class="admin-input" 
+          style="font-family: monospace;"
+        >
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--admin-border-light);">
+        <button type="button" onclick="closeSequelModal()" class="admin-btn admin-btn-secondary">Cancel</button>
+        <button type="submit" class="admin-btn admin-btn-primary">Save Sequel 247 Credentials</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   // 0. Website Password Modal
   function openWebsitePasswordModal() {
@@ -509,16 +641,27 @@
     document.getElementById('smtpModal').style.display = 'none';
   }
 
+  // 4. Sequel 247 Modal
+  function openSequelModal() {
+    document.getElementById('sequelModal').style.display = 'flex';
+  }
+
+  function closeSequelModal() {
+    document.getElementById('sequelModal').style.display = 'none';
+  }
+
   // Close modals when clicking backdrop
   window.addEventListener('click', function(e) {
     const singleModal = document.getElementById('singleModal');
     const razorpayModal = document.getElementById('razorpayModal');
     const smtpModal = document.getElementById('smtpModal');
     const passModal = document.getElementById('websitePasswordModal');
+    const sequelModal = document.getElementById('sequelModal');
     if (e.target === singleModal) closeSettingModal();
     if (e.target === razorpayModal) closeRazorpayModal();
     if (e.target === smtpModal) closeSmtpModal();
     if (e.target === passModal) closeWebsitePasswordModal();
+    if (e.target === sequelModal) closeSequelModal();
   });
 
   // Close modals on Escape key
@@ -528,6 +671,7 @@
       closeRazorpayModal();
       closeSmtpModal();
       closeWebsitePasswordModal();
+      closeSequelModal();
     }
   });
 </script>

@@ -22,6 +22,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Services\CustomerNotificationService;
 use App\Services\JewelryPricingService;
+use App\Services\SequelLogisticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -581,6 +582,44 @@ class AdminWebController extends Controller
         }
 
         return back()->with('success', 'Order status updated successfully' . ($oldStatus !== $order->status ? ' and customer notification dispatched.' : '.'));
+    }
+
+    public function createSequelDocket(Request $request, $id)
+    {
+        $order = Order::with('items.product')->findOrFail($id);
+
+        $options = [
+            'net_weight' => (float) $request->input('net_weight', 0.050),
+            'gross_weight' => (float) $request->input('gross_weight', 0.250),
+            'boxes' => (int) $request->input('boxes', 1),
+            'consignee_name' => $request->input('consignee_name', $order->customer_name),
+            'contact_number' => $request->input('contact_number', $order->customer_phone),
+            'pin_code' => $request->input('pin_code'),
+            'city' => $request->input('city'),
+            'state' => $request->input('state'),
+            'address_line1' => $request->input('address_line1'),
+            'address_line2' => $request->input('address_line2'),
+        ];
+
+        $options = array_filter($options, fn($val) => !is_null($val) && $val !== '');
+
+        try {
+            $service = app(SequelLogisticsService::class);
+            $result = $service->createShipment($order, $options);
+
+            if (!empty($result['success'])) {
+                $docket = $result['docket_number'] ?? 'Assigned';
+                if ($request->boolean('notify_customer', true)) {
+                    CustomerNotificationService::sendOrderDispatched($order);
+                }
+                return back()->with('success', "Sequel 247 Armored Docket #{$docket} generated successfully! Order dispatched.");
+            }
+
+            $errMsg = $result['message'] ?? $result['error'] ?? 'Failed to create Sequel shipment docket.';
+            return back()->with('error', "Sequel 247 Logistics Notice: {$errMsg}");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Sequel Logistics Error: ' . $e->getMessage());
+        }
     }
 
     public function sendOrderEmail(Request $request, $id)
@@ -1388,7 +1427,7 @@ class AdminWebController extends Controller
 
     public function updateSettings(Request $request)
     {
-        $passwordKeys = ['mail_password', 'razorpay_key_secret', 'razorpay_webhook_secret'];
+        $passwordKeys = ['mail_password', 'razorpay_key_secret', 'razorpay_webhook_secret', 'sequel_prod_token', 'sequel_test_token'];
         foreach ($request->except('_token') as $key => $val) {
             if (in_array($key, $passwordKeys) && ($val === null || $val === '')) {
                 continue;

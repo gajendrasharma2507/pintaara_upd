@@ -30,6 +30,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('/orders/{id}/force', [AdminWebController::class, 'forceDeleteOrder'])->name('admin.orders.force-delete');
         Route::post('/orders/{id}/items/{itemId}/upload-document', [AdminWebController::class, 'uploadOrderItemDocument'])->name('admin.orders.items.upload-document');
         Route::delete('/orders/{id}/items/{itemId}/certificates/{certIndex}', [AdminWebController::class, 'deleteOrderItemCertificate'])->name('admin.orders.items.delete-cert');
+        Route::post('/orders/{id}/sequel-docket', [AdminWebController::class, 'createSequelDocket'])->name('admin.orders.sequel-docket');
 
         // Products
         Route::get('/products', [AdminWebController::class, 'products'])->name('admin.products');

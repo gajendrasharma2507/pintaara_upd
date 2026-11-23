@@ -401,6 +401,103 @@
         </div>
       </div>
 
+      <!-- Sequel 247 Armored Delivery Dispatch Card -->
+      <div class="admin-card" style="padding: 22px; border-radius: 16px; background: var(--admin-surface); border: 1px solid var(--admin-border);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-size: 15px; font-weight: 700; margin: 0; color: var(--admin-text-primary); display: flex; align-items: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#BD7F68" stroke-width="2">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+              Sequel 247 Armored Logistics
+            </h3>
+            <div style="font-size: 11.5px; color: var(--admin-text-muted); margin-top: 2px;">
+              Door-to-door armored transport for fine jewelry
+            </div>
+          </div>
+          @if(!empty($order->docket_number))
+            <span style="background: #ECFDF5; color: #059669; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 5px;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
+              Docket Dispatched
+            </span>
+          @else
+            <span style="background: #FFFBEB; color: #D97706; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 5px;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706;"></span>
+              Ready to Dispatch
+            </span>
+          @endif
+        </div>
+
+        @if(!empty($order->docket_number))
+          <div style="background: var(--admin-bg); border: 1px solid var(--admin-border-light); border-radius: 10px; padding: 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; color: var(--admin-text-muted);">Docket / AWB No:</span>
+              <span style="font-size: 14px; font-family: monospace; font-weight: 700; color: #BD7F68;">{{ $order->docket_number }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; color: var(--admin-text-muted);">Courier Partner:</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--admin-text-primary);">{{ $order->courier_partner ?: 'Sequel 247 Logistics' }}</span>
+            </div>
+            @if(!empty($order->pickup_token))
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; color: var(--admin-text-muted);">Pickup Token / BRN:</span>
+                <span style="font-size: 12.5px; font-family: monospace; color: var(--admin-text-primary);">{{ $order->pickup_token }}</span>
+              </div>
+            @endif
+          </div>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a 
+              href="https://sequel247.com/tracking?docket={{ urlencode($order->docket_number) }}" 
+              target="_blank" 
+              class="admin-btn admin-btn-secondary" 
+              style="font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+              </svg>
+              Track on Sequel 247 &nearr;
+            </a>
+          </div>
+        @else
+          <form action="{{ route('admin.orders.sequel-docket', $order->id) }}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+            @csrf
+            
+            <div style="font-size: 12.5px; color: var(--admin-text-secondary); line-height: 1.5;">
+              Generate an official Sequel Armored Docket (AWB) directly from the registered Vadodara vault to client destination with high-value insurance.
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Gross Weight (kg)</label>
+                <input type="number" step="0.001" name="gross_weight" value="0.250" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
+              </div>
+              <div>
+                <label class="admin-label" style="font-size: 11px; margin-bottom: 3px;">Boxes Count</label>
+                <input type="number" name="boxes" value="1" min="1" class="admin-input" style="font-size: 12px; padding: 6px 10px;">
+              </div>
+            </div>
+
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--admin-text-primary); margin-top: 4px;">
+              <input type="checkbox" name="notify_customer" value="1" checked style="accent-color: #BD7F68;">
+              <span>Send Order Dispatched (A-3) certified email to client</span>
+            </label>
+
+            <button type="submit" class="admin-btn admin-btn-primary" style="margin-top: 4px; padding: 10px 16px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+              Generate Sequel 247 Docket Now
+            </button>
+          </form>
+        @endif
+      </div>
+
     </div>
 
   </div>
