@@ -405,18 +405,9 @@
       <div class="admin-card" style="padding: 22px; border-radius: 16px; background: var(--admin-surface); border: 1px solid var(--admin-border);">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
           <div>
-            <h3 style="font-size: 15px; font-weight: 700; margin: 0; color: var(--admin-text-primary); display: flex; align-items: center; gap: 8px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#BD7F68" stroke-width="2">
-                <rect x="1" y="3" width="15" height="13"></rect>
-                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
-                <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                <circle cx="18.5" cy="18.5" r="2.5"></circle>
-              </svg>
+            <h3 style="font-size: 15px; font-weight: 700; margin: 0; color: var(--admin-text-primary);">
               Sequel 247 Armored Logistics
             </h3>
-            <div style="font-size: 11.5px; color: var(--admin-text-muted); margin-top: 2px;">
-              Door-to-door armored transport with 100% transit insurance
-            </div>
           </div>
           @if(!empty($order->docket_number))
             <span style="background: #ECFDF5; color: #059669; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 5px;">
