@@ -1518,10 +1518,15 @@ export default function DynamicCollectionPage({ params }) {
         }
     };
 
-    const isLimited = productDetail?.is_limited_edition !== false;
+    const isLimited = Boolean(
+        productDetail?.is_limited_edition === true ||
+        productDetail?.is_limited_edition === 1 ||
+        productDetail?.is_limited_edition === '1' ||
+        productDetail?.is_limited_edition === 'true'
+    );
     const editionPrefix = (productDetail?.edition_prefix || 'LIMITED EDITION').trim();
-    const editionCurrent = Number(productDetail?.edition_current ?? 1);
-    const editionLimit = Number(productDetail?.edition_limit ?? 50);
+    const editionCurrent = Math.max(1, Number(productDetail?.edition_current || 1));
+    const editionLimit = Number(productDetail?.edition_limit || 50);
     const currentStr = String(editionCurrent).padStart(2, '0');
     const limitStr = String(editionLimit).padStart(2, '0');
     const editionText = productDetail?.edition_text || (isLimited ? `${editionPrefix} ${currentStr}/${limitStr}` : null);

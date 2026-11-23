@@ -44,12 +44,27 @@ export default function DesignLogSubPage({ params }) {
           // Admin data wins; empty fields fall back to the local sheet
           // (src/config/designLogs.js), then to values derived from the
           // product, so the spec panel matches Website Design.pdf p.22.
-          const code = item.product?.design_code || item.code || (item.design_code ? item.design_code : `DL-${item.id}`);
+          const code = item.design_code || item.product?.design_code || item.code || (resolvedParams.id ? String(resolvedParams.id).toUpperCase() : `DL-${item.id}`);
           // getBlueprintById() returns the first sheet for unknown codes — only use an exact match
           const fb = fallbackBp && String(fallbackBp.code).toLowerCase() === String(code).toLowerCase() ? fallbackBp : {};
           const prefix = String(code).split('-')[0].toUpperCase();
+          const hasLinkedProduct = Boolean(item.product?.design_code || item.product_id);
+          const resolvedProductId = hasLinkedProduct ? (item.product?.design_code || item.product_id) : null;
+          const isLimited = Boolean(
+            item.product && (
+              item.product.is_limited_edition === true ||
+              item.product.is_limited_edition === 1 ||
+              item.product.is_limited_edition === '1' ||
+              item.product.is_limited_edition === 'true'
+            )
+          );
+          const editionPrefix = item.product?.edition_prefix || fb.editionPrefix || 'LIMITED EDITION';
+          const editionCurrent = Math.max(1, Number(item.product?.edition_current || 1));
+          const editionLimit = Number(item.product?.edition_limit || 50);
+          const editionNumber = `${String(editionCurrent).padStart(2, '0')}/${String(editionLimit).padStart(2, '0')}`;
+
           setBp({
-            id: item.product?.design_code || item.id,
+            id: item.design_code || item.product?.design_code || item.id,
             code,
             image: item.blueprint_image || fb.image || item.cad_image || item.product?.primary_image || '/images/design-log/PD-SG-OR-001.JPG',
             type: specs.type || item.design_type || fb.type || TYPE_BY_PREFIX[prefix] || '',
@@ -58,18 +73,34 @@ export default function DesignLogSubPage({ params }) {
             sizeOptions: specs.size_options || fb.sizeOptions || '',
             gemOptions: specs.gem_options || (typeof item.gem_details === 'string' ? item.gem_details : '') || fb.gemOptions || '',
             inspiredBy: specs.inspired_by || item.inspired_by || fb.inspiredBy || '',
+            inspiredByLabel: specs.inspired_by_label || fb.inspiredByLabel || 'INSPIRED BY',
             brandOrigin: specs.brand_origin || fb.brandOrigin || 'A PINTAARA™ ORIGINAL',
             designer: specs.designed_by || item.product?.designed_by || fb.designer || '',
             status: item.status || fb.status || 'UNDER DEVELOPMENT',
-            collection: (item.product?.collection_name || item.product?.tier || fb.collection || 'ORIGIN').toUpperCase(),
-            release: formatRelease(item.release_date || item.product?.release_date) || fb.release || '2026',
-            productId: item.product?.design_code || item.product_id,
+            collection: (specs.collection || item.product?.collection_name || item.product?.tier || fb.collection || (hasLinkedProduct ? 'ORIGIN' : 'STANDALONE')).toUpperCase(),
+            release: formatRelease(item.release_date || item.product?.release_date) || specs.release || fb.release || '2026',
+            productId: resolvedProductId,
+            hasLinkedProduct,
+            isLimited,
+            editionPrefix,
+            editionNumber,
+            edition: editionNumber,
           });
         } else if (fallbackBp) {
-          setBp(fallbackBp);
+          setBp({
+            ...fallbackBp,
+            hasLinkedProduct: Boolean(fallbackBp.productId),
+            isLimited: false,
+          });
         }
       } catch (e) {
-        if (fallbackBp) setBp(fallbackBp);
+        if (fallbackBp) {
+          setBp({
+            ...fallbackBp,
+            hasLinkedProduct: Boolean(fallbackBp.productId),
+            isLimited: false,
+          });
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -96,9 +127,6 @@ export default function DesignLogSubPage({ params }) {
 
         {/* LEFT: origin / identity */}
         <div className="dl-identity">
-          <Link href="/design-log" className="dl-back-link">
-            &larr;&nbsp;&nbsp;BACK TO DESIGN LOG
-          </Link>
           <span className="dl-label-sm">ORIGIN</span>
           {isLoading ? (
             <div className="pintaara-shimmer shimmer-line title" style={{ width: '80%', height: '28px', marginTop: '10px' }} />
@@ -107,6 +135,13 @@ export default function DesignLogSubPage({ params }) {
           )}
           <div className="dl-rule-short"></div>
           <span className="dl-label-sm">DESIGN SPECIFICATION</span>
+
+          {bp?.hasLinkedProduct && bp?.isLimited && (
+            <div className="dl-limited-edition">
+              <span className="dl-limited-sep" aria-hidden="true">|</span>
+              <span className="dl-limited-text">{(bp?.editionPrefix || 'LIMITED EDITION').toUpperCase()}: {bp?.editionNumber || bp?.edition || '01/50'}</span>
+            </div>
+          )}
         </div>
 
         {/* CENTER: technical blueprint sheet */}
@@ -178,7 +213,7 @@ export default function DesignLogSubPage({ params }) {
 
               {bp.inspiredBy && bp.inspiredBy.trim() !== '' && (
                 <div className="dl-spec-row dl-spec-row--last">
-                  <span className="dl-spec-label">INSPIRED BY</span>
+                  <span className="dl-spec-label">{bp.inspiredByLabel || 'INSPIRED BY'}</span>
                   <span className="dl-spec-value">{bp.inspiredBy}</span>
                 </div>
               )}
@@ -215,14 +250,24 @@ export default function DesignLogSubPage({ params }) {
           <span className="dl-meta-label">COLLECTION</span>
           <span className="dl-meta-value">{bp?.collection || 'ORIGIN'}</span>
         </div>
-        <div className="dl-meta-col">
+        <div className="dl-meta-col dl-meta-col--no-border">
           <span className="dl-meta-label">RELEASE</span>
           <span className="dl-meta-value">{bp?.release || '2026'}</span>
         </div>
         <div className="dl-meta-col dl-meta-col--btn">
-          <Link href={bp?.productId ? `/collection/${bp.productId}` : "/collection"} className="dl-collection-btn">
-            VIEW COLLECTION PIECE&nbsp;&nbsp;&rarr;
-          </Link>
+          {bp?.hasLinkedProduct && bp?.productId ? (
+            <Link href={`/collection/${bp.productId}`} className="dl-collection-btn">
+              VIEW COLLECTION PIECE&nbsp;&nbsp;&rarr;
+            </Link>
+          ) : (
+            <div
+              className="dl-collection-btn"
+              style={{ visibility: 'hidden', pointerEvents: 'none' }}
+              aria-hidden="true"
+            >
+              VIEW COLLECTION PIECE&nbsp;&nbsp;&rarr;
+            </div>
+          )}
         </div>
       </section>
 
