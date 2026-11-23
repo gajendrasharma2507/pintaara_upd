@@ -81,8 +81,8 @@
       'sequel' => [
         'name' => 'Sequel 247 Delivery (Armored Logistics)',
         'raw_val' => $settings['sequel_client_code'] ?? '31492',
-        'display_val' => !empty($settings['sequel_prod_token'] ?? $settings['sequel_test_token'] ?? '')
-          ? ((($settings['sequel_env'] ?? 'test') === 'production' ? 'Production (Live)' : 'Sandbox (Test)') . ' · Client Code: ' . ($settings['sequel_client_code'] ?? '31492') . ' · Origin: ' . ($settings['sequel_origin_pincode'] ?? '390001'))
+        'display_val' => !empty($settings['sequel_prod_token'] ?? $settings['sequel_test_token'] ?? config('services.sequel247.test_token'))
+          ? ((($settings['sequel_env'] ?? config('services.sequel247.env', 'test')) === 'production' ? 'Production (Live)' : 'Sandbox (Test)') . ' · Client: ' . ($settings['sequel_client_code'] ?? config('services.sequel247.client_code', '31492')) . ' · Store: ' . ($settings['sequel_store_code'] ?? config('services.sequel247.store_code', 'PINTARA')) . ' · Origin: ' . ($settings['sequel_origin_pincode'] ?? config('services.sequel247.origin_pincode', '390001')))
           : 'Pending Credentials (Click Edit to configure)',
         'type' => 'modal',
         'action_type' => 'sequel',
@@ -516,9 +516,9 @@
           <input 
             type="text" 
             name="sequel_store_code" 
-            value="{{ $settings['sequel_store_code'] ?? config('services.sequel247.store_code', 'PINTAARA') }}" 
+            value="{{ $settings['sequel_store_code'] ?? config('services.sequel247.store_code', 'PINTARA') }}" 
             required 
-            placeholder="PINTAARA" 
+            placeholder="PINTARA" 
             class="admin-input" 
             style="font-family: monospace;"
           >

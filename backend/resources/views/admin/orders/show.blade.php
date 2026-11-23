@@ -451,7 +451,7 @@
 
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <a 
-              href="https://sequel247.com/tracking?docket={{ urlencode($order->docket_number) }}" 
+              href="{{ $order->tracking_link ?: ('https://sequel247.com/tracking?docket=' . urlencode($order->docket_number)) }}" 
               target="_blank" 
               class="admin-btn admin-btn-secondary" 
               style="font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
@@ -460,8 +460,24 @@
                 <circle cx="12" cy="12" r="10"></circle>
                 <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
               </svg>
-              Track on Sequel 247 &nearr;
+              Live Tracking &nearr;
             </a>
+
+            @if(!empty($order->docket_print_url))
+              <a 
+                href="{{ $order->docket_print_url }}" 
+                target="_blank" 
+                class="admin-btn admin-btn-primary" 
+                style="font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                  <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                Print Official Sequel Docket &nearr;
+              </a>
+            @endif
           </div>
         @else
           <form action="{{ route('admin.orders.sequel-docket', $order->id) }}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">

@@ -22,13 +22,13 @@ class SequelLogisticsService
         $this->env = Setting::get('sequel_env', config('services.sequel247.env', 'test'));
         $this->clientCode = (string) Setting::get('sequel_client_code', config('services.sequel247.client_code', '31492'));
         $this->storeCode = Setting::get('sequel_store_code', config('services.sequel247.store_code', 'PINTARA'));
-        $this->originPincode = (string) Setting::get('sequel_origin_pincode', config('services.sequel247.origin_pincode', '400001'));
+        $this->originPincode = (string) Setting::get('sequel_origin_pincode', config('services.sequel247.origin_pincode', '390001'));
 
         if ($this->env === 'production' || $this->env === 'prod') {
-            $this->token = Setting::get('sequel_prod_token', config('services.sequel247.prod_token', ''));
+            $this->token = Setting::get('sequel_prod_token', config('services.sequel247.prod_token', 'e27b75bc3b396ee53d2349adae6884ed'));
             $this->endpoint = rtrim(Setting::get('sequel_prod_endpoint', config('services.sequel247.prod_endpoint', 'https://sequel247.com/')), '/') . '/';
         } else {
-            $this->token = Setting::get('sequel_test_token', config('services.sequel247.test_token', ''));
+            $this->token = Setting::get('sequel_test_token', config('services.sequel247.test_token', '7418b689f9b4fbf82c9f67588206fecc'));
             $this->endpoint = rtrim(Setting::get('sequel_test_endpoint', config('services.sequel247.test_endpoint', 'https://test.sequel247.com/')), '/') . '/';
         }
     }
@@ -152,35 +152,40 @@ class SequelLogisticsService
             'serviceType' => $options['serviceType'] ?? 'valuable', // High value armored
             'fromStoreCode' => $this->storeCode,
             'toAddress' => [
-                'consignee_name' => $consigneeName,
-                'address_line1' => $addressLine1,
-                'address_line2' => $addressLine2,
-                'pin_code' => (string) $pinCode,
-                'city' => $city,
-                'state' => $state,
+                'consignee_name' => (string) $consigneeName,
+                'auth_receiver_name' => (string) ($options['auth_receiver_name'] ?? $consigneeName),
+                'auth_receiver_phone' => (string) ($options['auth_receiver_phone'] ?? $contactPhone),
+                'address_line1' => (string) $addressLine1,
+                'address_line2' => (string) $addressLine2,
+                'pinCode' => (string) $pinCode,
+                'city' => (string) $city,
+                'state' => (string) $state,
                 'country' => 'India',
-                'contact_number' => $contactPhone,
+                'contact_number' => (string) $contactPhone,
             ],
-            'net_weight' => $netWeight,
-            'gross_weight' => $grossWeight,
+            'net_weight' => (string) $netWeight,
+            'gross_weight' => (string) $grossWeight,
             'weight_unit' => 'kg',
-            'net_value' => $totalVal,
+            'net_value' => (string) $totalVal,
             'currency' => 'INR',
-            'insurance' => 'sequel',
-            'boxes' => $boxesCount,
+            'insurance' => 'Sequel',
+            'no_of_packages' => (string) $boxesCount,
+            'boxes' => (string) $boxesCount,
             'packages' => [
                 [
                     'box_no' => 1,
-                    'weight' => $grossWeight,
-                    'length' => 12,
-                    'width' => 10,
-                    'height' => 8,
+                    'weight' => (string) $grossWeight,
+                    'length' => '12',
+                    'width' => '10',
+                    'height' => '8',
                 ]
             ],
             'invoice' => [
-                'invoice_no' => 'INV-' . ($order->order_number ?: $order->id),
-                'invoice_date' => date('Y-m-d'),
-                'invoice_value' => $totalVal,
+                [
+                    'invoice_no' => 'INV-' . ($order->order_number ?: $order->id),
+                    'invoice_date' => date('Y-m-d'),
+                    'invoice_value' => (string) $totalVal,
+                ]
             ]
         ];
 
@@ -188,15 +193,25 @@ class SequelLogisticsService
             $response = Http::timeout(20)->post($url, $payload);
             $json = $response->json();
 
-            if ($response->successful() && !empty($json['status'])) {
-                $docketNumber = $json['docketNumber'] ?? $json['docket_number'] ?? ($json['data']['docket'] ?? null);
-                $pickupToken = $json['token'] ?? $json['brn'] ?? null;
+            $isSuccess = $response->successful() && (
+                ($json['status'] ?? '') === 'true' || 
+                ($json['status'] ?? false) === true
+            );
+
+            if ($isSuccess && !empty($json['data'])) {
+                $data = $json['data'];
+                $docketNumber = $data['docket_number'] ?? $data['docket'] ?? ($json['docketNumber'] ?? null);
+                $pickupToken = $data['brn'] ?? ($json['token'] ?? null);
+                $trackingLink = $data['tracking_link'] ?? ($docketNumber ? "{$this->endpoint}track/{$docketNumber}" : null);
+                $docketPrint = $data['docket_print'] ?? null;
 
                 // Update order model
                 $order->update([
                     'docket_number' => $docketNumber,
                     'courier_partner' => 'Sequel 247 Logistics',
                     'pickup_token' => $pickupToken,
+                    'tracking_link' => $trackingLink,
+                    'docket_print_url' => $docketPrint,
                     'logistics_status' => 'DOCKET_CREATED',
                     'status' => 'shipped',
                     'fulfillment_status' => 'Armored In-Transit',
@@ -207,6 +222,8 @@ class SequelLogisticsService
                     'success' => true,
                     'docket_number' => $docketNumber,
                     'pickup_token' => $pickupToken,
+                    'tracking_link' => $trackingLink,
+                    'docket_print' => $docketPrint,
                     'data' => $json,
                 ];
             }
