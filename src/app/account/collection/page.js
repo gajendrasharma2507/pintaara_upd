@@ -334,7 +334,7 @@ export default function AccountCollectionPage() {
                                                 <span className="acct-spec-val">{piece.order_number || '—'}</span>
                                             </div>
                                             <div className="acct-spec-row">
-                                                <span className="acct-spec-label">Order Status:</span>
+                                                <span className="acct-spec-label">Status:</span>
                                                 <span className="acct-spec-val" style={{ 
                                                     color: piece.status === 'cancelled' ? '#B91C1C' : 'inherit',
                                                     fontWeight: piece.status === 'cancelled' ? 600 : 'normal'
@@ -353,7 +353,7 @@ export default function AccountCollectionPage() {
                                             <div className="acct-piece-meta-block">
                                                 <p className="acct-piece-text">Order Ref: {piece.order_number || '—'}</p>
                                                 <p className="acct-piece-text" style={{ color: piece.status === 'cancelled' ? '#B91C1C' : 'inherit', fontWeight: piece.status === 'cancelled' ? 600 : 'normal' }}>
-                                                    Order Status: {piece.status === 'cancelled' ? 'Order Cancelled' : (piece.status ? piece.status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Confirmed')}
+                                                    Status: {piece.status === 'cancelled' ? 'Order Cancelled' : (piece.status ? piece.status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Confirmed')}
                                                 </p>
                                             </div>
                                         </>
