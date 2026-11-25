@@ -1324,8 +1324,8 @@ class AdminWebController extends Controller
         $settings = [
             'gold_rate_mode'      => Setting::get('gold_rate_mode', 'live'),
             'silver_rate_mode'    => Setting::get('silver_rate_mode', 'live'),
-            'manual_gold_rate'    => (float) Setting::get('manual_gold_rate', $rates['active_gold_input'] ?? 142678),
-            'manual_silver_rate'  => (float) Setting::get('manual_silver_rate', $rates['active_silver_input'] ?? 208000),
+            'manual_gold_rate'    => (float) Setting::get('manual_gold_rate', $rates['active_gold_input'] ?? 0),
+            'manual_silver_rate'  => (float) Setting::get('manual_silver_rate', $rates['active_silver_input'] ?? 0),
             'gold_step_gap'       => (float) Setting::get('gold_step_gap', 5000),
             'silver_step_gap'     => (float) Setting::get('silver_step_gap', 10000),
             'gold_extra_offset'   => (float) Setting::get('gold_rate_extra_offset', 0),
@@ -1346,8 +1346,8 @@ class AdminWebController extends Controller
         $settings = [
             'gold_rate_mode'      => Setting::get('gold_rate_mode', 'live'),
             'silver_rate_mode'    => Setting::get('silver_rate_mode', 'live'),
-            'manual_gold_rate'    => (float) Setting::get('manual_gold_rate', $rates['active_gold_input'] ?? 142678),
-            'manual_silver_rate'  => (float) Setting::get('manual_silver_rate', $rates['active_silver_input'] ?? 208000),
+            'manual_gold_rate'    => (float) Setting::get('manual_gold_rate', $rates['active_gold_input'] ?? 0),
+            'manual_silver_rate'  => (float) Setting::get('manual_silver_rate', $rates['active_silver_input'] ?? 0),
             'gold_step_gap'       => (float) Setting::get('gold_step_gap', 5000),
             'silver_step_gap'     => (float) Setting::get('silver_step_gap', 10000),
             'gold_extra_offset'   => (float) Setting::get('gold_rate_extra_offset', 0),

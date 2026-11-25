@@ -8,8 +8,8 @@
   $silverCap = $rates['silver_cap'] ?? 210000.0;
   $liveGoldRate = $rates['live_gold_rate'] ?? ($liveData['gold_24kt_per_10g'] ?? 0);
   $liveSilverRate = $rates['live_silver_rate'] ?? ($liveData['silver_per_kg'] ?? 0);
-  $manualGoldRate = $settings['manual_gold_rate'] ?? ($rates['manual_gold_rate'] ?? ($liveGoldRate > 0 ? $liveGoldRate : 142678.0));
-  $manualSilverRate = $settings['manual_silver_rate'] ?? ($rates['manual_silver_rate'] ?? ($liveSilverRate > 0 ? $liveSilverRate : 208000.0));
+  $manualGoldRate = $settings['manual_gold_rate'] ?? ($rates['manual_gold_rate'] ?? ($liveGoldRate > 0 ? $liveGoldRate : 0));
+  $manualSilverRate = $settings['manual_silver_rate'] ?? ($rates['manual_silver_rate'] ?? ($liveSilverRate > 0 ? $liveSilverRate : 0));
   $goldRateMode = $rates['gold_rate_mode'] ?? ($settings['gold_rate_mode'] ?? 'live');
   $silverRateMode = $rates['silver_rate_mode'] ?? ($settings['silver_rate_mode'] ?? 'live');
   $goldStepGap = $settings['gold_step_gap'] ?? 5000;
@@ -558,7 +558,7 @@
     let silverMode = document.querySelector('input[name="silver_rate_mode"]:checked')?.value || 'live';
 
     const liveGold = Number(document.getElementById('live_gold_rate_val')?.value || 0);
-    const manualGold = Number(document.getElementById('manual_gold_rate_input')?.value || 142678);
+    const manualGold = Number(document.getElementById('manual_gold_rate_input')?.value || 0);
     const goldGap = Number(document.getElementById('gold_step_gap_input')?.value || 5000);
 
     // Auto-switch to Manual Entry if live gold rate is not received
@@ -577,7 +577,7 @@
     const rate14k = Math.round(((goldCap * 0.585) / 10) * 100) / 100;
 
     const liveSilver = Number(document.getElementById('live_silver_rate_val')?.value || 0);
-    const manualSilver = Number(document.getElementById('manual_silver_rate_input')?.value || 208000);
+    const manualSilver = Number(document.getElementById('manual_silver_rate_input')?.value || 0);
     const silverGap = Number(document.getElementById('silver_step_gap_input')?.value || 10000);
 
     // Auto-switch to Manual Entry if live silver rate is not received

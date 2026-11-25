@@ -241,7 +241,7 @@ class JewelryPricingService
                     $inputGold = $manualRate;
                 } else {
                     $rate = $this->getLatestRate('gold');
-                    $inputGold = $rate ? (float) $rate->rate_per_10g : 142678.0;
+                    $inputGold = $rate ? (float) $rate->rate_per_10g : 0.0;
                 }
             }
         }
@@ -271,7 +271,7 @@ class JewelryPricingService
                     $inputSilver = $manualRate;
                 } else {
                     $rate = $this->getLatestRate('silver');
-                    $inputSilver = $rate ? ((float) $rate->rate_per_10g * 100.0) : 208000.0;
+                    $inputSilver = $rate ? ((float) $rate->rate_per_10g * 100.0) : 0.0;
                 }
             }
         }
@@ -564,8 +564,8 @@ class JewelryPricingService
             $silverMode = 'manual';
         }
 
-        $manualGold = (float) Setting::get('manual_gold_rate', $rawGold24k10g > 0 ? $rawGold24k10g : 142678.0);
-        $manualSilver = (float) Setting::get('manual_silver_rate', $rawSilverKg > 0 ? $rawSilverKg : 208000.0);
+        $manualGold = (float) Setting::get('manual_gold_rate', $rawGold24k10g > 0 ? $rawGold24k10g : 0);
+        $manualSilver = (float) Setting::get('manual_silver_rate', $rawSilverKg > 0 ? $rawSilverKg : 0);
         $goldStepGap = (float) Setting::get('gold_step_gap', 5000);
         $silverStepGap = (float) Setting::get('silver_step_gap', 10000);
 
