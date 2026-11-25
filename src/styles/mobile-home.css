@@ -2779,8 +2779,7 @@ html body .auth-root > .auth-footer span {
     html body .contact-root .contact-col-primary,
     html body .contact-root .contact-col-link,
     html body .contact-root .contact-col-secondary,
-    html body .appointment-page-root p,
-    html body .appointment-page-root .appointment-address,
+    html body .appointment-page-root .appointment-intro-text p,
     html body .terms-page-root .terms-section-text,
     html body .terms-page-root .terms-clause-list-item {
         font-size: max(13px, calc(20 * 100vw / 1920)) !important;
