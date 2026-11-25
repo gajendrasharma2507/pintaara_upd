@@ -1206,10 +1206,18 @@ class AdminWebController extends Controller
             'image' => 'nullable|string',
             'description' => 'nullable|string',
             'sort_order' => 'nullable|integer',
+            'status' => 'nullable|string',
         ]);
 
         if ($request->hasFile('image_file')) {
             $validated['image'] = $this->saveUploadedFile($request->file('image_file'), 'collection');
+        }
+
+        if (isset($validated['status'])) {
+            $s = strtolower(trim($validated['status']));
+            $validated['status'] = in_array($s, ['draft', 'hidden', 'inactive']) ? 'draft' : 'active';
+        } else {
+            $validated['status'] = 'active';
         }
 
         CollectionMaster::create($validated);
@@ -1230,6 +1238,11 @@ class AdminWebController extends Controller
 
         if ($request->hasFile('image_file')) {
             $validated['image'] = $this->saveUploadedFile($request->file('image_file'), 'collection');
+        }
+
+        if (isset($validated['status'])) {
+            $s = strtolower(trim($validated['status']));
+            $validated['status'] = in_array($s, ['draft', 'hidden', 'inactive']) ? 'draft' : 'active';
         }
 
         $col->update(array_filter($validated, fn($v) => !is_null($v)));
