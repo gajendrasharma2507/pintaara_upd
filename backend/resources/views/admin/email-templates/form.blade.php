@@ -87,7 +87,24 @@
 
         <!-- Variables Helper Chips -->
         @php
-          $varsList = array_filter(array_map('trim', explode(',', (string) ($template->variables_hint ?? 'customer_name, customer_email, order_number, total_amount, action_url'))));
+          $allSystemVars = [
+            'customer_name',
+            'customer_email',
+            'order_number',
+            'total_amount',
+            'refund_amount',
+            'otp',
+            'expires_minutes',
+            'courier_name',
+            'tracking_number',
+            'estimated_delivery',
+            'delay_reason',
+            'new_estimate',
+            'cancel_reason',
+            'action_url',
+          ];
+          $hintVars = array_filter(array_map('trim', explode(',', (string) ($template->variables_hint ?? ''))));
+          $varsList = array_values(array_unique(array_merge($allSystemVars, $hintVars)));
         @endphp
         <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px;">
           <div style="font-size: 11.5px; font-weight: 700; color: #475569; margin-bottom: 8px;">
