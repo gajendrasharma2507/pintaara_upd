@@ -543,7 +543,7 @@
               <span style="font-size: 15px;">⚡</span>
               <div>
                 <div style="font-weight: 600;">Live Gold Rate Terminal</div>
-                <div style="font-size: 11px; color: var(--admin-text-muted);">Aarav Bullion WebSocket feed, step brackets &amp; audit log</div>
+                <div style="font-size: 11px; color: var(--admin-text-muted);">Aarav Bullion live stream feed &amp; Rate CAP engine</div>
               </div>
             </div>
             <span style="font-size: 11px; color: var(--admin-text-muted);">Go ↗</span>

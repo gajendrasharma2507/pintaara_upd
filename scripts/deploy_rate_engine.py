@@ -27,6 +27,8 @@ def deploy():
          f"{remote_base}/app/Http/Controllers/Admin/AdminWebController.php"),
         ("backend/resources/views/admin/gold-rates/index.blade.php", 
          f"{remote_base}/resources/views/admin/gold-rates/index.blade.php"),
+        ("backend/resources/views/layouts/admin.blade.php", 
+         f"{remote_base}/resources/views/layouts/admin.blade.php"),
     ]
 
     for local, remote in files:

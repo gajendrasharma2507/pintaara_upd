@@ -387,210 +387,48 @@
     </form>
   </div>
 
-  <!-- ==================== TWO COLUMNS: PURITY MATRIX & MANUAL OVERRIDE ==================== -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 24px;">
+  <!-- ==================== ACTIVE CATALOG PURITY MATRIX ==================== -->
+  <div class="admin-card" style="padding: 24px; border-radius: 16px; background: var(--admin-surface); border: 1px solid var(--admin-border); margin-bottom: 24px;">
+    <h3 style="font-size: 16px; font-weight: 800; color: var(--admin-text-primary); margin: 0 0 16px 0;">
+      Active Catalog Purity Matrix
+    </h3>
 
-    <!-- Active Metal Purity Matrix -->
-    <div class="admin-card" style="padding: 24px; border-radius: 16px; background: var(--admin-surface); border: 1px solid var(--admin-border);">
-      <h3 style="font-size: 16px; font-weight: 800; color: var(--admin-text-primary); margin: 0 0 16px 0;">
-        Active Catalog Purity Matrix
-      </h3>
-
-      <div style="border: 1px solid var(--admin-border); border-radius: 10px; overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
-          <thead>
-            <tr style="background: var(--admin-surface-elevated); border-bottom: 1px solid var(--admin-border); text-align: left;">
-              <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Purity Tier</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Rate</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Rate with Rate CAP</th>
-            </tr>
-          </thead>
-          <tbody id="purity_matrix_body">
-            @if(!empty($rates['purities']))
-              @foreach($rates['purities'] as $p)
-                @php
-                  $raw10g = $p['raw_market_10g'] ?? (
-                    $p['type'] === 'gold' 
-                      ? round(($liveData['gold_24kt_per_10g'] ?? 146713) * $p['purity_fraction'], 2)
-                      : round(($liveData['silver_per_10g'] ?? 1923.53) * $p['purity_fraction'], 2)
-                  );
-                  $stepped10g = $p['rate_with_gap_10g'] ?? $p['rate_per_10g'];
-                @endphp
-                <tr id="purity_row_{{ $p['id'] }}" style="border-bottom: 1px solid var(--admin-border);">
-                  <td style="padding: 12px 14px; font-weight: 700; color: var(--admin-text-primary);">
-                    {{ $p['name'] }} ({{ ucfirst($p['type']) }})
-                  </td>
-                  <td id="purity_raw_{{ $p['id'] }}" style="padding: 12px 14px; color: var(--admin-text-primary);">
-                    <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format($raw10g / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
-                    <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw10g, 2) }} (10g)</div>
-                  </td>
-                  <td id="purity_cap_{{ $p['id'] }}" style="padding: 12px 14px; color: var(--admin-text-primary);">
-                    <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($p['rate_per_gram'], 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
-                    <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($stepped10g, 2) }} (10g)</div>
-                  </td>
-                </tr>
-              @endforeach
-            @else
-              @php
-                $stepped24k10 = $pure24k10g;
-                $stepped22k10 = $base22k10g;
-                $raw24k10 = $liveData['gold_24kt_per_10g'] ?? $pure24k10g;
-                $raw22k10 = round($raw24k10 * 0.916, 2);
-              @endphp
-              <tr style="border-bottom: 1px solid var(--admin-border);">
-                <td style="padding: 12px 14px; font-weight: 700;">22KT Gold</td>
-                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
-                  <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format($raw22k10 / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
-                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw22k10, 2) }} (10g)</div>
-                </td>
-                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
-                  <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($base22kGram, 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
-                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($stepped22k10, 2) }} (10g)</div>
-                </td>
-              </tr>
-              <tr style="border-bottom: 1px solid var(--admin-border);">
-                <td style="padding: 12px 14px; font-weight: 700;">18KT Gold</td>
-                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
-                  <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format(($raw24k10 * 0.750) / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
-                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw24k10 * 0.750, 2) }} (10g)</div>
-                </td>
-                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
-                  <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($gold18kGram, 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
-                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($stepped24k10 * 0.750, 2) }} (10g)</div>
-                </td>
-              </tr>
-              <tr style="border-bottom: 1px solid var(--admin-border);">
-                <td style="padding: 12px 14px; font-weight: 700;">14KT Gold</td>
-                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
-                  <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format(($raw24k10 * 0.585) / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
-                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw24k10 * 0.585, 2) }} (10g)</div>
-                </td>
-                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
-                  <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($gold14kGram, 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
-                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($stepped24k10 * 0.585, 2) }} (10g)</div>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding: 12px 14px; font-weight: 700;">925 Silver</td>
-                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
-                  <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format((($liveData['silver_per_10g'] ?? 1923.53) * 0.925) / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
-                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format(($liveData['silver_per_10g'] ?? 1923.53) * 0.925, 2) }} (10g)</div>
-                </td>
-                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
-                  <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($silver925Gram, 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
-                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($silver10g, 2) }} (10g)</div>
-                </td>
-              </tr>
-            @endif
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Live Calculator & Manual Rate Override -->
-    <div class="admin-card" style="padding: 24px; border-radius: 16px; background: var(--admin-surface); border: 1px solid var(--admin-border);">
-      <h3 style="font-size: 16px; font-weight: 800; color: var(--admin-text-primary); margin: 0 0 14px 0;">
-        Manual Benchmark Rate Fallback
-      </h3>
-      <p style="font-size: 12.5px; color: var(--admin-text-secondary); margin: 0 0 16px 0;">
-        Used as emergency fallback if the Aarav Bullion live stream feed is temporarily unavailable.
-      </p>
-
-      <form action="{{ route('admin.gold-rates.update') }}" method="POST" style="display: flex; flex-direction: column; gap: 16px;">
-        @csrf
-        <div>
-          <label class="admin-label">Gold 22KT Rate (₹ per 10 grams)</label>
-          <input type="number" step="0.01" name="gold_22k_per_10g" value="{{ $base22k10g }}" required class="admin-input">
-        </div>
-        <div>
-          <label class="admin-label">Silver Rate (₹ per 10 grams)</label>
-          <input type="number" step="0.01" name="silver_per_10g" value="{{ $silver10g }}" class="admin-input">
-        </div>
-        <button type="submit" class="admin-btn-primary" style="justify-content: center; padding: 11px;">
-          Save Manual Benchmark
-        </button>
-      </form>
-    </div>
-
-  </div>
-
-  <!-- ==================== PRICE MOVEMENT (UP / DOWN) LOG TABLE ==================== -->
-  <div class="admin-card" style="padding: 24px; border-radius: 16px; background: var(--admin-surface); border: 1px solid var(--admin-border);">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
-      <div>
-        <h3 style="font-size: 16px; font-weight: 800; color: var(--admin-text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
-          <span>Price Audit Log</span>
-          <span class="admin-badge admin-badge-success" style="font-size: 10px;">AUTO-RECORDING</span>
-        </h3>
-        <p style="font-size: 12.5px; color: var(--admin-text-secondary); margin: 4px 0 0 0;">
-          Audit trail tracking every time the store pricing system steps UP (▲) or DOWN (▼) as live spot crosses bracket boundaries.
-        </p>
-      </div>
-      <div style="font-size: 11.5px; color: var(--admin-text-muted);">
-        Showing latest movements
-      </div>
-    </div>
-
-    <div style="overflow-x: auto; border: 1px solid var(--admin-border); border-radius: 12px;">
-      <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12.5px;">
+    <div style="border: 1px solid var(--admin-border); border-radius: 10px; overflow: hidden;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
         <thead>
-          <tr style="background: var(--admin-surface-elevated); border-bottom: 1px solid var(--admin-border);">
-            <th style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-secondary);">Date / Time</th>
-            <th style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-secondary);">Movement</th>
-            <th style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-secondary);">Metal &amp; Purity</th>
-            <th style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-secondary);">Previous Rate (10g)</th>
-            <th style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-secondary);">New Rate (10g)</th>
-            <th style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-secondary);">Live Spot at Tick</th>
-            <th style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-secondary);">Trigger Reason</th>
+          <tr style="background: var(--admin-surface-elevated); border-bottom: 1px solid var(--admin-border); text-align: left;">
+            <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Purity Tier</th>
+            <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Rate</th>
+            <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Rate with Rate CAP</th>
           </tr>
         </thead>
-        <tbody id="movement_log_tbody">
-          @forelse($movementLogs ?? [] as $log)
-            <tr style="border-bottom: 1px solid var(--admin-border);">
-              <td style="padding: 11px 14px; color: var(--admin-text-secondary); white-space: nowrap;">
-                {{ $log->created_at->setTimezone('Asia/Kolkata')->format('d M, Y h:i:s A') }}
+        <tbody id="purity_matrix_body">
+          @forelse($rates['purities'] ?? [] as $p)
+            @php
+              $raw10g = $p['raw_market_10g'] ?? (
+                $p['type'] === 'gold' 
+                  ? round(($liveData['gold_24kt_per_10g'] ?? 0) * $p['purity_fraction'], 2)
+                  : round(($liveData['silver_per_10g'] ?? 0) * $p['purity_fraction'], 2)
+              );
+              $stepped10g = $p['rate_with_gap_10g'] ?? $p['rate_per_10g'] ?? ($p['rate_per_gram'] * 10);
+            @endphp
+            <tr id="purity_row_{{ $p['id'] }}" style="border-bottom: 1px solid var(--admin-border);">
+              <td style="padding: 12px 14px; font-weight: 700; color: var(--admin-text-primary);">
+                {{ $p['name'] }} ({{ ucfirst($p['type']) }})
               </td>
-              <td style="padding: 11px 14px; white-space: nowrap;">
-                @if($log->direction === 'up')
-                  <span class="admin-badge admin-badge-success" style="font-size: 11px; font-weight: 800; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px;">
-                    ▲ STEPPED UP (+₹{{ number_format(abs($log->difference_10g)) }})
-                  </span>
-                @elseif($log->direction === 'down')
-                  <span class="admin-badge admin-badge-danger" style="font-size: 11px; font-weight: 800; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px;">
-                    ▼ STEPPED DOWN (-₹{{ number_format(abs($log->difference_10g)) }})
-                  </span>
-                @else
-                  <span class="admin-badge" style="font-size: 11px; font-weight: 700; padding: 3px 8px;">
-                    ● BASELINE
-                  </span>
-                @endif
+              <td id="purity_raw_{{ $p['id'] }}" style="padding: 12px 14px; color: var(--admin-text-primary);">
+                <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format($raw10g / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
+                <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw10g, 2) }} (10g)</div>
               </td>
-              <td style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-primary);">
-                {{ $log->purity }}
-              </td>
-              <td style="padding: 11px 14px; color: var(--admin-text-secondary);">
-                <div>₹{{ number_format($log->old_rate_per_10g, 2) }}</div>
-                @if($log->old_rate_per_gram > 0)
-                  <div style="font-size: 10.5px; color: var(--admin-text-muted);">₹{{ number_format($log->old_rate_per_gram, 2) }}/g</div>
-                @endif
-              </td>
-              <td style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-primary);">
-                <div>₹{{ number_format($log->new_rate_per_10g, 2) }}</div>
-                @if($log->new_rate_per_gram > 0)
-                  <div style="font-size: 10.5px; color: var(--admin-text-muted);">₹{{ number_format($log->new_rate_per_gram, 2) }}/g</div>
-                @endif
-              </td>
-              <td style="padding: 11px 14px; color: var(--admin-text-secondary);">
-                {{ $log->market_spot_10g ? '₹' . number_format($log->market_spot_10g, 2) : '—' }}
-              </td>
-              <td style="padding: 11px 14px; color: var(--admin-text-secondary); font-size: 11.5px; line-height: 1.4;">
-                {{ $log->reason }}
+              <td id="purity_cap_{{ $p['id'] }}" style="padding: 12px 14px; color: var(--admin-text-primary);">
+                <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($p['rate_per_gram'], 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
+                <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($stepped10g, 2) }} (10g)</div>
               </td>
             </tr>
           @empty
             <tr>
-              <td colspan="7" style="padding: 28px; text-align: center; color: var(--admin-text-secondary);">
-                No price step transitions recorded yet. Live movements will log here automatically.
+              <td colspan="3" style="padding: 24px; text-align: center; color: var(--admin-text-secondary);">
+                No purity tiers found in database.
               </td>
             </tr>
           @endforelse
@@ -936,62 +774,6 @@
               capEl.innerHTML = '<div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹' + formatINR(perGram) + ' <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div><div style="font-size: 11px; color: var(--admin-text-muted);">₹' + formatINR(cap10) + ' (10g)</div>';
             }
           });
-        }
-
-        // Price Movement Logs Live Sync
-        if (Array.isArray(data.movementLogs)) {
-          const logTbody = document.getElementById('movement_log_tbody');
-          if (logTbody) {
-            if (data.movementLogs.length === 0) {
-              logTbody.innerHTML = `
-                <tr>
-                  <td colspan="7" style="padding: 28px; text-align: center; color: var(--admin-text-secondary);">
-                    No price step transitions recorded yet. Live movements will log here automatically.
-                  </td>
-                </tr>
-              `;
-            } else {
-              logTbody.innerHTML = data.movementLogs.map(log => {
-                const dateStr = new Date(log.created_at).toLocaleString('en-IN', {
-                  timeZone: 'Asia/Kolkata',
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                  hour12: true
-                });
-                let badgeHtml = '';
-                const diffAbs = formatINR(Math.abs(log.difference_10g || 0), 0);
-                if (log.direction === 'up') {
-                  badgeHtml = `<span class="admin-badge admin-badge-success" style="font-size: 11px; font-weight: 800; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px;">▲ STEPPED UP (+₹${diffAbs})</span>`;
-                } else if (log.direction === 'down') {
-                  badgeHtml = `<span class="admin-badge admin-badge-danger" style="font-size: 11px; font-weight: 800; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px;">▼ STEPPED DOWN (-₹${diffAbs})</span>`;
-                } else {
-                  badgeHtml = `<span class="admin-badge" style="font-size: 11px; font-weight: 700; padding: 3px 8px;">● BASELINE</span>`;
-                }
-
-                return `
-                  <tr style="border-bottom: 1px solid var(--admin-border);">
-                    <td style="padding: 11px 14px; color: var(--admin-text-secondary); white-space: nowrap;">${dateStr}</td>
-                    <td style="padding: 11px 14px; white-space: nowrap;">${badgeHtml}</td>
-                    <td style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-primary);">${log.purity || '24KT Gold'}</td>
-                    <td style="padding: 11px 14px; color: var(--admin-text-secondary);">
-                      <div>₹${formatINR(log.old_rate_per_10g)}</div>
-                      ${log.old_rate_per_gram > 0 ? `<div style="font-size: 10.5px; color: var(--admin-text-muted);">₹${formatINR(log.old_rate_per_gram)}/g</div>` : ''}
-                    </td>
-                    <td style="padding: 11px 14px; font-weight: 700; color: var(--admin-text-primary);">
-                      <div>₹${formatINR(log.new_rate_per_10g)}</div>
-                      ${log.new_rate_per_gram > 0 ? `<div style="font-size: 10.5px; color: var(--admin-text-muted);">₹${formatINR(log.new_rate_per_gram)}/g</div>` : ''}
-                    </td>
-                    <td style="padding: 11px 14px; color: var(--admin-text-secondary);">${log.market_spot_10g ? '₹' + formatINR(log.market_spot_10g) : '—'}</td>
-                    <td style="padding: 11px 14px; color: var(--admin-text-secondary); font-size: 11.5px; line-height: 1.4;">${log.reason || ''}</td>
-                  </tr>
-                `;
-              }).join('');
-            }
-          }
         }
       }
     } catch (err) {
