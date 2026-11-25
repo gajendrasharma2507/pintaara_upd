@@ -10,6 +10,7 @@ export default function AccountAddressesPage() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [pinError, setPinError] = useState('');
+    const [submitError, setSubmitError] = useState('');
     const [shippingAddresses, setShippingAddresses] = useState([]);
     const [billingAddresses, setBillingAddresses] = useState([]);
 
@@ -72,6 +73,8 @@ export default function AccountAddressesPage() {
     });
 
     const openAddModal = (type) => {
+        setPinError('');
+        setSubmitError('');
         setFormData({
             tag: 'HOME',
             fullName: '',
@@ -88,6 +91,8 @@ export default function AccountAddressesPage() {
     };
 
     const openEditModal = (type, addr) => {
+        setPinError('');
+        setSubmitError('');
         setFormData({
             tag: addr.tag || 'HOME',
             fullName: addr.name || '',
@@ -98,7 +103,7 @@ export default function AccountAddressesPage() {
             stateProvince: addr.state || '',
             country: addr.country || 'India',
             pinCode: addr.pincode || '',
-            makeDefault: addr.isDefault || false,
+            makeDefault: Boolean(addr.isDefault),
         });
         setModalState({ type, mode: 'EDIT', id: addr.id });
     };
@@ -110,6 +115,18 @@ export default function AccountAddressesPage() {
             await fetchAddrs();
         } catch (err) {
             console.warn('Delete address error:', err);
+        }
+    };
+
+    const handleSetDefault = async (addr) => {
+        try {
+            await api.updateUserAddress(addr.id, {
+                type: (addr.type || 'SHIPPING').toLowerCase(),
+                is_default: true,
+            });
+            await fetchAddrs();
+        } catch (err) {
+            console.warn('Set default address error:', err);
         }
     };
 
@@ -137,7 +154,7 @@ export default function AccountAddressesPage() {
             isDefault: formData.makeDefault,
         };
 
-        const isEdit = modalState.mode === 'EDIT' && typeof modalState.id === 'number';
+        const isEdit = modalState.mode === 'EDIT' && modalState.id != null && /^\d+$/.test(String(modalState.id));
         const addressPayload = {
             type: (modalState.type || 'SHIPPING').toLowerCase(),
             recipient_name: formData.fullName || defaultName,
@@ -148,10 +165,11 @@ export default function AccountAddressesPage() {
             state: formData.stateProvince,
             pincode: formData.pinCode,
             country: formData.country || 'India',
-            is_default: formData.makeDefault,
+            is_default: Boolean(formData.makeDefault),
         };
 
         try {
+            setSubmitError('');
             if (isEdit) {
                 await api.updateUserAddress(modalState.id, addressPayload);
             } else {
@@ -163,6 +181,8 @@ export default function AccountAddressesPage() {
             await fetchAddrs();
         } catch (err) {
             console.warn('Address save error:', err);
+            setSubmitError(err?.message || 'Unable to save address. Please try again.');
+            return;
         }
 
         const typeName = modalState.type === 'SHIPPING' ? 'SHIPPING' : 'BILLING';
@@ -234,6 +254,15 @@ export default function AccountAddressesPage() {
                                         >
                                             EDIT
                                         </button>
+                                        {!addr.isDefault && (
+                                            <button
+                                                type="button"
+                                                className="acct-edit-link"
+                                                onClick={() => handleSetDefault(addr)}
+                                            >
+                                                SET AS DEFAULT
+                                            </button>
+                                        )}
                                         <button
                                             type="button"
                                             className="acct-edit-link"
@@ -283,6 +312,15 @@ export default function AccountAddressesPage() {
                                         >
                                             EDIT
                                         </button>
+                                        {!addr.isDefault && (
+                                            <button
+                                                type="button"
+                                                className="acct-edit-link"
+                                                onClick={() => handleSetDefault(addr)}
+                                            >
+                                                SET AS DEFAULT
+                                            </button>
+                                        )}
                                         <button
                                             type="button"
                                             className="acct-edit-link"
@@ -431,14 +469,20 @@ export default function AccountAddressesPage() {
                             <label className="acct-modal-checkbox-row">
                                 <input
                                     type="checkbox"
-                                    checked={formData.makeDefault}
-                                    onChange={(e) => setFormData({ ...formData, makeDefault: e.target.checked })}
+                                    checked={Boolean(formData.makeDefault)}
+                                    onChange={(e) => setFormData((prev) => ({ ...prev, makeDefault: e.target.checked }))}
                                     className="acct-modal-chk"
                                 />
                                 <span>
                                     Make this my default {modalState.type === 'SHIPPING' ? 'Shipping' : 'billing'} address.
                                 </span>
                             </label>
+
+                            {submitError && (
+                                <div style={{ fontSize: '0.78rem', color: '#B91C1C', lineHeight: 1.4 }}>
+                                    {submitError}
+                                </div>
+                            )}
 
                             <button type="submit" className="acct-modal-solid-btn">
                                 {modalState.mode === 'ADD' ? 'ADD ADDRESS' : 'SAVE CHANGES'}
@@ -809,10 +853,15 @@ export default function AccountAddressesPage() {
                 .acct-modal-chk {
                     width: 16px;
                     height: 16px;
+                    flex-shrink: 0;
+                    margin: 0;
                     border: 1px solid #1A1A1A;
                     accent-color: #1A1A1A;
                     border-radius: 0;
                     cursor: pointer;
+                    position: relative;
+                    z-index: 2;
+                    pointer-events: auto;
                 }
 
                 .acct-modal-solid-btn {

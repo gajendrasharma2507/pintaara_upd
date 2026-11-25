@@ -56,7 +56,7 @@ class UserAddressApiController extends Controller
         $state = $request->state ?? $request->stateProvince ?? '';
         $pincode = $request->pincode ?? $request->pin ?? $request->pinCode ?? '';
         $country = $request->country ?? 'India';
-        $isDefault = (bool) ($request->is_default ?? $request->makeDefault ?? false);
+        $isDefault = filter_var($request->input('is_default', $request->input('makeDefault', false)), FILTER_VALIDATE_BOOLEAN);
 
         if (empty($line1) || empty($city) || empty($pincode)) {
             return response()->json([
@@ -145,11 +145,16 @@ class UserAddressApiController extends Controller
 
         $targetType = $validated['type'] ?? $address->type ?? 'shipping';
 
-        if (!empty($validated['is_default'])) {
-            $user->addresses()->where('type', $targetType)->where('id', '!=', $id)->update(['is_default' => false]);
+        $updateData = array_filter($validated, fn($v) => $v !== null);
+        if (array_key_exists('is_default', $validated) && $validated['is_default'] !== null) {
+            $isDefault = filter_var($validated['is_default'], FILTER_VALIDATE_BOOLEAN);
+            $updateData['is_default'] = $isDefault;
+            if ($isDefault) {
+                $user->addresses()->where('type', $targetType)->where('id', '!=', $id)->update(['is_default' => false]);
+            }
         }
 
-        $address->update(array_filter($validated, fn($v) => $v !== null));
+        $address->update($updateData);
 
         return response()->json([
             'success' => true,
