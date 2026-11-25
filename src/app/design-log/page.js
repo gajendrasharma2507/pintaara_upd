@@ -5,7 +5,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { blueprintSheets } from '@/config/designLogs';
 import { apiFetch } from '@/lib/api';
 
 export default function DesignLogPage() {
@@ -20,11 +19,21 @@ export default function DesignLogPage() {
         const res = await apiFetch('/design-log');
         if (res && res.status === 'success' && Array.isArray(res.data) && res.data.length > 0) {
           if (!isMounted) return;
-          const mapped = res.data.map((item) => ({
-            id: item.product?.design_code || item.id,
-            code: item.product?.design_code || `DL-${item.id}`,
-            image: item.blueprint_image || item.cad_image || item.product?.primary_image || item.creation_image || '/images/design-log/PD-SG-OR-001.JPG',
-          }));
+          const seen = new Set();
+          const mapped = [];
+          for (const item of res.data) {
+            const designCode = item.design_code || item.product?.design_code || item.code || (item.id ? `DL-${item.id}` : '');
+            const targetId = item.design_code || item.product?.design_code || item.id;
+            const normKey = String(targetId || designCode).toUpperCase().trim();
+            if (normKey && seen.has(normKey)) continue;
+            if (normKey) seen.add(normKey);
+
+            mapped.push({
+              id: targetId,
+              code: designCode,
+              image: item.blueprint_image || item.cad_image || item.product?.primary_image || item.creation_image || '',
+            });
+          }
           setSheets(mapped);
         } else {
           setSheets([]);
@@ -157,9 +166,9 @@ export default function DesignLogPage() {
                 </div>
               ))
             ) : sheets.length > 0 ? (
-              sheets.map((sheet) => (
+              sheets.map((sheet, sIdx) => (
                 <Link
-                  key={sheet.id}
+                  key={`${sheet.id || sheet.code || 'sheet'}-${sIdx}`}
                   href={`/design-log/${sheet.id}`}
                   className="blueprint-card-item"
                   style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}

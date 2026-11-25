@@ -19,78 +19,9 @@ const resolveImageUrl = (img) => {
     return img;
 };
 
-const defaultCategories = [
-    {
-        id: 'pendants',
-        name: 'PENDANTS',
-        image: '/images/collections/pendant.jpg',
-        tag: 'PINTAARA',
-        subtag: 'SIGNATURE',
-        extraTag: 'DESIGNED X DARSHIT SONI',
-        position: 'top-center'
-    },
-    {
-        id: 'rings',
-        name: 'RINGS',
-        image: '/images/collections/ring.jpg',
-        tag: 'PINTAARA',
-        subtag: 'CURATED',
-        position: 'bottom-center'
-    },
-    {
-        id: 'bracelets',
-        name: 'BRACELETS',
-        image: '/images/collections/bracelet.jpg',
-        tag: 'PINTAARA',
-        subtag: 'CURATED',
-        position: 'top-center'
-    },
-    {
-        id: 'earrings',
-        name: 'EARRINGS',
-        image: '/images/collections/earring.jpg',
-        tag: 'PINTAARA',
-        subtag: 'CURATED',
-        position: 'top-center'
-    },
-    {
-        id: 'chains',
-        name: 'CHAINS',
-        image: '/images/collections/chain.jpg',
-        tag: 'PINTAARA',
-        subtag: 'CURATED',
-        position: 'bottom-center'
-    },
-    {
-        id: 'necklaces',
-        name: 'NECKLACES',
-        image: '/images/collections/necklace.jpg',
-        tag: 'PINTAARA',
-        subtag: 'HERITAGE',
-        position: 'top-center'
-    },
-    {
-        id: 'mangalsutras',
-        name: 'MANGALSUTRAS',
-        image: '/images/products/mangalsutra.png',
-        tag: 'PINTAARA',
-        subtag: 'HERITAGE',
-        position: 'bottom-center'
-    },
-    {
-        id: 'bangles',
-        name: 'BANGLES',
-        image: '/images/products/bangles.png',
-        tag: 'PINTAARA',
-        subtag: 'HERITAGE',
-        position: 'bottom-center'
-    }
-];
-
 export default function CollectionPage() {
     const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-
 
     useEffect(() => {
         let isMounted = true;
@@ -100,17 +31,14 @@ export default function CollectionPage() {
                 if (res && res.status === 'success' && Array.isArray(res.data) && res.data.length > 0) {
                     if (!isMounted) return;
                     const mapped = res.data.map((col, idx) => {
-                        const slug = (col.slug || col.name || '').toLowerCase().trim();
-                        const slugNorm = slug.replace(/s$/, '');
-                        const defaultMatch = defaultCategories.find(c => c.id === slug || c.id === slugNorm || c.id === slug + 's') || {};
                         return {
                             id: col.slug || col.id,
                             name: (col.name || '').toUpperCase(),
-                            image: resolveImageUrl(col.image) || defaultMatch.image || '/images/collections/pendant.jpg',
-                            tag: col.tag || defaultMatch.tag || 'PINTAARA',
-                            subtag: col.subtag || defaultMatch.subtag || (idx % 2 === 0 ? 'SIGNATURE' : 'CURATED'),
-                            extraTag: col.extraTag || defaultMatch.extraTag || null,
-                            position: defaultMatch.position || (idx % 2 === 0 ? 'top-center' : 'bottom-center')
+                            image: resolveImageUrl(col.image),
+                            tag: col.tag || 'PINTAARA',
+                            subtag: col.subtag || (idx % 2 === 0 ? 'SIGNATURE' : 'CURATED'),
+                            extraTag: col.extraTag || null,
+                            position: idx % 2 === 0 ? 'top-center' : 'bottom-center'
                         };
                     });
                     setCategories(mapped);
@@ -118,7 +46,7 @@ export default function CollectionPage() {
                     setCategories([]);
                 }
             } catch (err) {
-                console.warn('Live collections fetch fallback to empty collection:', err);
+                console.warn('Live collections fetch failed:', err);
                 setCategories([]);
             } finally {
                 if (isMounted) setIsLoading(false);

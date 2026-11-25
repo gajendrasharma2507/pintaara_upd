@@ -11,33 +11,6 @@ import ThreeDModelViewer from '@/components/ThreeDModelViewer';
 import { useAuth } from '@/context/AuthContext';
 
 
-// Category Presets (only for title and watermark, strictly 0 dummy products)
-const categoryDataMap = {
-    pendants: { name: 'PENDANTS', watermark: 'PINTAARA SIGNATURE', products: [] },
-    pendant: { name: 'PENDANTS', watermark: 'PINTAARA SIGNATURE', products: [] },
-    rings: { name: 'RINGS', watermark: 'PINTAARA CURATED', products: [] },
-    ring: { name: 'RINGS', watermark: 'PINTAARA CURATED', products: [] },
-    bracelets: { name: 'BRACELETS', watermark: 'PINTAARA CURATED', products: [] },
-    bracelet: { name: 'BRACELETS', watermark: 'PINTAARA CURATED', products: [] },
-    earrings: { name: 'EARRINGS', watermark: 'PINTAARA CURATED', products: [] },
-    earring: { name: 'EARRINGS', watermark: 'PINTAARA CURATED', products: [] },
-    chains: { name: 'CHAINS', watermark: 'PINTAARA CURATED', products: [] },
-    chain: { name: 'CHAINS', watermark: 'PINTAARA CURATED', products: [] },
-    necklaces: { name: 'NECKLACES', watermark: 'PINTAARA HERITAGE', products: [] },
-    necklace: { name: 'NECKLACES', watermark: 'PINTAARA HERITAGE', products: [] },
-    mangalsutras: { name: 'MANGALSUTRAS', watermark: 'PINTAARA HERITAGE', products: [] },
-    mangalsutra: { name: 'MANGALSUTRAS', watermark: 'PINTAARA HERITAGE', products: [] },
-    bangles: { name: 'BANGLES', watermark: 'PINTAARA HERITAGE', products: [] },
-    bangle: { name: 'BANGLES', watermark: 'PINTAARA HERITAGE', products: [] },
-};
-
-const legacyProductImageFallbacks = {
-    'BR-SG-OR-001': '/images/design-log/BR-SG-OR-001.JPG',
-    'BR-SG-OR-002': '/images/products/piece-01-exact.jpg',
-    'BR-SG-FS-003': '/images/products/piece-02-exact.jpg',
-    'BR-SG-MT-004': '/images/products/bracelet.png',
-};
-
 const resolveImageUrl = (img) => {
     if (!img || typeof img !== 'string') return '';
     if (img.startsWith('data:') || img.startsWith('blob:') || img.startsWith('http://') || img.startsWith('https://')) {
@@ -51,14 +24,8 @@ const resolveImageUrl = (img) => {
 };
 
 const resolveProductImage = (product, imageUrl) => {
-    const code = String(product?.design_code || product?.code || '').toUpperCase();
     const normalizedUrl = typeof imageUrl === 'string' ? imageUrl : '';
-
-    if (normalizedUrl.endsWith('/images/products/bracelet.png') && legacyProductImageFallbacks[code]) {
-        return legacyProductImageFallbacks[code];
-    }
-
-    return resolveImageUrl(normalizedUrl) || '/images/products/ring.png';
+    return resolveImageUrl(normalizedUrl);
 };
 
 const normalizeFinishKey = (raw) => {
@@ -337,8 +304,7 @@ export default function DynamicCollectionPage({ params }) {
 
     // Dynamic collection state matched from live database
     const [liveCollection, setLiveCollection] = useState(null);
-    const staticCategory = categoryDataMap[paramId] || categoryDataMap[paramId + 's'] || categoryDataMap[paramNorm] || null;
-    const categoryInfo = liveCollection || staticCategory;
+    const categoryInfo = liveCollection;
 
     // Atelier specific interactive states matching exact visual specifications
     const [selectedFinishCode, setSelectedFinishCode] = useState('YG');
@@ -439,7 +405,7 @@ export default function DynamicCollectionPage({ params }) {
                 }
             } catch (e) { }
 
-            const activeCategory = matchedCol || staticCategory;
+            const activeCategory = matchedCol;
 
             if (activeCategory) {
                 try {

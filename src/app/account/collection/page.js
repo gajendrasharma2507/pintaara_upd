@@ -57,21 +57,6 @@ const getValidCertificates = (piece) => {
     return valid;
 };
 
-const DESIGN_LOG_FALLBACK_MAP = {
-    'BR-SG-OR-001': '/images/design-log/BR-SG-OR-001.JPG',
-    'PD-SG-OR-001': '/images/design-log/PD-SG-OR-001.JPG',
-    'RG-SG-OR-001': '/images/design-log/RG-SG-OR-001.JPG',
-    'RG-SG-OR-002': '/images/design-log/RG-SG-OR-002.JPG',
-    'RG-SG-AR-004': '/images/collections/ring.jpg',
-    'ER-SG-OR-001A': '/images/design-log/ER-SG-OR-001A.JPG',
-    'ER-SG-OR-001B': '/images/design-log/ER-SG-OR-001B.JPG',
-    'ER-SG-OR-001C': '/images/design-log/ER-SG-OR-001C.JPG',
-    'ER-SG-OR-002A': '/images/design-log/ER-SG-OR-002A.JPG',
-    'ER-SG-OR-002B': '/images/design-log/ER-SG-OR-002B.JPG',
-    'ER-SG-OR-002C': '/images/design-log/ER-SG-OR-002C.JPG',
-    'PD-PD-CS-002': '/images/collections/ring.jpg',
-};
-
 const resolvePieceImage = (piece, catalogMap = {}) => {
     const raw = piece?.image;
     if (raw && typeof raw === 'string' && raw.trim().length > 0 && !raw.includes('piece-dummy.png') && !raw.includes('piece-01-exact.jpg')) {
@@ -83,11 +68,7 @@ const resolvePieceImage = (piece, catalogMap = {}) => {
         return catalogMap[code];
     }
 
-    if (DESIGN_LOG_FALLBACK_MAP[code]) {
-        return DESIGN_LOG_FALLBACK_MAP[code];
-    }
-
-    return '/images/collections/ring.jpg';
+    return '';
 };
 
 export default function AccountCollectionPage() {

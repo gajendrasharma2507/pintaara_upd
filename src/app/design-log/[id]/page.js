@@ -4,7 +4,6 @@ import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
-import { getBlueprintById } from '@/config/designLogs';
 import { apiFetch } from '@/lib/api';
 
 // Design-code prefix → piece type (e.g. BG-SG-OR-002 → Bangle)
@@ -28,7 +27,6 @@ const formatRelease = (value) => {
 export default function DesignLogSubPage({ params }) {
   const router = useRouter();
   const resolvedParams = use(params);
-  const fallbackBp = getBlueprintById(resolvedParams.id);
   const [bp, setBp] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,12 +39,7 @@ export default function DesignLogSubPage({ params }) {
           if (!isMounted) return;
           const item = res.data;
           const specs = item.specs || {};
-          // Admin data wins; empty fields fall back to the local sheet
-          // (src/config/designLogs.js), then to values derived from the
-          // product, so the spec panel matches Website Design.pdf p.22.
           const code = item.design_code || item.product?.design_code || item.code || (resolvedParams.id ? String(resolvedParams.id).toUpperCase() : `DL-${item.id}`);
-          // getBlueprintById() returns the first sheet for unknown codes — only use an exact match
-          const fb = fallbackBp && String(fallbackBp.code).toLowerCase() === String(code).toLowerCase() ? fallbackBp : {};
           const prefix = String(code).split('-')[0].toUpperCase();
           const hasLinkedProduct = Boolean(item.product?.design_code || item.product_id);
           const resolvedProductId = hasLinkedProduct ? (item.product?.design_code || item.product_id) : null;
@@ -58,7 +51,7 @@ export default function DesignLogSubPage({ params }) {
               item.product.is_limited_edition === 'true'
             )
           );
-          const editionPrefix = item.product?.edition_prefix || fb.editionPrefix || 'LIMITED EDITION';
+          const editionPrefix = item.product?.edition_prefix || 'LIMITED EDITION';
           const editionCurrent = Math.max(1, Number(item.product?.edition_current || 1));
           const editionLimit = Number(item.product?.edition_limit || 50);
           const editionNumber = `${String(editionCurrent).padStart(2, '0')}/${String(editionLimit).padStart(2, '0')}`;
@@ -66,19 +59,19 @@ export default function DesignLogSubPage({ params }) {
           setBp({
             id: item.design_code || item.product?.design_code || item.id,
             code,
-            image: item.blueprint_image || fb.image || item.cad_image || item.product?.primary_image || '/images/design-log/PD-SG-OR-001.JPG',
-            type: specs.type || item.design_type || fb.type || TYPE_BY_PREFIX[prefix] || '',
-            materials: specs.material_options || fb.materials || DEFAULT_MATERIALS,
-            finishes: specs.finish_options || fb.finishes || DEFAULT_FINISHES,
-            sizeOptions: specs.size_options || fb.sizeOptions || '',
-            gemOptions: specs.gem_options || (typeof item.gem_details === 'string' ? item.gem_details : '') || fb.gemOptions || '',
-            inspiredBy: specs.inspired_by || item.inspired_by || fb.inspiredBy || '',
-            inspiredByLabel: specs.inspired_by_label || fb.inspiredByLabel || 'INSPIRED BY',
-            brandOrigin: specs.brand_origin || fb.brandOrigin || 'A PINTAARA™ ORIGINAL',
-            designer: specs.designed_by || item.product?.designed_by || fb.designer || '',
-            status: item.status || fb.status || 'UNDER DEVELOPMENT',
-            collection: (specs.collection || item.product?.collection_name || item.product?.tier || fb.collection || (hasLinkedProduct ? 'ORIGIN' : 'STANDALONE')).toUpperCase(),
-            release: formatRelease(item.release_date || item.product?.release_date) || specs.release || fb.release || '2026',
+            image: item.blueprint_image || item.cad_image || item.product?.primary_image || '',
+            type: specs.type || item.design_type || TYPE_BY_PREFIX[prefix] || '',
+            materials: specs.material_options || DEFAULT_MATERIALS,
+            finishes: specs.finish_options || DEFAULT_FINISHES,
+            sizeOptions: specs.size_options || '',
+            gemOptions: specs.gem_options || (typeof item.gem_details === 'string' ? item.gem_details : '') || '',
+            inspiredBy: specs.inspired_by || item.inspired_by || '',
+            inspiredByLabel: specs.inspired_by_label || 'INSPIRED BY',
+            brandOrigin: specs.brand_origin || 'A PINTAARA™ ORIGINAL',
+            designer: specs.designed_by || item.product?.designed_by || '',
+            status: item.status || 'UNDER DEVELOPMENT',
+            collection: (specs.collection || item.product?.collection_name || item.product?.tier || (hasLinkedProduct ? 'ORIGIN' : 'STANDALONE')).toUpperCase(),
+            release: formatRelease(item.release_date || item.product?.release_date) || specs.release || '2026',
             productId: resolvedProductId,
             hasLinkedProduct,
             isLimited,
@@ -86,28 +79,18 @@ export default function DesignLogSubPage({ params }) {
             editionNumber,
             edition: editionNumber,
           });
-        } else if (fallbackBp) {
-          setBp({
-            ...fallbackBp,
-            hasLinkedProduct: Boolean(fallbackBp.productId),
-            isLimited: false,
-          });
+        } else {
+          if (isMounted) setBp(null);
         }
       } catch (e) {
-        if (fallbackBp) {
-          setBp({
-            ...fallbackBp,
-            hasLinkedProduct: Boolean(fallbackBp.productId),
-            isLimited: false,
-          });
-        }
+        if (isMounted) setBp(null);
       } finally {
         if (isMounted) setIsLoading(false);
       }
     };
     fetchDetail();
     return () => { isMounted = false; };
-  }, [resolvedParams.id, fallbackBp]);
+  }, [resolvedParams.id]);
 
   // No scroll lock: phones and tablets now use a normal, scrolling one-column
   // layout (src/styles/mobile-home.css), and from 1100px the Website
@@ -116,6 +99,24 @@ export default function DesignLogSubPage({ params }) {
   // froze the page for touch and mouse-wheel scrolling.)
 
 
+
+  if (!isLoading && !bp) {
+    return (
+      <div className="dl-subpage-root" style={{ display: 'flex', flexDirection: 'column', minHeight: '80vh', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '5rem 1.5rem' }}>
+        <Header headerStyle="light" />
+        <span style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#9A7228', fontWeight: 600, marginBottom: '8px' }}>
+          Atelier Archives
+        </span>
+        <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '28px', color: '#111', margin: '0 0 12px 0' }}>Design Log Not Found</h1>
+        <p style={{ color: '#666', marginBottom: '24px', maxWidth: '440px', lineHeight: 1.6, fontSize: '14px' }}>
+          The requested design blueprint is not cataloged in the Pintaara Atelier archives.
+        </p>
+        <Link href="/design-log" style={{ display: 'inline-block', padding: '12px 28px', background: '#111', color: '#FFF', fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none' }}>
+          RETURN TO DESIGN LOG
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="dl-subpage-root">
