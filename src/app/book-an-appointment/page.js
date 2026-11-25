@@ -479,6 +479,15 @@ export default function BookAppointmentPage() {
                 .appointment-input:focus, .appointment-select:focus, .appointment-textarea:focus {
                     border-color: #1A1A1A;
                 }
+                .appointment-input[type="date"]::-webkit-calendar-picker-indicator {
+                    opacity: 0;
+                    position: absolute;
+                    right: 10px;
+                    width: 24px;
+                    height: 24px;
+                    cursor: pointer;
+                    z-index: 2;
+                }
 
                 .appointment-input-arrow {
                     position: absolute;
