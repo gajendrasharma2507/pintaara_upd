@@ -2100,7 +2100,7 @@ export default function DynamicCollectionPage({ params }) {
 
                                                         const rawDelta = typeof sVal === 'object' ? (parseFloat(sVal?.price_delta) || 0) : 0;
                                                         const delta = Math.abs(rawDelta);
-                                                        const titleStr = delta > 0 ? `${valStr} (+₹${delta.toLocaleString('en-IN')})` : valStr;
+                                                        const titleStr = valStr;
 
                                                         if (isGem) {
                                                              const typeStr = isNoStone ? 'none'
