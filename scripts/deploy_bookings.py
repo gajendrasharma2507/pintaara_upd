@@ -20,6 +20,7 @@ except FileNotFoundError:
 
 files = [
     ("backend/database/migrations/2026_11_25_000002_add_email_to_appointments_table.php", f"{remote_base}/database/migrations/2026_11_25_000002_add_email_to_appointments_table.php"),
+    ("backend/database/migrations/2026_11_25_000003_add_booking_url_to_appointments_table.php", f"{remote_base}/database/migrations/2026_11_25_000003_add_booking_url_to_appointments_table.php"),
     ("backend/app/Models/Appointment.php", f"{remote_base}/app/Models/Appointment.php"),
     ("backend/app/Models/EmailTemplate.php", f"{remote_base}/app/Models/EmailTemplate.php"),
     ("backend/app/Http/Controllers/Api/AppointmentApiController.php", f"{remote_base}/app/Http/Controllers/Api/AppointmentApiController.php"),

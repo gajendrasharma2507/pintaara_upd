@@ -14,6 +14,7 @@ class Appointment extends Model
         'email',
         'date',
         'time',
+        'booking_url',
         'purpose',
         'notes',
         'status',

@@ -32,30 +32,34 @@ class AdminAppointmentController extends Controller
         $appointment = Appointment::with('user')->findOrFail($id);
 
         $validated = $request->validate([
-            'date'       => 'nullable|string|max:100',
-            'time'       => 'required|string|max:100',
-            'status'     => 'required|in:pending,confirmed,rescheduled,completed,cancelled',
-            'notes'      => 'nullable|string|max:2000',
-            'admin_note' => 'nullable|string|max:1000',
+            'date'        => 'nullable|string|max:100',
+            'time'        => 'required|string|max:100',
+            'booking_url' => 'nullable|url|max:1000',
+            'status'      => 'required|in:pending,confirmed,rescheduled,completed,cancelled',
+            'notes'       => 'nullable|string|max:2000',
+            'admin_note'  => 'nullable|string|max:1000',
         ]);
 
         $oldData = [
-            'date'   => $appointment->date,
-            'time'   => $appointment->time,
-            'status' => $appointment->status,
+            'date'        => $appointment->date,
+            'time'        => $appointment->time,
+            'booking_url' => $appointment->booking_url,
+            'status'      => $appointment->status,
         ];
 
         $appointment->update([
-            'date'   => $validated['date'] ?? $appointment->date,
-            'time'   => $validated['time'],
-            'status' => $validated['status'],
-            'notes'  => $validated['notes'] ?? $appointment->notes,
+            'date'        => $validated['date'] ?? $appointment->date,
+            'time'        => $validated['time'],
+            'booking_url' => $validated['booking_url'] ?? null,
+            'status'      => $validated['status'],
+            'notes'       => $validated['notes'] ?? $appointment->notes,
         ]);
 
         AuditLog::log('appointment_updated_by_admin', 'Appointment', $appointment->id, $oldData, [
-            'date'   => $appointment->date,
-            'time'   => $appointment->time,
-            'status' => $appointment->status,
+            'date'        => $appointment->date,
+            'time'        => $appointment->time,
+            'booking_url' => $appointment->booking_url,
+            'status'      => $appointment->status,
         ]);
 
         // Send email notification to the client (and copy to info@pintaara.com)
@@ -65,25 +69,33 @@ class AdminAppointmentController extends Controller
             EmailTemplate::ensureDefaultsExist();
             $tpl = EmailTemplate::where('slug', 'appointment_updated')->where('is_active', true)->first();
             if ($tpl) {
+                $bookingUrl = trim((string) ($appointment->booking_url ?? ''));
                 $vars = [
                     'customer_name'       => $appointment->full_name ?: 'Valued Client',
                     'customer_email'      => $recipient ?: '',
                     'appointment_date'    => $appointment->date ?: 'To be confirmed',
                     'appointment_time'    => $appointment->time ?: 'To be confirmed',
+                    'booking_url'         => $bookingUrl,
                     'appointment_status'  => ucfirst($appointment->status),
                     'appointment_purpose' => $appointment->purpose ?: 'Studio Consultation',
                     'admin_note'          => !empty($validated['admin_note']) ? ('<strong>Note:</strong> ' . e($validated['admin_note'])) : '',
-                    'action_url'          => config('app.frontend_url', 'https://pintaara.com') . '/book-an-appointment',
+                    'action_url'          => $bookingUrl ?: (config('app.frontend_url', 'https://pintaara.com') . '/book-an-appointment'),
                 ];
 
+                // If booking_url is provided and template doesn't already reference {{booking_url}}, append a clean link button
+                $mailTpl = clone $tpl;
+                if ($bookingUrl !== '' && !str_contains((string) $mailTpl->body_html, '{{booking_url}}')) {
+                    $mailTpl->body_html .= '<div style="margin: 18px 0;"><p><strong>Booking Link:</strong> <a href="' . e($bookingUrl) . '" style="color:#B8860B;">' . e($bookingUrl) . '</a></p><div class="btn-container"><a href="' . e($bookingUrl) . '" class="btn-primary">OPEN BOOKING LINK</a></div></div>';
+                }
+
                 if ($recipient && $request->boolean('notify_user', true)) {
-                    Mail::to($recipient)->send(new CustomTemplateMail($tpl, $vars));
+                    Mail::to($recipient)->send(new CustomTemplateMail($mailTpl, $vars));
                     $emailSent = true;
                 }
 
                 $studioEmail = 'info@pintaara.com';
                 if (strtolower((string) $recipient) !== $studioEmail) {
-                    Mail::to($studioEmail)->send(new CustomTemplateMail($tpl, $vars));
+                    Mail::to($studioEmail)->send(new CustomTemplateMail($mailTpl, $vars));
                 }
             }
         } catch (\Throwable $e) {

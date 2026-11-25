@@ -77,6 +77,13 @@
               <td style="padding: 14px 16px; white-space: nowrap;">
                 <div style="font-weight: 700; color: var(--admin-text-primary);">{{ $apt->date ?: '—' }}</div>
                 <div style="font-size: 12px; color: var(--admin-text-secondary);">{{ $apt->time ?: '—' }}</div>
+                @if(!empty($apt->booking_url))
+                  <div style="margin-top: 4px;">
+                    <a href="{{ $apt->booking_url }}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: #0E7490; font-weight: 600; text-decoration: underline;">
+                      Booking Link ↗
+                    </a>
+                  </div>
+                @endif
               </td>
               <td style="padding: 14px 16px; max-width: 280px;">
                 <div style="font-weight: 600; color: var(--admin-text-primary);">{{ $apt->purpose }}</div>
@@ -157,6 +164,11 @@
       </div>
 
       <div>
+        <label class="admin-label" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px;">Booking URL (Google Meet / Zoom / Link sent to client)</label>
+        <input type="url" name="booking_url" id="modal_apt_booking_url" class="admin-input" placeholder="https://meet.google.com/..." style="width: 100%;">
+      </div>
+
+      <div>
         <label class="admin-label" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px;">Status *</label>
         <select name="status" id="modal_apt_status" class="admin-input" style="width: 100%;">
           <option value="confirmed">Confirmed</option>
@@ -192,6 +204,7 @@
     document.getElementById('modal_client_info').textContent = apt.full_name + ' • ' + apt.contact;
     document.getElementById('modal_apt_date').value = apt.date || '';
     document.getElementById('modal_apt_time').value = apt.time || '';
+    document.getElementById('modal_apt_booking_url').value = apt.booking_url || '';
     document.getElementById('modal_apt_status').value = apt.status === 'confirmed' ? 'rescheduled' : (apt.status || 'rescheduled');
     document.getElementById('modal_apt_admin_note').value = '';
     document.getElementById('modal_email_preview').textContent = email || 'No email on file';
