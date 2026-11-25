@@ -162,9 +162,6 @@ export default function CheckoutPage() {
     // In-UI Pro validation & Modal states (NO browser alert() / confirm() popups!)
     const [fieldErrors, setFieldErrors] = useState({});
     const [checkoutError, setCheckoutError] = useState('');
-    const [testPaymentModal, setTestPaymentModal] = useState(null);
-    const [paymentProcessing, setPaymentProcessing] = useState(false);
-    const [paymentErrorMessage, setPaymentErrorMessage] = useState('');
 
     const handleFieldChange = (field, setter, val) => {
         setter(val);
@@ -261,10 +258,16 @@ export default function CheckoutPage() {
             // 2. Load Razorpay Checkout Script
             const isLoaded = await loadRazorpayScript();
 
-            // If real Razorpay order was created, open Official Razorpay Gateway Modal
-            if (!rzpData.is_mock && typeof window !== 'undefined' && window.Razorpay) {
-                // Open Official Razorpay Checkout Modal
-                const options = {
+            if (!isLoaded || typeof window === 'undefined' || !window.Razorpay) {
+                throw new Error('Unable to load Razorpay payment gateway. Please check your internet connection and try again.');
+            }
+
+            if (!rzpData?.key_id || !rzpData?.order_id) {
+                throw new Error('Razorpay API keys are not configured. Please add them in Admin Settings.');
+            }
+
+            // Open Official Razorpay Checkout Modal
+            const options = {
                 key: rzpData.key_id,
                 amount: rzpData.amount,
                 currency: rzpData.currency || 'INR',
@@ -304,7 +307,7 @@ export default function CheckoutPage() {
                                 localStorage.setItem('pintaara_last_order', JSON.stringify({
                                     order_number: verifyRes.order_number,
                                     payment_id: response.razorpay_payment_id || verifyRes.payment_id,
-                                    payment_method: 'Gpay',
+                                    payment_method: 'Razorpay',
                                     delivery_method: deliveryMethod,
                                     date: new Date().toISOString()
                                 }));
@@ -334,79 +337,16 @@ export default function CheckoutPage() {
                 }
             };
 
-                const rzp = new window.Razorpay(options);
-                rzp.on('payment.failed', function (response) {
-                    setCheckoutError(response.error?.description || 'Payment was cancelled');
-                    setSubmitting(false);
-                });
-                rzp.open();
-                return;
-            }
-
-            // Fallback terminal modal only if mock order was generated or gateway unavailable
-            setTestPaymentModal({
-                orderId: rzpData.order_id,
-                amount: total,
-                rzpData: rzpData
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                setCheckoutError(response.error?.description || 'Payment was cancelled');
+                setSubmitting(false);
             });
-            setSubmitting(false);
+            rzp.open();
         } catch (err) {
             console.error('Razorpay initialization error:', err);
             setCheckoutError('Failed to initiate payment: ' + err.message);
             setSubmitting(false);
-        }
-    };
-
-    const handleConfirmTestPayment = async () => {
-        if (!testPaymentModal) return;
-        setPaymentProcessing(true);
-        setPaymentErrorMessage('');
-        try {
-            const mockPaymentId = `pay_live_${Date.now()}`;
-            const verifyRes = await api.verifyRazorpayPayment({
-                razorpay_payment_id: mockPaymentId,
-                razorpay_order_id: testPaymentModal.orderId,
-                razorpay_signature: 'mock_signature_test',
-                customer_name: fullName,
-                customer_email: email,
-                customer_phone: contact,
-                shipping_address: `${address1}${address2 ? `, ${address2}` : ''}, ${city}, ${state}, ${country} - ${pin}`,
-                total_amount: total,
-                items: cart.map(item => ({
-                    product_id: (typeof item.id === 'number' || (typeof item.id === 'string' && /^\d+$/.test(item.id))) ? parseInt(item.id, 10) : null,
-                    name: item.name || item.code || 'Bespoke Jewelry Piece',
-                    design_code: item.code || item.id || null,
-                    price: item.price,
-                    quantity: item.qty,
-                    total: item.price * item.qty,
-                    metal_purity: item.metal || '18KT',
-                    finish: item.finish || 'Yellow Gold',
-                    size: item.size || null,
-                    gem: item.gem || null,
-                    chain: item.chain || null
-                }))
-            });
-
-            if (verifyRes && verifyRes.status === 'success') {
-                clearCart();
-                try {
-                    localStorage.setItem('pintaara_last_order', JSON.stringify({
-                        order_number: verifyRes.order_number,
-                        payment_id: mockPaymentId,
-                        payment_method: 'Gpay',
-                        delivery_method: deliveryMethod,
-                        date: new Date().toISOString()
-                    }));
-                } catch (e) {}
-                setTestPaymentModal(null);
-                router.push('/order-confirmed');
-            } else {
-                setPaymentErrorMessage(verifyRes?.message || 'Payment verification failed');
-                setPaymentProcessing(false);
-            }
-        } catch (err) {
-            setPaymentErrorMessage(err.message || 'Payment processing error');
-            setPaymentProcessing(false);
         }
     };
 
@@ -860,79 +800,6 @@ export default function CheckoutPage() {
                     </div>
                 )}
             </div>
-
-            {/* In-UI Pro Payment Authorization Terminal (Replaces browser popups) */}
-            {testPaymentModal && (
-                <div className="pro-terminal-overlay" onClick={() => !paymentProcessing && setTestPaymentModal(null)}>
-                    <div className="pro-terminal-card" onClick={(e) => e.stopPropagation()}>
-                        <div className="pro-terminal-header">
-                            <span className="pro-terminal-brand">PINTAARA ATELIER · PAYMENT GATEWAY</span>
-                            <h3 className="pro-terminal-title">Authorize Bespoke Order</h3>
-                        </div>
-
-                        {paymentErrorMessage && (
-                            <div className="checkout-inline-error-banner" style={{ marginBottom: 0 }}>
-                                <span>⚠ {paymentErrorMessage}</span>
-                            </div>
-                        )}
-
-                        <div className="pro-terminal-details">
-                            <div className="pro-terminal-row">
-                                <span className="pro-terminal-label">Customer</span>
-                                <span className="pro-terminal-val">{fullName}</span>
-                            </div>
-                            <div className="pro-terminal-row">
-                                <span className="pro-terminal-label">Contact</span>
-                                <span className="pro-terminal-val">{contact} · {email}</span>
-                            </div>
-                            <div className="pro-terminal-row">
-                                <span className="pro-terminal-label">Delivery To</span>
-                                <span className="pro-terminal-val">{city}, {state || 'India'}</span>
-                            </div>
-                            <div className="pro-terminal-row">
-                                <span className="pro-terminal-label">Order Reference</span>
-                                <span className="pro-terminal-val" style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                                    {testPaymentModal.orderId}
-                                </span>
-                            </div>
-                            <div className="pro-terminal-row" style={{ paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                                <span className="pro-terminal-label" style={{ alignSelf: 'center' }}>Total Payable</span>
-                                <span className="pro-terminal-val amount">
-                                    ₹ {testPaymentModal.amount.toLocaleString('en-IN')}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.2rem' }}>
-                            <span className="pro-terminal-badge">
-                                🔒 256-Bit Encrypted Atelier Authorization
-                            </span>
-                            <span style={{ fontSize: '0.72rem', color: '#9C948B', letterSpacing: '0.04em' }}>
-                                Instant Confirmation
-                            </span>
-                        </div>
-
-                        <div className="pro-terminal-actions">
-                            <button
-                                type="button"
-                                className="pro-terminal-btn-primary"
-                                onClick={handleConfirmTestPayment}
-                                disabled={paymentProcessing}
-                            >
-                                {paymentProcessing ? 'AUTHORIZING & ISSUING CERTIFICATE...' : `AUTHORIZE PAYMENT ₹ ${testPaymentModal.amount.toLocaleString('en-IN')}`}
-                            </button>
-                            <button
-                                type="button"
-                                className="pro-terminal-btn-secondary"
-                                onClick={() => setTestPaymentModal(null)}
-                                disabled={paymentProcessing}
-                            >
-                                Return to Review
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Bottom Footer bar */}
             <footer className="collection-bottom-bar">

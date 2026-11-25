@@ -28,17 +28,23 @@ class RazorpayApiController extends Controller
     {
         $this->pricingService = $pricingService;
 
-        $mode = Setting::get('razorpay_env', 'test');
-        if ($mode === 'live' || $mode === 'production') {
+        $mode = Setting::get('razorpay_env', 'live');
+        $adminKeyId = Setting::get('razorpay_key_id');
+        $adminKeySecret = Setting::get('razorpay_key_secret');
+
+        if (!empty($adminKeyId) && !empty($adminKeySecret) && $adminKeyId !== 'rzp_test_placeholder') {
+            $this->keyId = $adminKeyId;
+            $this->keySecret = $adminKeySecret;
+        } elseif ($mode === 'live' || $mode === 'production') {
             $liveKey = Setting::get('razorpay_live_key_id');
             $this->keyId = ($liveKey && $liveKey !== 'rzp_test_placeholder') ? $liveKey : config('razorpay.live_key_id', env('RAZORPAY_LIVE_KEY_ID', ''));
             $liveSecret = Setting::get('razorpay_live_key_secret');
             $this->keySecret = ($liveSecret && $liveSecret !== 'placeholder_secret') ? $liveSecret : config('razorpay.live_key_secret', env('RAZORPAY_LIVE_KEY_SECRET', ''));
         } else {
             $testKey = Setting::get('razorpay_test_key_id');
-            $this->keyId = ($testKey && $testKey !== 'rzp_test_placeholder') ? $testKey : config('razorpay.test_key_id', env('RAZORPAY_TEST_KEY_ID', env('RAZORPAY_KEY_ID', 'rzp_test_placeholder')));
+            $this->keyId = ($testKey && $testKey !== 'rzp_test_placeholder') ? $testKey : config('razorpay.test_key_id', env('RAZORPAY_TEST_KEY_ID', env('RAZORPAY_KEY_ID', '')));
             $testSecret = Setting::get('razorpay_test_key_secret');
-            $this->keySecret = ($testSecret && $testSecret !== 'placeholder_secret') ? $testSecret : config('razorpay.test_key_secret', env('RAZORPAY_TEST_KEY_SECRET', env('RAZORPAY_KEY_SECRET', 'placeholder_secret')));
+            $this->keySecret = ($testSecret && $testSecret !== 'placeholder_secret') ? $testSecret : config('razorpay.test_key_secret', env('RAZORPAY_TEST_KEY_SECRET', env('RAZORPAY_KEY_SECRET', '')));
         }
 
         $this->currency = Setting::get('currency_code', config('razorpay.currency', 'INR'));
@@ -103,57 +109,57 @@ class RazorpayApiController extends Controller
                         $this->keyId !== 'rzp_test_placeholder' && 
                         $this->keySecret !== 'placeholder_secret';
 
-        if ($isConfigured) {
-            try {
-                $response = Http::withBasicAuth($this->keyId, $this->keySecret)
-                    ->timeout(15)
-                    ->post('https://api.razorpay.com/v1/orders', [
-                        'amount' => $amountInPaise,
-                        'currency' => $currency,
-                        'receipt' => $receipt,
-                        'notes' => $notes,
-                        'payment_capture' => 1,
-                    ]);
-
-                if ($response->successful()) {
-                    $rzpOrder = $response->json();
-                    return response()->json([
-                        'status' => 'success',
-                        'success' => true,
-                        'data' => [
-                            'key_id' => $this->keyId,
-                            'order_id' => $rzpOrder['id'],
-                            'amount' => $rzpOrder['amount'],
-                            'currency' => $rzpOrder['currency'],
-                            'receipt' => $rzpOrder['receipt'] ?? $receipt,
-                            'merchant_name' => $this->merchantName,
-                            'is_mock' => false,
-                        ]
-                    ]);
-                }
-
-                Log::warning('Razorpay API returned error: ' . $response->body());
-            } catch (\Exception $e) {
-                Log::error('Razorpay API connection failed: ' . $e->getMessage());
-            }
+        if (!$isConfigured) {
+            return response()->json([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Razorpay API keys are not configured. Please add your Razorpay Key ID and Key Secret in Admin Settings.',
+            ], 400);
         }
 
-        // Sandbox/Placeholder fallback for local testing when keys are in test mode
-        $mockOrderId = 'order_test_' . Str::random(14);
-        return response()->json([
-            'status' => 'success',
-            'success' => true,
-            'message' => 'Development sandbox order created (Placeholder keys active in .env)',
-            'data' => [
-                'key_id' => $this->keyId,
-                'order_id' => $mockOrderId,
-                'amount' => $amountInPaise,
-                'currency' => $currency,
-                'receipt' => $receipt,
-                'merchant_name' => $this->merchantName,
-                'is_mock' => true,
-            ]
-        ]);
+        try {
+            $response = Http::withBasicAuth($this->keyId, $this->keySecret)
+                ->timeout(15)
+                ->post('https://api.razorpay.com/v1/orders', [
+                    'amount' => $amountInPaise,
+                    'currency' => $currency,
+                    'receipt' => $receipt,
+                    'notes' => $notes,
+                    'payment_capture' => 1,
+                ]);
+
+            if ($response->successful()) {
+                $rzpOrder = $response->json();
+                return response()->json([
+                    'status' => 'success',
+                    'success' => true,
+                    'data' => [
+                        'key_id' => $this->keyId,
+                        'order_id' => $rzpOrder['id'],
+                        'amount' => $rzpOrder['amount'],
+                        'currency' => $rzpOrder['currency'],
+                        'receipt' => $rzpOrder['receipt'] ?? $receipt,
+                        'merchant_name' => $this->merchantName,
+                        'is_mock' => false,
+                    ]
+                ]);
+            }
+
+            $errMsg = $response->json('error.description') ?: 'Razorpay order creation failed.';
+            Log::warning('Razorpay API returned error: ' . $response->body());
+            return response()->json([
+                'status' => 'error',
+                'success' => false,
+                'message' => $errMsg,
+            ], 502);
+        } catch (\Exception $e) {
+            Log::error('Razorpay API connection failed: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Unable to connect to Razorpay: ' . $e->getMessage(),
+            ], 502);
+        }
     }
 
     /**
@@ -183,20 +189,26 @@ class RazorpayApiController extends Controller
                         $this->keyId !== 'rzp_test_placeholder' && 
                         $this->keySecret !== 'placeholder_secret';
 
-        // Verify HMAC-SHA256 signature if real credentials and signature are provided
-        if ($isConfigured && !empty($signature) && !str_starts_with($orderId, 'order_test_')) {
-            $expectedSignature = hash_hmac('sha256', $orderId . '|' . $paymentId, $this->keySecret);
-            if (!hash_equals($expectedSignature, $signature)) {
-                AuditLog::log('payment_verification_failed', 'Payment', null, null, [
-                    'order_id' => $orderId,
-                    'payment_id' => $paymentId,
-                ]);
-                return response()->json([
-                    'status' => 'error',
-                    'success' => false,
-                    'message' => 'Razorpay payment signature verification failed.',
-                ], 400);
-            }
+        // Verify HMAC-SHA256 signature strictly
+        if (!$isConfigured || empty($signature)) {
+            return response()->json([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Razorpay signature verification is required.',
+            ], 400);
+        }
+
+        $expectedSignature = hash_hmac('sha256', $orderId . '|' . $paymentId, $this->keySecret);
+        if (!hash_equals($expectedSignature, $signature)) {
+            AuditLog::log('payment_verification_failed', 'Payment', null, null, [
+                'order_id' => $orderId,
+                'payment_id' => $paymentId,
+            ]);
+            return response()->json([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Razorpay payment signature verification failed.',
+            ], 400);
         }
 
         // Authoritative server-side price calculation
@@ -293,6 +305,18 @@ class RazorpayApiController extends Controller
                         'quantity' => $item['quantity'],
                         'total' => $item['total'],
                     ]);
+
+                    // Increment limited edition counter for ordered product (+1 per piece ordered)
+                    $prod = !empty($item['product_id'])
+                        ? Product::find($item['product_id'])
+                        : (!empty($item['design_code']) ? Product::whereRaw('UPPER(design_code) = UPPER(?)', [$item['design_code']])->first() : null);
+                    if ($prod && ($prod->is_limited_edition ?? true)) {
+                        $pQty = (int) ($item['quantity'] ?? 1);
+                        $pCurr = (int) ($prod->edition_current ?? 1);
+                        $pLim = (int) ($prod->edition_limit ?? 50);
+                        $newCurr = min($pLim, $pCurr + $pQty);
+                        $prod->update(['edition_current' => $newCurr]);
+                    }
                 }
             }
 
