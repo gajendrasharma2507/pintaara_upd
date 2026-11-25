@@ -197,6 +197,30 @@ class EmailTemplate extends Model
 <p>Dear {{customer_name}},</p>
 <p>A refund of <strong>{{refund_amount}}</strong> for order <strong>#{{order_number}}</strong> has been processed and will reflect in your original payment method within 5–7 business days.</p>',
             ],
+            [
+                'slug' => 'appointment_confirmation',
+                'name' => 'Appointment Booking Confirmed',
+                'category' => 'custom',
+                'subject' => 'PINTAARA | Appointment Confirmed for {{appointment_date}}',
+                'variables_hint' => 'customer_name, appointment_date, appointment_time, appointment_purpose, action_url',
+                'body_html' => '<h2 class="h1-title">Your studio appointment is confirmed.</h2>
+<p>Dear {{customer_name}},</p>
+<p>We look forward to welcoming you to our Vadodara studio.</p>
+<div class="note-box"><strong>Date:</strong> {{appointment_date}}<br><strong>Time:</strong> {{appointment_time}}<br><strong>Purpose:</strong> {{appointment_purpose}}</div>
+<p>Studio Address: Shop 1, GF, Suvarnraj Complex, Shamal Bechar Pole, Mandvi, M.G. Road, Vadodara, GJ - 390001.</p>',
+            ],
+            [
+                'slug' => 'appointment_updated',
+                'name' => 'Appointment Time / Status Updated',
+                'category' => 'custom',
+                'subject' => 'PINTAARA | Your Appointment Has Been Updated ({{appointment_date}})',
+                'variables_hint' => 'customer_name, appointment_date, appointment_time, appointment_status, appointment_purpose, admin_note, action_url',
+                'body_html' => '<h2 class="h1-title">Your studio appointment has been updated.</h2>
+<p>Dear {{customer_name}},</p>
+<p>Your appointment details have been updated by our atelier team:</p>
+<div class="note-box"><strong>Date:</strong> {{appointment_date}}<br><strong>Time:</strong> {{appointment_time}}<br><strong>Status:</strong> {{appointment_status}}<br><strong>Purpose:</strong> {{appointment_purpose}}<br>{{admin_note}}</div>
+<p>If you need any further adjustments, please reply to this email or contact our studio.</p>',
+            ],
         ];
 
         foreach ($defaults as $item) {

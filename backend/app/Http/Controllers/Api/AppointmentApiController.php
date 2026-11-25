@@ -20,6 +20,7 @@ class AppointmentApiController extends Controller
             'fullName' => 'nullable|string|max:255',
             'full_name' => 'nullable|string|max:255',
             'contact' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
             'date' => 'nullable|string|max:100',
             'time' => 'nullable|string|max:100',
             'purpose' => 'nullable|string|max:500',
@@ -28,11 +29,15 @@ class AppointmentApiController extends Controller
 
         $fullName = $validated['fullName'] ?? $validated['full_name'] ?? ($request->user()?->name ?? 'Valued Patron');
         $userId = $request->user()?->id;
+        $email = $validated['email']
+            ?? $request->user()?->email
+            ?? (filter_var($validated['contact'], FILTER_VALIDATE_EMAIL) ? $validated['contact'] : null);
 
         $appointment = Appointment::create([
             'user_id' => $userId,
             'full_name' => $fullName,
             'contact' => $validated['contact'],
+            'email' => $email,
             'date' => $validated['date'] ?? null,
             'time' => $validated['time'] ?? null,
             'purpose' => $validated['purpose'] ?? 'Fine Jewelry Consultation',
@@ -44,8 +49,29 @@ class AppointmentApiController extends Controller
             'user_id' => $userId,
             'full_name' => $fullName,
             'contact' => $validated['contact'],
+            'email' => $email,
             'date' => $appointment->date,
         ]);
+
+        $recipient = $appointment->resolveCustomerEmail();
+        if ($recipient) {
+            try {
+                \App\Models\EmailTemplate::ensureDefaultsExist();
+                $tpl = \App\Models\EmailTemplate::where('slug', 'appointment_confirmation')->where('is_active', true)->first();
+                if ($tpl) {
+                    \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\CustomTemplateMail($tpl, [
+                        'customer_name'       => $appointment->full_name ?: 'Valued Client',
+                        'customer_email'      => $recipient,
+                        'appointment_date'    => $appointment->date ?: 'To be confirmed',
+                        'appointment_time'    => $appointment->time ?: 'To be confirmed',
+                        'appointment_purpose' => $appointment->purpose ?: 'Studio Consultation',
+                        'action_url'          => config('app.frontend_url', 'https://pintaara.com') . '/book-an-appointment',
+                    ]));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[AppointmentApiController] Failed to send confirmation email: ' . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'success' => true,

@@ -18,6 +18,7 @@ export default function BookAppointmentPage() {
     const [formData, setFormData] = useState({
         fullName: '',
         contact: '',
+        email: '',
         date: '',
         time: '',
         purpose: 'Design a Jewellery Piece',
@@ -40,6 +41,7 @@ export default function BookAppointmentPage() {
             setFormData({
                 fullName: '',
                 contact: '',
+                email: '',
                 date: '',
                 time: '',
                 purpose: 'Design a Jewellery Piece',
@@ -137,6 +139,22 @@ export default function BookAppointmentPage() {
                                         className="appointment-input"
                                         value={formData.contact}
                                         onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                                    />
+                                    <span className="appointment-input-arrow">&gt;</span>
+                                </div>
+                            </div>
+
+                            {/* EMAIL */}
+                            <div className="appointment-form-group">
+                                <label className="appointment-form-label">EMAIL</label>
+                                <div className="appointment-input-wrapper">
+                                    <input
+                                        type="email"
+                                        required
+                                        placeholder="Email Address"
+                                        className="appointment-input"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     />
                                     <span className="appointment-input-arrow">&gt;</span>
                                 </div>

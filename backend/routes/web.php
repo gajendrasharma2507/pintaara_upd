@@ -76,6 +76,10 @@ Route::prefix('admin')->group(function () {
         Route::post('/customers/{id}', [AdminWebController::class, 'updateCustomer'])->name('admin.customers.update');
         Route::put('/customers/{id}', [AdminWebController::class, 'updateCustomer'])->name('admin.customers.update.put');
 
+        // Bookings / Appointments
+        Route::get('/appointments', [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])->name('admin.appointments');
+        Route::put('/appointments/{id}', [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'update'])->name('admin.appointments.update');
+
         // Live Gold Rates
         Route::get('/gold-rates', [AdminWebController::class, 'goldRates'])->name('admin.gold-rates');
         Route::get('/gold-rates/live-feed', [AdminWebController::class, 'liveGoldRatesFeed'])->name('admin.gold-rates.feed');

@@ -205,6 +205,11 @@
           <span>Customers</span>
         </a>
 
+        <!-- Studio Bookings -->
+        <a href="{{ route('admin.appointments') }}" class="admin-filter-btn {{ request()->routeIs('admin.appointments*') ? 'nav-item-active' : '' }}" style="width: 100%; justify-content: flex-start; padding: 10px 14px; border-radius: 8px; border: none; font-size: 13.5px; text-decoration: none; color: var(--admin-text-secondary);">
+          <span>Bookings</span>
+        </a>
+
         <!-- Live Gold Spot Rates -->
         <a href="{{ route('admin.gold-rates') }}" class="admin-filter-btn {{ request()->routeIs('admin.gold-rates*') ? 'nav-item-active' : '' }}" style="width: 100%; justify-content: flex-start; padding: 10px 14px; border-radius: 8px; border: none; font-size: 13.5px; text-decoration: none; color: var(--admin-text-secondary);">
           <span>Live Gold Spot Rates</span>
