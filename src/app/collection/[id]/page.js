@@ -1658,9 +1658,13 @@ export default function DynamicCollectionPage({ params }) {
                                             />
                                         </div>
                                         <div className="category-product-info">
-                                            {customProductName && (
-                                                <span className="cat-prod-collection">{customProductName.toUpperCase()}</span>
-                                            )}
+                                            <span
+                                                className="cat-prod-collection"
+                                                style={customProductName ? undefined : { visibility: 'hidden' }}
+                                                aria-hidden={!customProductName}
+                                            >
+                                                {customProductName ? customProductName.toUpperCase() : '\u00A0'}
+                                            </span>
                                             <h3 className="cat-prod-code">{itemCode || nameStr}</h3>
                                             <span className="cat-prod-price">₹ {formattedPrice}</span>
                                         </div>
@@ -1885,7 +1889,13 @@ export default function DynamicCollectionPage({ params }) {
                             productDetail?.design_code || resolvedParams?.id
                         );
                         const hasEdition = Boolean(isLimited && editionText);
-                        if (!customDetailName && !hasEdition) return null;
+                        if (!customDetailName && !hasEdition) {
+                            return (
+                                <div className="atelier-product-subtitle" style={{ visibility: 'hidden' }} aria-hidden="true">
+                                    <span className="atelier-subtitle-name">{'\u00A0'}</span>
+                                </div>
+                            );
+                        }
                         return (
                             <div className="atelier-product-subtitle">
                                 {customDetailName && (
