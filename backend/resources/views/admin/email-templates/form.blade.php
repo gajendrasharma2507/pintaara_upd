@@ -82,7 +82,7 @@
 
         <div>
           <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 6px;">Email Subject Line *</label>
-          <input type="text" name="subject" id="tpl_subject" value="{{ old('subject', $template->subject) }}" required oninput="updateLivePreview()" class="admin-input" placeholder="e.g. PINTAARA | Order {{order_number}} confirmed" style="width: 100%;">
+          <input type="text" name="subject" id="tpl_subject" value="{{ old('subject', $template->subject) }}" required oninput="updateLivePreview()" class="admin-input" placeholder="e.g. PINTAARA | Order @{{order_number}} confirmed" style="width: 100%;">
         </div>
 
         <!-- Variables Helper Chips -->
@@ -95,8 +95,8 @@
           </div>
           <div style="display: flex; flex-wrap: wrap; gap: 6px;">
             @foreach($varsList as $v)
-              <button type="button" onclick="insertPlaceholder('{{'{{' . $v . '}}'}}')" style="font-size: 11.5px; font-family: monospace; padding: 4px 10px; border-radius: 6px; border: 1px solid #CBD5E1; background: #FFFFFF; color: #0F172A; cursor: pointer; font-weight: 600;">
-                {{'{{' . $v . '}}'}}
+              <button type="button" data-var="{{ $v }}" onclick="insertPlaceholder('{' + '{' + this.dataset.var + '}' + '}')" style="font-size: 11.5px; font-family: monospace; padding: 4px 10px; border-radius: 6px; border: 1px solid #CBD5E1; background: #FFFFFF; color: #0F172A; cursor: pointer; font-weight: 600;">
+                &#123;&#123;{{ $v }}&#125;&#125;
               </button>
             @endforeach
           </div>
