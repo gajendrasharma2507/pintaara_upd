@@ -302,22 +302,22 @@
         }
         $allFinishesConfig = [
           'YG' => [
-            'label' => 'Yellow Gold',
+            'label' => 'Yellow',
             'badge' => '#D4AF37',
             'gradient' => 'linear-gradient(180deg, #8B6508 0%, #C99700 15%, #E5B824 35%, #FBE580 50%, #C99700 80%, #7D5A02 100%)',
           ],
           'WG' => [
-            'label' => 'White Gold',
+            'label' => 'White',
             'badge' => '#94A3B8',
             'gradient' => 'linear-gradient(180deg, #55585B 0%, #8A8E93 15%, #C2C6CC 35%, #F0F2F5 50%, #8A8E93 80%, #484A4D 100%)',
           ],
           'RG' => [
-            'label' => 'Rose Gold',
+            'label' => 'Rose',
             'badge' => '#B76E79',
             'gradient' => 'linear-gradient(180deg, #874112 0%, #BA6222 15%, #DB7F3E 35%, #F5B37B 50%, #BA6222 80%, #75360B 100%)',
           ],
           'BLK' => [
-            'label' => 'Black Gold',
+            'label' => 'Black',
             'badge' => '#1E293B',
             'gradient' => 'linear-gradient(180deg, #111315 0%, #2A2E33 15%, #4C525A 35%, #828A94 50%, #2A2E33 80%, #111315 100%)',
           ],
@@ -507,10 +507,10 @@
 let galleryImages = {!! json_encode($imagesData) !!};
 
 const FINISH_CONFIG = [
-  { key: 'YG', name: 'Yellow Gold', code: 'YG', color: '#D4AF37' },
-  { key: 'WG', name: 'White Gold', code: 'WG', color: '#94A3B8' },
-  { key: 'RG', name: 'Rose Gold', code: 'RG', color: '#B76E79' },
-  { key: 'BLK', name: 'Black Gold', code: 'BLK', color: '#1E293B' },
+  { key: 'YG', name: 'Yellow', code: 'YG', color: '#D4AF37' },
+  { key: 'WG', name: 'White', code: 'WG', color: '#94A3B8' },
+  { key: 'RG', name: 'Rose', code: 'RG', color: '#B76E79' },
+  { key: 'BLK', name: 'Black', code: 'BLK', color: '#1E293B' },
   { key: 'NAT_SILVER', name: 'Natural Silver', code: 'NAT_SILVER', color: '#94A3B8' },
   { key: 'RHOD_SILVER', name: 'Rhodium-Plated Silver', code: 'RHOD_SILVER', color: '#CBD5E1' },
   { key: 'GOLD_SILVER', name: 'Gold-Plated Silver', code: 'GOLD_SILVER', color: '#EAB308' },
@@ -560,10 +560,10 @@ function handlePurityToggle(checkbox) {
 
 const COMPATIBILITY_RULES_MASTER = {
   finishes: [
-    { key: 'YG', name: 'Yellow Gold', purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': false } },
-    { key: 'WG', name: 'White Gold', purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': false } },
-    { key: 'RG', name: 'Rose Gold', purities: { '22KT': false, '18KT': true, '14KT': true, '925 SILVER': false } },
-    { key: 'BLK', name: 'Black Gold', purities: { '22KT': false, '18KT': true, '14KT': true, '925 SILVER': false } },
+    { key: 'YG', name: 'Yellow', purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': false } },
+    { key: 'WG', name: 'White', purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': false } },
+    { key: 'RG', name: 'Rose', purities: { '22KT': false, '18KT': true, '14KT': true, '925 SILVER': false } },
+    { key: 'BLK', name: 'Black', purities: { '22KT': false, '18KT': true, '14KT': true, '925 SILVER': false } },
     { key: 'NAT_SILVER', name: 'Natural Silver', purities: { '22KT': false, '18KT': false, '14KT': false, '925 SILVER': true } },
     { key: 'RHOD_SILVER', name: 'Rhodium-Plated Silver', purities: { '22KT': false, '18KT': false, '14KT': false, '925 SILVER': true } },
     { key: 'GOLD_SILVER', name: 'Gold-Plated Silver', purities: { '22KT': false, '18KT': false, '14KT': false, '925 SILVER': true } },

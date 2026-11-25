@@ -260,33 +260,33 @@ function FacetedGemstone({ type = 'diamond', imageUrl, isSelected, onClick, titl
 
 const finishBarsData = [
     {
-        name: 'Yellow Gold',
+        name: 'Yellow',
         code: 'YG',
-        label: 'YELLOW GOLD',
+        label: 'YELLOW',
         style: {
             background: 'linear-gradient(180deg, #8B6508 0%, #C99700 15%, #E5B824 35%, #FBE580 50%, #C99700 80%, #7D5A02 100%)',
         }
     },
     {
-        name: 'White Gold',
+        name: 'White',
         code: 'WG',
-        label: 'WHITE GOLD',
+        label: 'WHITE',
         style: {
             background: 'linear-gradient(180deg, #55585B 0%, #8A8E93 15%, #C2C6CC 35%, #F0F2F5 50%, #8A8E93 80%, #484A4D 100%)',
         }
     },
     {
-        name: 'Rose Gold',
+        name: 'Rose',
         code: 'RG',
-        label: 'ROSE GOLD',
+        label: 'ROSE',
         style: {
             background: 'linear-gradient(180deg, #874112 0%, #BA6222 15%, #DB7F3E 35%, #F5B37B 50%, #BA6222 80%, #75360B 100%)',
         }
     },
     {
-        name: 'Black Gold',
+        name: 'Black',
         code: 'BLK',
-        label: 'BLACK GOLD',
+        label: 'BLACK',
         labelLight: true,
         style: {
             background: 'linear-gradient(180deg, #111315 0%, #2A2E33 15%, #4C525A 35%, #828A94 50%, #2A2E33 80%, #111315 100%)',
@@ -304,10 +304,10 @@ const finishBarsData = [
 
 const COMPATIBILITY_RULES_MASTER = {
     finishes: [
-        { key: 'YG', name: 'Yellow Gold', color: '#D4AF37', purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': false } },
-        { key: 'WG', name: 'White Gold', color: '#94A3B8', purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': false } },
-        { key: 'RG', name: 'Rose Gold', color: '#B76E79', purities: { '22KT': false, '18KT': true, '14KT': true, '925 SILVER': false } },
-        { key: 'BLK', name: 'Black Gold', color: '#1E293B', purities: { '22KT': false, '18KT': true, '14KT': true, '925 SILVER': false } },
+        { key: 'YG', name: 'Yellow', color: '#D4AF37', purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': false } },
+        { key: 'WG', name: 'White', color: '#94A3B8', purities: { '22KT': true, '18KT': true, '14KT': true, '925 SILVER': false } },
+        { key: 'RG', name: 'Rose', color: '#B76E79', purities: { '22KT': false, '18KT': true, '14KT': true, '925 SILVER': false } },
+        { key: 'BLK', name: 'Black', color: '#1E293B', purities: { '22KT': false, '18KT': true, '14KT': true, '925 SILVER': false } },
         { key: 'NAT_SILVER', name: 'Natural Silver', color: '#94A3B8', purities: { '22KT': false, '18KT': false, '14KT': false, '925 SILVER': true } },
         { key: 'RHOD_SILVER', name: 'Rhodium-Plated Silver', color: '#CBD5E1', purities: { '22KT': false, '18KT': false, '14KT': false, '925 SILVER': true } },
         { key: 'GOLD_SILVER', name: 'Gold-Plated Silver', color: '#EAB308', purities: { '22KT': false, '18KT': false, '14KT': false, '925 SILVER': true } },
@@ -1583,7 +1583,7 @@ export default function DynamicCollectionPage({ params }) {
             variant_title: activeVariant?.combination || null,
             name: productDetail?.name || 'Pintaara Bespoke Piece',
             metal: purityEntry ? purityEntry[1]?.value : '22KT',
-            finish: finishEntry ? finishEntry[1]?.value : (finishBarsData.find(b => b.code === normalizeFinishKey(selectedFinishCode))?.name || 'Yellow Gold'),
+            finish: finishEntry ? finishEntry[1]?.value : (finishBarsData.find(b => b.code === normalizeFinishKey(selectedFinishCode))?.name || 'Yellow'),
             gem: gemEntry ? gemEntry[1]?.value : 'Natural Diamond',
             size: sizeEntry ? sizeEntry[1]?.value : 'Standard',
             chain: chainEntry ? chainEntry[1]?.value : 'None',
@@ -1965,7 +1965,7 @@ export default function DynamicCollectionPage({ params }) {
 
                         const activeValStr = activeFinishObj ? (typeof activeFinishObj === 'string' ? activeFinishObj : (activeFinishObj?.value || '')) : '';
                         const matchedActiveBar = finishBarsData.find(b => b.code === normalizeFinishKey(selectedFinishCode) || (activeValStr && b.name.toLowerCase() === activeValStr.toLowerCase()));
-                        const selectedFinishDisplayName = matchedActiveBar?.name || activeValStr || (normalizeFinishKey(selectedFinishCode) === 'YG' ? 'Yellow Gold' : normalizeFinishKey(selectedFinishCode) === 'WG' ? 'White Gold' : normalizeFinishKey(selectedFinishCode) === 'RG' ? 'Rose Gold' : normalizeFinishKey(selectedFinishCode) === 'BLK' ? 'Black Gold' : '');
+                        const selectedFinishDisplayName = matchedActiveBar?.name || activeValStr || (normalizeFinishKey(selectedFinishCode) === 'YG' ? 'Yellow' : normalizeFinishKey(selectedFinishCode) === 'WG' ? 'White' : normalizeFinishKey(selectedFinishCode) === 'RG' ? 'Rose' : normalizeFinishKey(selectedFinishCode) === 'BLK' ? 'Black' : '');
 
                         return (
                             <div className="atelier-control-group">
