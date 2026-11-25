@@ -3,10 +3,13 @@
 import React, { useState } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import PincodeInput from '@/components/PincodeInput';
+import { isServiceablePincode, UNSERVICEABLE_PINCODE_MESSAGE } from '@/data/serviceablePincodes';
 
 export default function AccountAddressesPage() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [pinError, setPinError] = useState('');
     const [shippingAddresses, setShippingAddresses] = useState([]);
     const [billingAddresses, setBillingAddresses] = useState([]);
 
@@ -112,6 +115,11 @@ export default function AccountAddressesPage() {
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
+        if (!isServiceablePincode(formData.pinCode)) {
+            setPinError(UNSERVICEABLE_PINCODE_MESSAGE);
+            return;
+        }
+        setPinError('');
         const formattedCityLine = formData.city
             ? `${formData.city}, ${formData.stateProvince || ''}, ${formData.country || 'India'}${formData.pinCode ? ` - ${formData.pinCode}` : ''}`
             : '';
@@ -402,13 +410,22 @@ export default function AccountAddressesPage() {
 
                             <div className="acct-modal-field">
                                 <label className="acct-modal-lbl">PIN code</label>
-                                <input
-                                    type="text"
+                                <PincodeInput
                                     required
+                                    placeholder="6-digit PIN code"
                                     value={formData.pinCode}
-                                    onChange={(e) => setFormData({ ...formData, pinCode: e.target.value })}
+                                    onChange={(val) => {
+                                        setFormData({ ...formData, pinCode: val });
+                                        if (pinError) setPinError('');
+                                    }}
                                     className="acct-modal-input"
+                                    externalError={pinError}
                                 />
+                                {pinError && (
+                                    <div style={{ marginTop: '5px', fontSize: '0.75rem', color: '#B91C1C', lineHeight: 1.35 }}>
+                                        {pinError}
+                                    </div>
+                                )}
                             </div>
 
                             <label className="acct-modal-checkbox-row">

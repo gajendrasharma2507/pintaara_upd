@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
+import PincodeInput from '@/components/PincodeInput';
+import { isServiceablePincode, UNSERVICEABLE_PINCODE_MESSAGE } from '@/data/serviceablePincodes';
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -178,7 +180,11 @@ export default function CheckoutPage() {
         if (!fullName.trim()) errs.fullName = 'Please enter your full name';
         if (!address1.trim()) errs.address1 = 'Please enter your street address';
         if (!city.trim()) errs.city = 'Please enter your city';
-        if (!pin.trim()) errs.pin = 'Please enter pin code';
+        if (!pin.trim()) {
+            errs.pin = 'Please enter pin code';
+        } else if (!isServiceablePincode(pin)) {
+            errs.pin = UNSERVICEABLE_PINCODE_MESSAGE;
+        }
         if (!contact.trim()) {
             errs.contact = 'Please enter contact number';
         } else if (!/^[0-9+\s-]{8,15}$/.test(contact.trim())) {
@@ -493,6 +499,7 @@ export default function CheckoutPage() {
                                                         );
                                                     })}
                                                 </div>
+                                                {fieldErrors.pin && <span className="field-error-text" style={{ display: 'block', marginTop: '8px' }}>{fieldErrors.pin}</span>}
                                             </div>
                                         ) : (
                                             /* If Patron needs to enter a new address or has no saved addresses */
@@ -560,12 +567,12 @@ export default function CheckoutPage() {
                                                         </div>
                                                         <div style={{ flex: 1 }}>
                                                             <label className="form-field-label">Pin</label>
-                                                            <input 
-                                                                type="text" 
-                                                                placeholder="Pin Code *" 
+                                                            <PincodeInput
+                                                                placeholder="Pin Code *"
                                                                 value={pin}
-                                                                onChange={(e) => handleFieldChange('pin', setPin, e.target.value)}
-                                                                className={`form-input ${fieldErrors.pin ? 'has-error' : ''}`} 
+                                                                onChange={(val) => handleFieldChange('pin', setPin, val)}
+                                                                className={`form-input ${fieldErrors.pin ? 'has-error' : ''}`}
+                                                                externalError={fieldErrors.pin || ''}
                                                             />
                                                             {fieldErrors.pin && <span className="field-error-text">{fieldErrors.pin}</span>}
                                                         </div>
