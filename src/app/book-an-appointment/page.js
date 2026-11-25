@@ -24,19 +24,33 @@ export default function BookAppointmentPage() {
         notes: ''
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
+        setSubmitError('');
         try {
             await apiFetch('/appointments', {
                 method: 'POST',
                 body: JSON.stringify(formData),
             });
+            setIsSubmitted(true);
+            setFormData({
+                fullName: '',
+                contact: '',
+                date: '',
+                time: '',
+                purpose: 'Design a Jewellery Piece',
+                notes: ''
+            });
+            setTimeout(() => setIsSubmitted(false), 5000);
         } catch (err) {
-            console.warn('Backend appointment recording note:', err.message);
+            setSubmitError(err?.message || 'Unable to book appointment. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsSubmitted(true);
-        setTimeout(() => setIsSubmitted(false), 5000);
     };
 
 
@@ -87,6 +101,11 @@ export default function BookAppointmentPage() {
                         {isSubmitted && (
                             <div className="appointment-success-banner">
                                 Thank you. Your appointment request has been received. Our atelier team will contact you shortly.
+                            </div>
+                        )}
+                        {submitError && (
+                            <div className="appointment-success-banner" style={{ backgroundColor: '#FEF2F2', borderColor: '#FECACA', color: '#991B1B' }}>
+                                {submitError}
                             </div>
                         )}
 
@@ -160,11 +179,12 @@ export default function BookAppointmentPage() {
                                 <label className="appointment-form-label">TIME</label>
                                 <div className="appointment-input-wrapper">
                                     <select
+                                        required
                                         className="appointment-select"
                                         value={formData.time}
                                         onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                                     >
-                                        <option value="" disabled>Email</option>
+                                        <option value="" disabled>Select a time</option>
                                         <option value="10:30 AM - 12:00 PM">10:30 AM - 12:00 PM</option>
                                         <option value="12:00 PM - 01:30 PM">12:00 PM - 01:30 PM</option>
                                         <option value="02:30 PM - 04:00 PM">02:30 PM - 04:00 PM</option>
@@ -207,8 +227,8 @@ export default function BookAppointmentPage() {
 
                             {/* SUBMIT BUTTON */}
                             <div className="appointment-submit-row">
-                                <button type="submit" className="appointment-submit-btn">
-                                    BOOK AN APPOINTMENT
+                                <button type="submit" disabled={isSubmitting} className="appointment-submit-btn">
+                                    {isSubmitting ? 'BOOKING...' : 'BOOK AN APPOINTMENT'}
                                 </button>
                             </div>
                         </form>
