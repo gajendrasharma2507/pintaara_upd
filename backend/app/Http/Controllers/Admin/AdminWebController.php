@@ -16,6 +16,7 @@ use App\Models\PriceMovementLog;
 use App\Models\Product;
 use App\Models\ProductOptionGroup;
 use App\Models\ProductOptionValue;
+use App\Models\ProductOption;
 use App\Models\ProductOptionAssignment;
 use App\Models\ProductVariant;
 use App\Models\Setting;
@@ -1134,7 +1135,7 @@ class AdminWebController extends Controller
             }
         }
         // Purge legacy product_options so old table never has stale rows
-        ProductOption::where('product_id', $product->id)->delete();
+        \App\Models\ProductOption::where('product_id', $product->id)->delete();
 
         // 2. Sync Variants Matrix
         $rawVariants = $request->input('variants_matrix_json') ?: $request->input('variants');

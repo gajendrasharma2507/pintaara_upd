@@ -29,6 +29,10 @@ def deploy():
          f"{remote_base}/resources/views/admin/gold-rates/index.blade.php"),
         ("backend/resources/views/layouts/admin.blade.php", 
          f"{remote_base}/resources/views/layouts/admin.blade.php"),
+        ("backend/routes/web.php", 
+         f"{remote_base}/routes/web.php"),
+        ("backend/resources/views/admin/products/index.blade.php", 
+         f"{remote_base}/resources/views/admin/products/index.blade.php"),
     ]
 
     for local, remote in files:
