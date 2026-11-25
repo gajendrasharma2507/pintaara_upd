@@ -466,14 +466,6 @@ export default function AccountAddressesPage() {
             {successModal && (
                 <div className="acct-modal-backdrop" onClick={() => setSuccessModal(null)}>
                     <div className="acct-success-modal-box" onClick={(e) => e.stopPropagation()}>
-                        <button
-                            type="button"
-                            className="acct-modal-close-x"
-                            onClick={() => setSuccessModal(null)}
-                        >
-                            ✕
-                        </button>
-
                         <div className="acct-success-check-icon">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
                                 <polyline points="20 6 9 17 4 12" stroke="#7B7D50" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
