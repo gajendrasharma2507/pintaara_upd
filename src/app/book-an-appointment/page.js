@@ -148,14 +148,32 @@ export default function BookAppointmentPage() {
                                 <div className="appointment-input-wrapper">
                                     <input
                                         type="text"
-                                        onFocus={(e) => (e.target.type = 'date')}
-                                        onBlur={(e) => {
-                                            if (!e.target.value) e.target.type = 'text';
-                                        }}
-                                        placeholder="Select a date"
+                                        required
+                                        placeholder="yyyy/mm/dd"
+                                        pattern="\d{4}/\d{2}/\d{2}"
+                                        title="Enter date in yyyy/mm/dd format"
                                         className="appointment-input"
                                         value={formData.date}
                                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                    />
+                                    <input
+                                        type="date"
+                                        aria-label="Choose appointment date"
+                                        value={/^\d{4}\/\d{2}\/\d{2}$/.test(formData.date) ? formData.date.replace(/\//g, '-') : ''}
+                                        onChange={(e) => {
+                                            if (e.target.value) {
+                                                setFormData({ ...formData, date: e.target.value.replace(/-/g, '/') });
+                                            }
+                                        }}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '6px',
+                                            width: '30px',
+                                            height: '100%',
+                                            opacity: 0,
+                                            cursor: 'pointer',
+                                            zIndex: 3,
+                                        }}
                                     />
                                     <span className="appointment-calendar-icon">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
