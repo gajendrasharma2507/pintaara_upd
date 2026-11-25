@@ -331,7 +331,7 @@ export default function AccountAddressesPage() {
                                 <input
                                     type="text"
                                     required
-                                    placeholder="Name as per ID Proof"
+                                    placeholder="Full Name"
                                     value={formData.fullName}
                                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                     className="acct-modal-input"
