@@ -806,8 +806,7 @@ class AdminWebController extends Controller
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition', true);
         if (empty($validated['name'])) {
-            $code = $validated['design_code'] ?? '';
-            $validated['name'] = !empty($code) ? "Piece {$code}" : 'Bespoke Jewelry Piece';
+            $validated['name'] = '';
         }
         $rawSections = $request->input('custom_sections_json') ?: $request->input('custom_sections');
         $cleanedSections = $this->cleanCustomSections($rawSections);
@@ -904,7 +903,7 @@ class AdminWebController extends Controller
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition');
         if (array_key_exists('name', $validated) && empty($validated['name'])) {
-            $validated['name'] = !empty($product->design_code) ? "Piece {$product->design_code}" : 'Bespoke Jewelry Piece';
+            $validated['name'] = '';
         }
         $rawSections = $request->input('custom_sections_json') ?: $request->input('custom_sections');
         $cleanedSections = $this->cleanCustomSections($rawSections);

@@ -28,6 +28,17 @@ const resolveProductImage = (product, imageUrl) => {
     return resolveImageUrl(normalizedUrl);
 };
 
+const getOptionalProductName = (rawName, designCode) => {
+    const trimmed = String(rawName || '').trim();
+    if (!trimmed) return '';
+    const lower = trimmed.toLowerCase();
+    const codeUpper = String(designCode || '').trim().toUpperCase();
+    if (lower === 'bespoke jewelry piece' || lower === 'origin') return '';
+    if (lower.startsWith('piece ')) return '';
+    if (codeUpper && trimmed.toUpperCase() === codeUpper) return '';
+    return trimmed;
+};
+
 const normalizeFinishKey = (raw) => {
     if (!raw) return '';
     const s = String(raw).toUpperCase().trim();
@@ -1629,19 +1640,8 @@ export default function DynamicCollectionPage({ params }) {
                                 const formattedPrice = Math.round(total).toLocaleString('en-IN');
 
                                 const itemCode = String(item?.code || item?.id || '');
-                                const codeUpper = itemCode.toUpperCase();
-                                const colStr = typeof item?.collection === 'object' ? String(item?.collection?.name || '') : String(item?.collection || '');
-                                const colUpper = colStr.toUpperCase();
                                 const nameStr = String(item?.name || '');
-
-                                let collectionTag = 'ORIGIN';
-                                if (codeUpper.includes('-OR-') || codeUpper.includes('ORIGIN')) {
-                                    collectionTag = 'ORIGIN';
-                                } else if (colStr && !['BRACELETS', 'BRACELET', 'PENDANTS', 'PENDANT', 'NECKLACES', 'NECKLACE', 'RINGS', 'RING', 'EARRINGS', 'EARRING', 'CHAINS', 'CHAIN', 'BANGLES', 'BANGLE'].includes(colUpper)) {
-                                    collectionTag = colUpper;
-                                } else if (nameStr && !nameStr.toLowerCase().startsWith('piece') && nameStr.toUpperCase() !== codeUpper) {
-                                    collectionTag = nameStr.toUpperCase();
-                                }
+                                const customProductName = getOptionalProductName(nameStr, itemCode);
 
                                 return (
                                     <Link
@@ -1658,7 +1658,9 @@ export default function DynamicCollectionPage({ params }) {
                                             />
                                         </div>
                                         <div className="category-product-info">
-                                            <span className="cat-prod-collection">{collectionTag}</span>
+                                            {customProductName && (
+                                                <span className="cat-prod-collection">{customProductName.toUpperCase()}</span>
+                                            )}
                                             <h3 className="cat-prod-code">{itemCode || nameStr}</h3>
                                             <span className="cat-prod-price">₹ {formattedPrice}</span>
                                         </div>
@@ -1877,19 +1879,31 @@ export default function DynamicCollectionPage({ params }) {
                     <h1 className="atelier-product-title">
                         {String(productDetail?.design_code || resolvedParams?.id || '').toUpperCase()}
                     </h1>
-                    <div className="atelier-product-subtitle">
-                        <span className="atelier-subtitle-name">
-                            {(productDetail?.name || productDetail?.collection?.name || 'ORIGIN').toUpperCase()}
-                        </span>
-                        {isLimited && editionText && (
-                            <>
-                                <span className="atelier-subtitle-separator" aria-hidden="true">|</span>
-                                <span className="atelier-limited-edition">
-                                    {editionText}
-                                </span>
-                            </>
-                        )}
-                    </div>
+                    {(() => {
+                        const customDetailName = getOptionalProductName(
+                            productDetail?.name,
+                            productDetail?.design_code || resolvedParams?.id
+                        );
+                        const hasEdition = Boolean(isLimited && editionText);
+                        if (!customDetailName && !hasEdition) return null;
+                        return (
+                            <div className="atelier-product-subtitle">
+                                {customDetailName && (
+                                    <span className="atelier-subtitle-name">
+                                        {customDetailName.toUpperCase()}
+                                    </span>
+                                )}
+                                {customDetailName && hasEdition && (
+                                    <span className="atelier-subtitle-separator" aria-hidden="true">|</span>
+                                )}
+                                {hasEdition && (
+                                    <span className="atelier-limited-edition">
+                                        {editionText}
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })()}
                     <div className="atelier-specs-divider" />
 
                     {/* METAL PURITY — only render if configured for this product */}
