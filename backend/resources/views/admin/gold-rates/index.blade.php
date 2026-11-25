@@ -401,10 +401,8 @@
           <thead>
             <tr style="background: var(--admin-surface-elevated); border-bottom: 1px solid var(--admin-border); text-align: left;">
               <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Purity Tier</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Assay Fraction</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Live Spot (10g)</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Rate with BRACKET GAP (10g)</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Per Gram Rate with BRACKET GAP</th>
+              <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Rate</th>
+              <th style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-secondary);">Rate with Rate CAP</th>
             </tr>
           </thead>
           <tbody id="purity_matrix_body">
@@ -419,21 +417,16 @@
                   $stepped10g = $p['rate_with_gap_10g'] ?? $p['rate_per_10g'];
                 @endphp
                 <tr id="purity_row_{{ $p['id'] }}" style="border-bottom: 1px solid var(--admin-border);">
-                  <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">
+                  <td style="padding: 12px 14px; font-weight: 700; color: var(--admin-text-primary);">
                     {{ $p['name'] }} ({{ ucfirst($p['type']) }})
                   </td>
-                  <td style="padding: 10px 14px; color: var(--admin-text-secondary);">
-                    {{ number_format($p['purity_fraction'], 3) }}
+                  <td id="purity_raw_{{ $p['id'] }}" style="padding: 12px 14px; color: var(--admin-text-primary);">
+                    <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format($raw10g / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
+                    <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw10g, 2) }} (10g)</div>
                   </td>
-                  <td id="purity_raw_{{ $p['id'] }}" style="padding: 10px 14px; color: var(--admin-text-secondary);">
-                    <div>₹{{ number_format($raw10g, 2) }}</div>
-                    <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw10g / 10, 2) }} / g</div>
-                  </td>
-                  <td id="purity_gap_{{ $p['id'] }}" style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">
-                    ₹{{ number_format($stepped10g, 2) }}
-                  </td>
-                  <td id="purity_gram_{{ $p['id'] }}" style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">
-                    ₹{{ number_format($p['rate_per_gram'], 2) }}
+                  <td id="purity_cap_{{ $p['id'] }}" style="padding: 12px 14px; color: var(--admin-text-primary);">
+                    <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($p['rate_per_gram'], 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
+                    <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($stepped10g, 2) }} (10g)</div>
                   </td>
                 </tr>
               @endforeach
@@ -445,32 +438,48 @@
                 $raw22k10 = round($raw24k10 * 0.916, 2);
               @endphp
               <tr style="border-bottom: 1px solid var(--admin-border);">
-                <td style="padding: 10px 14px; font-weight: 700;">22KT Gold</td>
-                <td style="padding: 10px 14px; color: var(--admin-text-secondary);">0.916</td>
-                <td style="padding: 10px 14px; color: var(--admin-text-secondary);">₹{{ number_format($raw22k10, 2) }}</td>
-                <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">₹{{ number_format($stepped22k10, 2) }}</td>
-                <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">₹{{ number_format($base22kGram, 2) }}</td>
+                <td style="padding: 12px 14px; font-weight: 700;">22KT Gold</td>
+                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
+                  <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format($raw22k10 / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
+                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw22k10, 2) }} (10g)</div>
+                </td>
+                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
+                  <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($base22kGram, 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
+                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($stepped22k10, 2) }} (10g)</div>
+                </td>
               </tr>
               <tr style="border-bottom: 1px solid var(--admin-border);">
-                <td style="padding: 10px 14px; font-weight: 700;">18KT Gold</td>
-                <td style="padding: 10px 14px; color: var(--admin-text-secondary);">0.750</td>
-                <td style="padding: 10px 14px; color: var(--admin-text-secondary);">₹{{ number_format($raw24k10 * 0.750, 2) }}</td>
-                <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">₹{{ number_format($stepped24k10 * 0.750, 2) }}</td>
-                <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">₹{{ number_format($gold18kGram, 2) }}</td>
+                <td style="padding: 12px 14px; font-weight: 700;">18KT Gold</td>
+                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
+                  <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format(($raw24k10 * 0.750) / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
+                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw24k10 * 0.750, 2) }} (10g)</div>
+                </td>
+                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
+                  <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($gold18kGram, 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
+                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($stepped24k10 * 0.750, 2) }} (10g)</div>
+                </td>
               </tr>
               <tr style="border-bottom: 1px solid var(--admin-border);">
-                <td style="padding: 10px 14px; font-weight: 700;">14KT Gold</td>
-                <td style="padding: 10px 14px; color: var(--admin-text-secondary);">0.585</td>
-                <td style="padding: 10px 14px; color: var(--admin-text-secondary);">₹{{ number_format($raw24k10 * 0.585, 2) }}</td>
-                <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">₹{{ number_format($stepped24k10 * 0.585, 2) }}</td>
-                <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">₹{{ number_format($gold14kGram, 2) }}</td>
+                <td style="padding: 12px 14px; font-weight: 700;">14KT Gold</td>
+                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
+                  <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format(($raw24k10 * 0.585) / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
+                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($raw24k10 * 0.585, 2) }} (10g)</div>
+                </td>
+                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
+                  <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($gold14kGram, 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
+                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($stepped24k10 * 0.585, 2) }} (10g)</div>
+                </td>
               </tr>
               <tr>
-                <td style="padding: 10px 14px; font-weight: 700;">925 Silver</td>
-                <td style="padding: 10px 14px; color: var(--admin-text-secondary);">0.925</td>
-                <td style="padding: 10px 14px; color: var(--admin-text-secondary);">₹{{ number_format(($liveData['silver_per_10g'] ?? 1923.53) * 0.925, 2) }}</td>
-                <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">₹{{ number_format($silver10g, 2) }}</td>
-                <td style="padding: 10px 14px; font-weight: 700; color: var(--admin-text-primary);">₹{{ number_format($silver925Gram, 2) }}</td>
+                <td style="padding: 12px 14px; font-weight: 700;">925 Silver</td>
+                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
+                  <div style="font-weight: 700; font-size: 13.5px;">₹{{ number_format((($liveData['silver_per_10g'] ?? 1923.53) * 0.925) / 10, 2) }} <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div>
+                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format(($liveData['silver_per_10g'] ?? 1923.53) * 0.925, 2) }} (10g)</div>
+                </td>
+                <td style="padding: 12px 14px; color: var(--admin-text-primary);">
+                  <div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹{{ number_format($silver925Gram, 2) }} <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div>
+                  <div style="font-size: 11px; color: var(--admin-text-muted);">₹{{ number_format($silver10g, 2) }} (10g)</div>
+                </td>
               </tr>
             @endif
           </tbody>
@@ -761,6 +770,16 @@
     if (s18) s18.textContent = formatINR(rate18k, 2);
     if (s14) s14.textContent = formatINR(rate14k, 2);
     if (s925) s925.textContent = formatINR(rate925, 2);
+
+    // Live update Active Catalog Purity Matrix Rate CAP column
+    const pCap1 = document.getElementById('purity_cap_1');
+    const pCap2 = document.getElementById('purity_cap_2');
+    const pCap3 = document.getElementById('purity_cap_3');
+    const pCap4 = document.getElementById('purity_cap_4');
+    if (pCap1) pCap1.innerHTML = '<div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹' + formatINR(rate22k) + ' <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div><div style="font-size: 11px; color: var(--admin-text-muted);">₹' + formatINR(rate22k * 10) + ' (10g)</div>';
+    if (pCap2) pCap2.innerHTML = '<div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹' + formatINR(rate18k) + ' <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div><div style="font-size: 11px; color: var(--admin-text-muted);">₹' + formatINR(rate18k * 10) + ' (10g)</div>';
+    if (pCap3) pCap3.innerHTML = '<div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹' + formatINR(rate14k) + ' <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div><div style="font-size: 11px; color: var(--admin-text-muted);">₹' + formatINR(rate14k * 10) + ' (10g)</div>';
+    if (pCap4) pCap4.innerHTML = '<div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹' + formatINR(rate925) + ' <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div><div style="font-size: 11px; color: var(--admin-text-muted);">₹' + formatINR(rate925 * 10) + ' (10g)</div>';
   }
 
   // 5. Save Rate Engine Configuration via AJAX
@@ -905,18 +924,16 @@
         if (rates && Array.isArray(rates.purities)) {
           rates.purities.forEach(p => {
             const rawEl = document.getElementById('purity_raw_' + p.id);
-            const gapEl = document.getElementById('purity_gap_' + p.id);
-            const gramEl = document.getElementById('purity_gram_' + p.id);
+            const capEl = document.getElementById('purity_cap_' + p.id);
 
             if (rawEl && p.raw_market_10g !== undefined) {
               const raw10 = parseFloat(p.raw_market_10g);
-              rawEl.innerHTML = '<div>₹' + formatINR(raw10) + '</div><div style="font-size: 11px; color: var(--admin-text-muted);">₹' + formatINR(raw10 / 10) + ' / g</div>';
+              rawEl.innerHTML = '<div style="font-weight: 700; font-size: 13.5px;">₹' + formatINR(raw10 / 10) + ' <span style="font-size: 11px; font-weight: 600; color: #64748B;">/ g</span></div><div style="font-size: 11px; color: var(--admin-text-muted);">₹' + formatINR(raw10) + ' (10g)</div>';
             }
-            if (gapEl && (p.rate_with_gap_10g !== undefined || p.rate_per_10g !== undefined)) {
-              gapEl.textContent = '₹' + formatINR(p.rate_with_gap_10g || p.rate_per_10g);
-            }
-            if (gramEl && p.rate_per_gram !== undefined) {
-              gramEl.textContent = '₹' + formatINR(p.rate_per_gram);
+            if (capEl && p.rate_per_gram !== undefined) {
+              const cap10 = parseFloat(p.rate_with_gap_10g || p.rate_per_10g || (p.rate_per_gram * 10));
+              const perGram = parseFloat(p.rate_per_gram);
+              capEl.innerHTML = '<div style="font-weight: 800; font-size: 14px; color: #0E7490;">₹' + formatINR(perGram) + ' <span style="font-size: 11px; font-weight: 600; color: #0891B2;">/ g</span></div><div style="font-size: 11px; color: var(--admin-text-muted);">₹' + formatINR(cap10) + ' (10g)</div>';
             }
           });
         }
