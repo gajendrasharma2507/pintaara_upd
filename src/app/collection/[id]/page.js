@@ -403,11 +403,15 @@ export default function DynamicCollectionPage({ params }) {
             try {
                 const resRates = await api.getTodayGoldRate();
                 if (resRates && (resRates.status === 'success' || resRates.base_22kt_rate_per_10g)) {
-                    const rate22 = parseFloat(resRates.base_22kt_rate_per_10g || 100000);
+                    const rate22 = parseFloat(resRates.base_22kt_rate_per_10g || 132820);
                     setRates({
                         gold_22kt_per_10g: rate22,
                         gold_24kt_per_g: parseFloat(resRates.pure_24kt_rate_per_gram || (rate22 / 10 / 0.916)),
-                        silver_per_10g: parseFloat(resRates.silver_base_per_10g || 950),
+                        silver_per_10g: parseFloat(resRates.silver_base_per_10g || 1942.5),
+                        gold_22kt_per_g: parseFloat(resRates.gold_22kt_rate_per_gram || (rate22 / 10)),
+                        gold_18kt_per_g: parseFloat(resRates.gold_18kt_rate_per_gram || (rate22 / 10 / 0.916 * 0.75)),
+                        gold_14kt_per_g: parseFloat(resRates.gold_14kt_rate_per_gram || (rate22 / 10 / 0.916 * 0.585)),
+                        silver_925_per_g: parseFloat(resRates.silver_925_per_gram || 194.25),
                     });
                 }
             } catch (err) { }
@@ -1344,9 +1348,18 @@ export default function DynamicCollectionPage({ params }) {
 
         // Immediate local baseline calculation while API calculates
         const purityFraction = purityStr.includes('24') ? 1.0 : purityStr.includes('18') ? 0.75 : purityStr.includes('14') ? 0.585 : isSilver ? 0.925 : 0.916;
-        const rate22g = (rates?.gold_22kt_per_10g || 80150) / 10;
-        const rateSilverG = (rates?.silver_per_10g || 950) / 10;
-        const localRatePerGram = isSilver ? rateSilverG : (purityFraction === 0.916 ? rate22g : (rate22g / 0.916) * purityFraction);
+        let localRatePerGram;
+        if (isSilver) {
+            localRatePerGram = rates?.silver_925_per_g || ((rates?.silver_per_10g || 1942.5) / 10);
+        } else if (purityFraction === 0.916) {
+            localRatePerGram = rates?.gold_22kt_per_g || ((rates?.gold_22kt_per_10g || 132820) / 10);
+        } else if (purityFraction === 0.75) {
+            localRatePerGram = rates?.gold_18kt_per_g || (((rates?.gold_22kt_per_10g || 132820) / 10 / 0.916) * 0.75);
+        } else if (purityFraction === 0.585) {
+            localRatePerGram = rates?.gold_14kt_per_g || (((rates?.gold_22kt_per_10g || 132820) / 10 / 0.916) * 0.585);
+        } else {
+            localRatePerGram = (rates?.gold_24kt_per_g || 14500) * purityFraction;
+        }
         const localMetalVal = Math.round(effectiveWeight * localRatePerGram * 100) / 100;
         const localMakingVal = Math.round(localMetalVal * (effectiveMakingPercent / 100) * 100) / 100;
         const localMarkupVal = Math.round(localMetalVal * (effectiveBrandMarkup / 100) * 100) / 100;

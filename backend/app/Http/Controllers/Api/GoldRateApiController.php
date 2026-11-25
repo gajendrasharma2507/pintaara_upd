@@ -28,67 +28,71 @@ class GoldRateApiController extends Controller
         $forceRefresh = $req ? ($req->boolean('realtime') || $req->has('refresh') || $req->has('fresh') || $req->has('t')) : false;
         $liveRates = $this->pricingService->fetchAaravLiveRates($forceRefresh);
 
-        $rawGold24k = $liveRates ? (float)$liveRates['gold_24kt_per_10g'] : (float)($this->pricingService->getLatestRate('gold')?->rate_per_10g ?: 150854.0);
-        $rawGold22k = $liveRates ? (float)$liveRates['gold_22kt_per_10g'] : round($rawGold24k * 0.916, 2);
-        $rawSilverKg = $liveRates ? (float)$liveRates['silver_per_kg'] : (float)(($this->pricingService->getLatestRate('silver')?->rate_per_10g ?: 2155.72) * 100);
-        $rawSilver10g = $liveRates ? (float)$liveRates['silver_per_10g'] : round($rawSilverKg / 100, 2);
+        $rates = $this->pricingService->getAllPurityRates();
+        $history = \App\Models\GoldRate::latest('effective_date')->latest('id')->take(10)->get();
 
-        // Admin configured markup and floor settings (default to 0 for 100% Aarav parity)
-        $goldOffset = (float) \App\Models\Setting::get('gold_rate_extra_offset', 0);
-        $goldFloor = (float) \App\Models\Setting::get('gold_rate_min_floor', 0);
-        $silverOffset = (float) \App\Models\Setting::get('silver_rate_extra_offset', 0);
-        $silverFloor = (float) \App\Models\Setting::get('silver_rate_min_floor', 0);
+        $goldCap = $rates['gold_cap'];
+        $silverCap = $rates['silver_cap'];
+        $rate22k10g = $rates['gold_base_22kt_per_10g'];
+        $rate22kGram = $rates['gold_22kt_rate_per_gram'];
+        $rate18kGram = $rates['gold_18kt_rate_per_gram'];
+        $rate14kGram = $rates['gold_14kt_rate_per_gram'];
+        $rate925Gram = $rates['silver_925_per_gram'];
+        $silver10g = $rates['silver_base_per_10g'];
 
-        // Effective Rates (Aarav Live Market + Admin Extra Offset, floor protected)
-        $effectiveGold24k = $rawGold24k + $goldOffset;
-        if ($goldFloor > 0 && $effectiveGold24k < $goldFloor) {
-            $effectiveGold24k = $goldFloor;
-        }
+        $goldOffset   = (float) \App\Models\Setting::get('gold_extra_offset', 0);
+        $goldFloor    = (float) \App\Models\Setting::get('gold_min_floor', 0);
+        $silverOffset = (float) \App\Models\Setting::get('silver_extra_offset', 0);
+        $silverFloor  = (float) \App\Models\Setting::get('silver_min_floor', 0);
 
-        $pure24ktPerGram = $effectiveGold24k / 10.0;
-        $effectiveGold22k = round(($effectiveGold24k / 10.0) * 0.916 * 10, 2);
-
-        $effectiveSilverKg = $rawSilverKg + ($silverOffset * 100);
-        if ($silverFloor > 0 && $effectiveSilverKg < ($silverFloor * 100)) {
-            $effectiveSilverKg = $silverFloor * 100;
-        }
-        $effectiveSilver10g = round($effectiveSilverKg / 100.0, 2);
+        $goldOffset = (float) \App\Models\Setting::get('gold_extra_offset', 0);
+        $goldFloor = (float) \App\Models\Setting::get('gold_min_floor', 0);
+        $silverOffset = (float) \App\Models\Setting::get('silver_extra_offset', 0);
+        $silverFloor = (float) \App\Models\Setting::get('silver_min_floor', 0);
 
         if ($liveRates) {
             // Persist live rate to DB
             $this->persistLiveRatesToDb([
-                'gold_22kt_per_10g' => $effectiveGold22k,
-                'silver_per_10g'    => $effectiveSilver10g,
-                'silver_per_kg'     => $effectiveSilverKg,
+                'gold_22kt_per_10g' => $rate22k10g,
+                'silver_per_10g'    => $silver10g,
+                'silver_per_kg'     => $silverCap,
             ]);
         }
 
-        $rates = $this->pricingService->getAllPurityRates($effectiveGold22k, $effectiveSilver10g);
-        $history = \App\Models\GoldRate::latest('effective_date')->latest('id')->take(10)->get();
-
         return response()->json([
             'status'                     => 'success',
-            'source'                     => $liveRates ? 'live' : 'database',
+            'source'                     => $rates['gold_rate_mode'] === 'manual' ? 'manual' : ($liveRates ? 'live' : 'database'),
             'feed'                       => 'aarav-bullion',
             'effective_date'             => now()->toDateString(),
             'refreshed_at'               => now()->toIso8601String(),
-            // 24KT Benchmark (Matches Aarav Bullion GOLD 999 100%!)
-            'pure_24kt_rate_per_10g'     => round($effectiveGold24k, 2),
-            'pure_24kt_rate_per_gram'    => round($pure24ktPerGram, 2),
+            // Spreadsheet CAP values
+            'gold_cap'                   => $goldCap,
+            'silver_cap'                 => $silverCap,
+            'gold_rate_mode'             => $rates['gold_rate_mode'],
+            'silver_rate_mode'           => $rates['silver_rate_mode'],
+            'gold_step_gap'              => $rates['gold_step_gap'],
+            'silver_step_gap'            => $rates['silver_step_gap'],
+            // Purity Rates Per Gram
+            'gold_22kt_rate_per_gram'    => $rate22kGram,
+            'gold_18kt_rate_per_gram'    => $rate18kGram,
+            'gold_14kt_rate_per_gram'    => $rate14kGram,
+            'silver_925_per_gram'        => $rate925Gram,
+            // 24KT Benchmark (Matches Gold Rate CAP)
+            'pure_24kt_rate_per_10g'     => $goldCap,
+            'pure_24kt_rate_per_gram'    => round($goldCap / 10.0, 2),
             // 22KT Standard Jewellery Hallmark
-            'base_22kt_rate_per_10g'     => round($effectiveGold22k, 2),
-            'base_22kt_rate_per_gram'    => round($effectiveGold22k / 10.0, 2),
+            'base_22kt_rate_per_10g'     => $rate22k10g,
+            'base_22kt_rate_per_gram'    => $rate22kGram,
             // Silver 999 & 925
-            'silver_per_kg'              => round($effectiveSilverKg, 2),
-            'silver_base_per_10g'        => round($effectiveSilver10g, 2),
-            'silver_925_per_10g'         => round($effectiveSilver10g * 0.925, 2),
-            'silver_925_per_gram'        => round(($effectiveSilverKg / 1000.0) * 0.925, 2),
-            // Raw market spot rates (pure feed numbers from Aarav Bullion without any markup)
-            'market_raw_24kt_per_10g'    => round($rawGold24k, 2),
-            'market_raw_pure_24kt_per_g' => round($rawGold24k / 10.0, 2),
-            'market_raw_22kt_per_10g'    => round($rawGold22k, 2),
-            'market_raw_silver_per_kg'   => round($rawSilverKg, 2),
-            'market_raw_silver_per_10g'  => round($rawSilver10g, 2),
+            'silver_per_kg'              => $silverCap,
+            'silver_base_per_10g'        => $silver10g,
+            'silver_925_per_10g'         => round($silver10g, 2),
+            // Raw market spot rates
+            'market_raw_24kt_per_10g'    => $rates['live_gold_rate'],
+            'market_raw_pure_24kt_per_g' => round($rates['live_gold_rate'] / 10.0, 2),
+            'market_raw_22kt_per_10g'    => round($rates['live_gold_rate'] * 0.916, 2),
+            'market_raw_silver_per_kg'   => $rates['live_silver_rate'],
+            'market_raw_silver_per_10g'  => round($rates['live_silver_rate'] / 100.0, 2),
             // Telemetry from live stream
             'feed_telemetry'             => [
                 'endpoint'        => JewelryPricingService::AARAV_FEED_URL,
@@ -97,6 +101,7 @@ class GoldRateApiController extends Controller
                 'silver_row_id'   => $liveRates['silver_row']['id'] ?? '2259',
                 'silver_row_name' => $liveRates['silver_row']['name'] ?? 'SILVER 999 1KG (AMD)',
             ],
+            'purities'                   => $rates['purities'],
             // Admin configured rules
             'gold_extra_offset'          => $goldOffset,
             'gold_min_floor'             => $goldFloor,

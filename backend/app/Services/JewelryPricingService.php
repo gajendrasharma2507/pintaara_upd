@@ -220,117 +220,104 @@ class JewelryPricingService
     /**
      * Get the base 22KT gold rate per 10g (derived from live Aarav Bullion stream + admin extra offset & step slabs).
      */
-    public function getBaseGoldRatePer10g(bool $withMarkup = true): float
+    /**
+     * Get Gold Rate CAP: CEILING(Active Rate, step_gap [default 5000])
+     * e.g. Input 142,678 -> CEILING(142678, 5000) = 145,000
+     */
+    public function getGoldCap(): float
     {
-        $live = $this->fetchAaravLiveRates();
-        if ($live && !empty($live['gold_24kt_per_10g'])) {
-            $raw24k = (float) $live['gold_24kt_per_10g'];
-            $raw22k = (float) $live['gold_22kt_per_10g'];
-        } elseif ($live && !empty($live['gold_22kt_per_10g'])) {
-            $raw22k = (float) $live['gold_22kt_per_10g'];
-            $raw24k = $raw22k / 0.916;
+        $mode = Setting::get('gold_rate_mode', 'live');
+        $manualRate = (float) Setting::get('manual_gold_rate', 0);
+
+        if ($mode === 'manual' && $manualRate > 0) {
+            $inputGold = $manualRate;
         } else {
-            $rate = $this->getLatestRate('gold');
-            $raw22k = $rate ? (float) $rate->rate_per_10g : 138182.00;
-            $raw24k = $raw22k / 0.916;
+            $live = $this->fetchAaravLiveRates();
+            $inputGold = (float) ($live['gold_24kt_per_10g'] ?? 0);
+            if ($inputGold <= 0) {
+                $rate = $this->getLatestRate('gold');
+                $inputGold = $rate ? (float) $rate->rate_per_10g : 142678.0;
+            }
         }
 
-        if (!$withMarkup) {
-            return round($raw22k, 2);
-        }
-
-        $gap = (float) Setting::get('gold_step_gap', 0);
-        $offset = (float) Setting::get('gold_rate_extra_offset', 0);
-        $floor  = (float) Setting::get('gold_rate_min_floor', 0);
-
-        if ($gap > 0) {
-            $stepped24k = ceil($raw24k / $gap) * $gap;
-            $effective22k = ($stepped24k * 0.916) + $offset;
-        } else {
-            $effective22k = $raw22k + $offset;
-        }
-
-        if ($floor > 0 && $effective22k < $floor) {
-            $effective22k = $floor;
-        }
-
-        return round($effective22k, 2);
+        $gap = (float) Setting::get('gold_step_gap', 5000);
+        return ($gap > 0) ? (ceil($inputGold / $gap) * $gap) : $inputGold;
     }
 
     /**
-     * Get the base Silver rate per 10g (from live Aarav Bullion stream + admin extra offset & step slabs).
+     * Get Silver Rate CAP: CEILING(Active Rate per KG, step_gap [default 10000])
+     * e.g. Input 208,000 -> CEILING(208000, 10000) = 210,000
+     */
+    public function getSilverCap(): float
+    {
+        $mode = Setting::get('silver_rate_mode', 'live');
+        $manualRate = (float) Setting::get('manual_silver_rate', 0);
+
+        if ($mode === 'manual' && $manualRate > 0) {
+            $inputSilver = $manualRate;
+        } else {
+            $live = $this->fetchAaravLiveRates();
+            $inputSilver = (float) ($live['silver_per_kg'] ?? 0);
+            if ($inputSilver <= 0) {
+                $rate = $this->getLatestRate('silver');
+                $inputSilver = $rate ? ((float) $rate->rate_per_10g * 100.0) : 208000.0;
+            }
+        }
+
+        $gap = (float) Setting::get('silver_step_gap', 10000);
+        return ($gap > 0) ? (ceil($inputSilver / $gap) * $gap) : $inputSilver;
+    }
+
+    /**
+     * Get the base Gold rate per 10g (from Gold Rate CAP).
+     * 22KT / 10g = Gold Rate CAP * 0.916
+     * e.g. 145,000 * 0.916 = 132,820 (which is 13,282/g)
+     */
+    public function getBaseGoldRatePer10g(bool $withMarkup = true): float
+    {
+        $goldCap = $this->getGoldCap();
+        return round($goldCap * 0.916, 2);
+    }
+
+    /**
+     * Get the base Silver rate per 10g (from Silver Rate CAP).
+     * 92.5% silver / 10g = (Silver Rate CAP * 0.925) / 100
+     * e.g. (210,000 * 0.925) / 100 = 1,942.50 (which is 194.25/g)
      */
     public function getBaseSilverRatePer10g(bool $withMarkup = true): float
     {
-        $live = $this->fetchAaravLiveRates();
-        if ($live && !empty($live['silver_per_10g'])) {
-            $rawSilver10g = (float) $live['silver_per_10g'];
-        } elseif ($live && !empty($live['silver_per_kg'])) {
-            $rawSilver10g = (float) $live['silver_per_kg'] / 100.0;
-        } else {
-            $rate = $this->getLatestRate('silver');
-            $rawSilver10g = $rate ? (float) $rate->rate_per_10g : 2155.00;
-        }
-
-        if (!$withMarkup) {
-            return round($rawSilver10g, 2);
-        }
-
-        $gap = (float) Setting::get('silver_step_gap', 0);
-        $offset = (float) Setting::get('silver_rate_extra_offset', 0);
-        $floor  = (float) Setting::get('silver_rate_min_floor', 0);
-
-        $stepped10g = ($gap > 0) ? (ceil($rawSilver10g / $gap) * $gap) : $rawSilver10g;
-        $effective10g = $stepped10g + $offset;
-
-        if ($floor > 0 && $effective10g < $floor) {
-            $effective10g = $floor;
-        }
-
-        return round($effective10g, 2);
+        $silverCap = $this->getSilverCap();
+        return round(($silverCap * 0.925) / 100.0, 2);
     }
 
     /**
-     * Calculate 24KT pure benchmark rate per gram from 22KT / 10g base rate.
+     * Calculate 24KT pure benchmark rate per gram from Gold Rate CAP.
+     * e.g. 145,000 / 10 = 14,500/g
      */
     public function calculatePureGoldRatePerGram(?float $base22ktRate = null): float
     {
-        if ($base22ktRate === null) {
-            $live = $this->fetchAaravLiveRates();
-            $gap = (float) Setting::get('gold_step_gap', 0);
-            $offset = (float) Setting::get('gold_rate_extra_offset', 0);
-            $floor = (float) Setting::get('gold_rate_min_floor', 0);
-            if ($gap == 0 && $offset == 0 && $floor == 0 && $live && !empty($live['gold_24kt_per_gram'])) {
-                return (float) $live['gold_24kt_per_gram'];
-            }
-            if ($live && !empty($live['gold_24kt_per_10g'])) {
-                $raw24k = (float) $live['gold_24kt_per_10g'];
-                $stepped24k = ($gap > 0) ? (ceil($raw24k / $gap) * $gap) : $raw24k;
-                $effective24k = $stepped24k + $offset;
-                if ($floor > 0 && $effective24k < $floor) {
-                    $effective24k = $floor;
-                }
-                return round($effective24k / 10.0, 2);
-            }
-        }
-
-        $baseRate = $base22ktRate ?? $this->getBaseGoldRatePer10g();
-        return ($baseRate / 10.0) / 0.916;
+        $goldCap = $this->getGoldCap();
+        return round($goldCap / 10.0, 2);
     }
 
     /**
-     * Calculate per-gram rate for any purity fraction (e.g. 22KT: 0.916, 18KT: 0.750, 14KT: 0.585).
+     * Calculate per-gram rate using exact formula:
+     * Gold:   (Gold Rate CAP × purityFraction) ÷ 10
+     *         22KT (91.6%): (145,000 × 0.916) ÷ 10 = 13,282.00
+     *         18KT (75.0%): (145,000 × 0.750) ÷ 10 = 10,875.00
+     *         14KT (58.5%): (145,000 × 0.585) ÷ 10 = 8,482.50
+     * Silver: (Silver Rate CAP × 92.5%) ÷ 1000
+     *         92.5%: (210,000 × 0.925) ÷ 1000 = 194.25
      */
     public function calculateRatePerGram(float $purityFraction, string $metalType = 'gold', ?float $baseRate = null): float
     {
         if ($metalType === 'silver') {
-            $silverRate = $baseRate ?? $this->getBaseSilverRatePer10g();
-            $pureSilverPerGram = ($silverRate / 10.0) / 0.925;
-            return round($pureSilverPerGram * $purityFraction, 4);
+            $silverCap = $this->getSilverCap();
+            return round(($silverCap * $purityFraction) / 1000.0, 4);
         }
 
-        $pureGoldPerGram = $this->calculatePureGoldRatePerGram($baseRate);
-        return round($pureGoldPerGram * $purityFraction, 4);
+        $goldCap = $this->getGoldCap();
+        return round(($goldCap * $purityFraction) / 10.0, 4);
     }
 
     /**
@@ -545,33 +532,60 @@ class JewelryPricingService
     public function getAllPurityRates(?float $baseGoldRate = null, ?float $baseSilverRate = null): array
     {
         $purities = MetalPurity::where('is_active', true)->orderBy('sort_order')->get();
-        $baseGoldRate = $baseGoldRate ?? $this->getBaseGoldRatePer10g();
-        $baseSilverRate = $baseSilverRate ?? $this->getBaseSilverRatePer10g();
-        $pureGoldPerGram = $this->calculatePureGoldRatePerGram($baseGoldRate);
+        $goldCap = $this->getGoldCap();
+        $silverCap = $this->getSilverCap();
+        $pureGoldPerGram = $goldCap / 10.0;
 
         $live = $this->fetchAaravLiveRates();
-        $rawGold24k10g = (float) ($live['gold_24kt_per_10g'] ?? ($pureGoldPerGram * 10.0));
-        $rawSilverKg = (float) ($live['silver_per_kg'] ?? 192353.0);
-        $rawSilver10g = (float) ($live['silver_per_10g'] ?? round($rawSilverKg / 100.0, 2));
+        $rawGold24k10g = (float) ($live['gold_24kt_per_10g'] ?? 142678.0);
+        $rawSilverKg = (float) ($live['silver_per_kg'] ?? 208000.0);
+        $rawSilver10g = round($rawSilverKg / 100.0, 2);
+
+        $goldMode = Setting::get('gold_rate_mode', 'live');
+        $silverMode = Setting::get('silver_rate_mode', 'live');
+        $manualGold = (float) Setting::get('manual_gold_rate', $rawGold24k10g);
+        $manualSilver = (float) Setting::get('manual_silver_rate', $rawSilverKg);
+        $goldStepGap = (float) Setting::get('gold_step_gap', 5000);
+        $silverStepGap = (float) Setting::get('silver_step_gap', 10000);
+
+        $activeGoldInput = ($goldMode === 'manual' && $manualGold > 0) ? $manualGold : $rawGold24k10g;
+        $activeSilverInput = ($silverMode === 'manual' && $manualSilver > 0) ? $manualSilver : $rawSilverKg;
+
+        $rate22kGram = round(($goldCap * 0.916) / 10.0, 2);
+        $rate18kGram = round(($goldCap * 0.750) / 10.0, 2);
+        $rate14kGram = round(($goldCap * 0.585) / 10.0, 2);
+        $rate925SilverGram = round(($silverCap * 0.925) / 1000.0, 2);
 
         $rates = [
-            'gold_24kt_pure_per_gram' => round($pureGoldPerGram, 2),
-            'gold_24kt_pure_per_10g'  => round($pureGoldPerGram * 10.0, 2),
-            'raw_gold_24kt_10g'       => round($rawGold24k10g, 2),
-            'raw_silver_10g'          => round($rawSilver10g, 2),
-            'gold_base_22kt_per_10g'  => $baseGoldRate,
-            'silver_base_per_10g'     => $baseSilverRate,
-            'silver_per_kg'           => round(($baseSilverRate / 0.925) * 100.0, 2),
-            'purities'                => [],
+            'gold_cap'                 => $goldCap,
+            'silver_cap'               => $silverCap,
+            'gold_rate_mode'           => $goldMode,
+            'silver_rate_mode'         => $silverMode,
+            'gold_step_gap'            => $goldStepGap,
+            'silver_step_gap'          => $silverStepGap,
+            'active_gold_input'        => $activeGoldInput,
+            'active_silver_input'      => $activeSilverInput,
+            'manual_gold_rate'         => $manualGold,
+            'manual_silver_rate'       => $manualSilver,
+            'live_gold_rate'           => $rawGold24k10g,
+            'live_silver_rate'         => $rawSilverKg,
+            'gold_22kt_rate_per_gram'  => $rate22kGram,
+            'gold_18kt_rate_per_gram'  => $rate18kGram,
+            'gold_14kt_rate_per_gram'  => $rate14kGram,
+            'silver_925_per_gram'      => $rate925SilverGram,
+            'gold_24kt_pure_per_gram'  => round($pureGoldPerGram, 2),
+            'gold_24kt_pure_per_10g'   => round($goldCap, 2),
+            'raw_gold_24kt_10g'        => round($rawGold24k10g, 2),
+            'raw_silver_10g'           => round($rawSilver10g, 2),
+            'gold_base_22kt_per_10g'   => round($goldCap * 0.916, 2),
+            'silver_base_per_10g'      => round(($silverCap * 0.925) / 100.0, 2),
+            'silver_per_kg'            => $silverCap,
+            'purities'                 => [],
         ];
 
         foreach ($purities as $purity) {
             $fraction = (float) $purity->purity_fraction;
-            $ratePerGram = $this->calculateRatePerGram(
-                $fraction,
-                $purity->type,
-                $purity->type === 'gold' ? $baseGoldRate : $baseSilverRate
-            );
+            $ratePerGram = $this->calculateRatePerGram($fraction, $purity->type);
 
             $raw10g = $purity->type === 'gold'
                 ? round($rawGold24k10g * $fraction, 2)

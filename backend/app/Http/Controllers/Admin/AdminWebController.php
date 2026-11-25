@@ -1317,8 +1317,12 @@ class AdminWebController extends Controller
         $movementLogs = PriceMovementLog::latest('id')->take(25)->get();
 
         $settings = [
+            'gold_rate_mode'      => Setting::get('gold_rate_mode', 'live'),
+            'silver_rate_mode'    => Setting::get('silver_rate_mode', 'live'),
+            'manual_gold_rate'    => (float) Setting::get('manual_gold_rate', $rates['active_gold_input'] ?? 142678),
+            'manual_silver_rate'  => (float) Setting::get('manual_silver_rate', $rates['active_silver_input'] ?? 208000),
             'gold_step_gap'       => (float) Setting::get('gold_step_gap', 5000),
-            'silver_step_gap'     => (float) Setting::get('silver_step_gap', 50),
+            'silver_step_gap'     => (float) Setting::get('silver_step_gap', 10000),
             'gold_extra_offset'   => (float) Setting::get('gold_rate_extra_offset', 0),
             'silver_extra_offset' => (float) Setting::get('silver_rate_extra_offset', 0),
             'gold_min_floor'      => (float) Setting::get('gold_rate_min_floor', 0),
@@ -1335,8 +1339,12 @@ class AdminWebController extends Controller
         $rates = $this->pricingService->getAllPurityRates();
 
         $settings = [
+            'gold_rate_mode'      => Setting::get('gold_rate_mode', 'live'),
+            'silver_rate_mode'    => Setting::get('silver_rate_mode', 'live'),
+            'manual_gold_rate'    => (float) Setting::get('manual_gold_rate', $rates['active_gold_input'] ?? 142678),
+            'manual_silver_rate'  => (float) Setting::get('manual_silver_rate', $rates['active_silver_input'] ?? 208000),
             'gold_step_gap'       => (float) Setting::get('gold_step_gap', 5000),
-            'silver_step_gap'     => (float) Setting::get('silver_step_gap', 50),
+            'silver_step_gap'     => (float) Setting::get('silver_step_gap', 10000),
             'gold_extra_offset'   => (float) Setting::get('gold_rate_extra_offset', 0),
             'silver_extra_offset' => (float) Setting::get('silver_rate_extra_offset', 0),
             'gold_min_floor'      => (float) Setting::get('gold_rate_min_floor', 0),
@@ -1390,6 +1398,18 @@ class AdminWebController extends Controller
         $oldGap = (float) Setting::get('gold_step_gap', 5000);
         $ratesBefore = $this->pricingService->getAllPurityRates();
 
+        if ($request->has('gold_rate_mode')) {
+            Setting::set('gold_rate_mode', $request->input('gold_rate_mode', 'live'), 'string', 'Gold rate mode: live or manual');
+        }
+        if ($request->has('silver_rate_mode')) {
+            Setting::set('silver_rate_mode', $request->input('silver_rate_mode', 'live'), 'string', 'Silver rate mode: live or manual');
+        }
+        if ($request->has('manual_gold_rate')) {
+            Setting::set('manual_gold_rate', max(0, (float) $request->manual_gold_rate), 'number', 'Manual gold rate per 10g');
+        }
+        if ($request->has('manual_silver_rate')) {
+            Setting::set('manual_silver_rate', max(0, (float) $request->manual_silver_rate), 'number', 'Manual silver rate per 1kg');
+        }
         if ($request->has('gold_step_gap')) {
             Setting::set('gold_step_gap', max(0, (float) $request->gold_step_gap), 'number', 'Locks gold store prices into step slabs');
         }
