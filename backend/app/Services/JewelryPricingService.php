@@ -235,8 +235,14 @@ class JewelryPricingService
             $live = $this->fetchAaravLiveRates();
             $inputGold = (float) ($live['gold_24kt_per_10g'] ?? 0);
             if ($inputGold <= 0) {
-                $rate = $this->getLatestRate('gold');
-                $inputGold = $rate ? (float) $rate->rate_per_10g : 142678.0;
+                // Live rate unavailable -> auto-switch to Manual Entry
+                Setting::set('gold_rate_mode', 'manual', 'string', 'Auto-switched to Manual Entry (live gold rate unavailable)');
+                if ($manualRate > 0) {
+                    $inputGold = $manualRate;
+                } else {
+                    $rate = $this->getLatestRate('gold');
+                    $inputGold = $rate ? (float) $rate->rate_per_10g : 142678.0;
+                }
             }
         }
 
@@ -259,8 +265,14 @@ class JewelryPricingService
             $live = $this->fetchAaravLiveRates();
             $inputSilver = (float) ($live['silver_per_kg'] ?? 0);
             if ($inputSilver <= 0) {
-                $rate = $this->getLatestRate('silver');
-                $inputSilver = $rate ? ((float) $rate->rate_per_10g * 100.0) : 208000.0;
+                // Live rate unavailable -> auto-switch to Manual Entry
+                Setting::set('silver_rate_mode', 'manual', 'string', 'Auto-switched to Manual Entry (live silver rate unavailable)');
+                if ($manualRate > 0) {
+                    $inputSilver = $manualRate;
+                } else {
+                    $rate = $this->getLatestRate('silver');
+                    $inputSilver = $rate ? ((float) $rate->rate_per_10g * 100.0) : 208000.0;
+                }
             }
         }
 
@@ -537,19 +549,28 @@ class JewelryPricingService
         $pureGoldPerGram = $goldCap / 10.0;
 
         $live = $this->fetchAaravLiveRates();
-        $rawGold24k10g = (float) ($live['gold_24kt_per_10g'] ?? 142678.0);
-        $rawSilverKg = (float) ($live['silver_per_kg'] ?? 208000.0);
-        $rawSilver10g = round($rawSilverKg / 100.0, 2);
+        $rawGold24k10g = (float) ($live['gold_24kt_per_10g'] ?? 0);
+        $rawSilverKg = (float) ($live['silver_per_kg'] ?? 0);
+        $rawSilver10g = $rawSilverKg > 0 ? round($rawSilverKg / 100.0, 2) : 0;
 
         $goldMode = Setting::get('gold_rate_mode', 'live');
         $silverMode = Setting::get('silver_rate_mode', 'live');
-        $manualGold = (float) Setting::get('manual_gold_rate', $rawGold24k10g);
-        $manualSilver = (float) Setting::get('manual_silver_rate', $rawSilverKg);
+        if ($goldMode === 'live' && $rawGold24k10g <= 0) {
+            Setting::set('gold_rate_mode', 'manual', 'string', 'Auto-switched to Manual Entry (live gold rate unavailable)');
+            $goldMode = 'manual';
+        }
+        if ($silverMode === 'live' && $rawSilverKg <= 0) {
+            Setting::set('silver_rate_mode', 'manual', 'string', 'Auto-switched to Manual Entry (live silver rate unavailable)');
+            $silverMode = 'manual';
+        }
+
+        $manualGold = (float) Setting::get('manual_gold_rate', $rawGold24k10g > 0 ? $rawGold24k10g : 142678.0);
+        $manualSilver = (float) Setting::get('manual_silver_rate', $rawSilverKg > 0 ? $rawSilverKg : 208000.0);
         $goldStepGap = (float) Setting::get('gold_step_gap', 5000);
         $silverStepGap = (float) Setting::get('silver_step_gap', 10000);
 
-        $activeGoldInput = ($goldMode === 'manual' && $manualGold > 0) ? $manualGold : $rawGold24k10g;
-        $activeSilverInput = ($silverMode === 'manual' && $manualSilver > 0) ? $manualSilver : $rawSilverKg;
+        $activeGoldInput = ($goldMode === 'manual' && $manualGold > 0) ? $manualGold : ($rawGold24k10g > 0 ? $rawGold24k10g : $manualGold);
+        $activeSilverInput = ($silverMode === 'manual' && $manualSilver > 0) ? $manualSilver : ($rawSilverKg > 0 ? $rawSilverKg : $manualSilver);
 
         $rate22kGram = round(($goldCap * 0.916) / 10.0, 2);
         $rate18kGram = round(($goldCap * 0.750) / 10.0, 2);

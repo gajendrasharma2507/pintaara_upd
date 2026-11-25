@@ -6,12 +6,12 @@
 @php
   $goldCap = $rates['gold_cap'] ?? 145000.0;
   $silverCap = $rates['silver_cap'] ?? 210000.0;
-  $liveGoldRate = $rates['live_gold_rate'] ?? ($liveData['gold_24kt_per_10g'] ?? 142678.0);
-  $liveSilverRate = $rates['live_silver_rate'] ?? ($liveData['silver_per_kg'] ?? 208000.0);
-  $manualGoldRate = $settings['manual_gold_rate'] ?? ($rates['manual_gold_rate'] ?? $liveGoldRate);
-  $manualSilverRate = $settings['manual_silver_rate'] ?? ($rates['manual_silver_rate'] ?? $liveSilverRate);
-  $goldRateMode = $settings['gold_rate_mode'] ?? 'live';
-  $silverRateMode = $settings['silver_rate_mode'] ?? 'live';
+  $liveGoldRate = $rates['live_gold_rate'] ?? ($liveData['gold_24kt_per_10g'] ?? 0);
+  $liveSilverRate = $rates['live_silver_rate'] ?? ($liveData['silver_per_kg'] ?? 0);
+  $manualGoldRate = $settings['manual_gold_rate'] ?? ($rates['manual_gold_rate'] ?? ($liveGoldRate > 0 ? $liveGoldRate : 142678.0));
+  $manualSilverRate = $settings['manual_silver_rate'] ?? ($rates['manual_silver_rate'] ?? ($liveSilverRate > 0 ? $liveSilverRate : 208000.0));
+  $goldRateMode = $rates['gold_rate_mode'] ?? ($settings['gold_rate_mode'] ?? 'live');
+  $silverRateMode = $rates['silver_rate_mode'] ?? ($settings['silver_rate_mode'] ?? 'live');
   $goldStepGap = $settings['gold_step_gap'] ?? 5000;
   $silverStepGap = $settings['silver_step_gap'] ?? 10000;
 
@@ -224,7 +224,7 @@
               <tr style="border-bottom: 1px solid #E2E8F0;">
                 <td style="padding: 12px 18px; font-weight: 600; color: #475569; width: 45%;">Live Gold Rate</td>
                 <td style="padding: 12px 18px; font-weight: 800; font-family: monospace; font-size: 15px; color: #0F172A;">
-                  <span id="live_gold_rate_display">{{ number_format($liveGoldRate, 0, '', '') }}</span>
+                  <span id="live_gold_rate_display">{!! $liveGoldRate > 0 ? number_format($liveGoldRate, 0, '', '') : '<span style="color:#DC2626; font-size:12px;">Unavailable (Manual Active)</span>' !!}</span>
                   <input type="hidden" id="live_gold_rate_val" value="{{ $liveGoldRate }}">
                 </td>
               </tr>
@@ -311,7 +311,7 @@
               <tr style="border-bottom: 1px solid #E2E8F0;">
                 <td style="padding: 12px 18px; font-weight: 600; color: #475569; width: 45%;">Live Silver Rate</td>
                 <td style="padding: 12px 18px; font-weight: 800; font-family: monospace; font-size: 15px; color: #0F172A;">
-                  <span id="live_silver_rate_display">{{ number_format($liveSilverRate, 0, '', '') }}</span>
+                  <span id="live_silver_rate_display">{!! $liveSilverRate > 0 ? number_format($liveSilverRate, 0, '', '') : '<span style="color:#DC2626; font-size:12px;">Unavailable (Manual Active)</span>' !!}</span>
                   <input type="hidden" id="live_silver_rate_val" value="{{ $liveSilverRate }}">
                 </td>
               </tr>
@@ -554,14 +554,21 @@
 
   // 4. Real-Time Spreadsheet Rate Engine Recalculation
   function recalculateEngine() {
-    const goldMode = document.querySelector('input[name="gold_rate_mode"]:checked')?.value || 'live';
-    const silverMode = document.querySelector('input[name="silver_rate_mode"]:checked')?.value || 'live';
+    let goldMode = document.querySelector('input[name="gold_rate_mode"]:checked')?.value || 'live';
+    let silverMode = document.querySelector('input[name="silver_rate_mode"]:checked')?.value || 'live';
 
-    const liveGold = Number(document.getElementById('live_gold_rate_val')?.value || 142678);
+    const liveGold = Number(document.getElementById('live_gold_rate_val')?.value || 0);
     const manualGold = Number(document.getElementById('manual_gold_rate_input')?.value || 142678);
     const goldGap = Number(document.getElementById('gold_step_gap_input')?.value || 5000);
 
-    const activeGold = (goldMode === 'manual' && manualGold > 0) ? manualGold : liveGold;
+    // Auto-switch to Manual Entry if live gold rate is not received
+    if (goldMode === 'live' && liveGold <= 0) {
+      goldMode = 'manual';
+      const gManualRadio = document.querySelector('input[name="gold_rate_mode"][value="manual"]');
+      if (gManualRadio) gManualRadio.checked = true;
+    }
+
+    const activeGold = (goldMode === 'manual' && manualGold > 0) ? manualGold : (liveGold > 0 ? liveGold : manualGold);
     const goldCap = (goldGap > 0) ? (Math.ceil(activeGold / goldGap) * goldGap) : activeGold;
 
     // Formulas: (Gold Rate CAP * purity%) / 10
@@ -569,11 +576,18 @@
     const rate18k = Math.round(((goldCap * 0.750) / 10) * 100) / 100;
     const rate14k = Math.round(((goldCap * 0.585) / 10) * 100) / 100;
 
-    const liveSilver = Number(document.getElementById('live_silver_rate_val')?.value || 208000);
+    const liveSilver = Number(document.getElementById('live_silver_rate_val')?.value || 0);
     const manualSilver = Number(document.getElementById('manual_silver_rate_input')?.value || 208000);
     const silverGap = Number(document.getElementById('silver_step_gap_input')?.value || 10000);
 
-    const activeSilver = (silverMode === 'manual' && manualSilver > 0) ? manualSilver : liveSilver;
+    // Auto-switch to Manual Entry if live silver rate is not received
+    if (silverMode === 'live' && liveSilver <= 0) {
+      silverMode = 'manual';
+      const sManualRadio = document.querySelector('input[name="silver_rate_mode"][value="manual"]');
+      if (sManualRadio) sManualRadio.checked = true;
+    }
+
+    const activeSilver = (silverMode === 'manual' && manualSilver > 0) ? manualSilver : (liveSilver > 0 ? liveSilver : manualSilver);
     const silverCap = (silverGap > 0) ? (Math.ceil(activeSilver / silverGap) * silverGap) : activeSilver;
 
     // Formula: (Silver Rate CAP * 92.5%) / 1000
@@ -691,44 +705,49 @@
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const data = await response.json();
 
-      if (data.status === 'success' && data.liveData) {
-        const live = data.liveData;
+      if (data.status === 'success') {
+        const live = data.liveData || {};
         const rates = data.rates || {};
+        const hasLiveFeed = Boolean(data.liveData && (rates.live_gold_rate > 0 || rates.live_silver_rate > 0));
 
-        if (connPill) connPill.style.color = '#10B981';
-        if (connText) connText.textContent = 'STREAM CONNECTED';
+        if (connPill) connPill.style.color = hasLiveFeed ? '#10B981' : '#F59E0B';
+        if (connText) connText.textContent = hasLiveFeed ? 'STREAM CONNECTED' : 'LIVE UNAVAILABLE (MANUAL)';
         if (lastTickEl) {
           const tickDate = new Date();
           lastTickEl.textContent = 'Tick: ' + tickDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
 
-        // Live Rate Engine Ticker Update
-        if (rates && rates.live_gold_rate) {
-          const lGoldEl = document.getElementById('live_gold_rate_display');
-          const lGoldVal = document.getElementById('live_gold_rate_val');
-          if (lGoldEl) lGoldEl.textContent = formatINR(rates.live_gold_rate, 0);
-          if (lGoldVal) lGoldVal.value = rates.live_gold_rate;
-        }
-        if (rates && rates.live_silver_rate) {
-          const lSilvEl = document.getElementById('live_silver_rate_display');
-          const lSilvVal = document.getElementById('live_silver_rate_val');
-          if (lSilvEl) lSilvEl.textContent = formatINR(rates.live_silver_rate, 0);
-          if (lSilvVal) lSilvVal.value = rates.live_silver_rate;
-        }
-        recalculateEngine();
-
-        // Live Rate Engine Update
-        if (rates && rates.live_gold_rate) {
-          const lgDisp = document.getElementById('live_gold_rate_display');
-          const lgVal = document.getElementById('live_gold_rate_val');
+        // Live Rate Engine Ticker Update & Auto-Switch to Manual if Live Unavailable
+        const lgDisp = document.getElementById('live_gold_rate_display');
+        const lgVal = document.getElementById('live_gold_rate_val');
+        if (rates && rates.live_gold_rate > 0) {
           if (lgDisp) lgDisp.textContent = Math.round(rates.live_gold_rate);
           if (lgVal) lgVal.value = rates.live_gold_rate;
+        } else {
+          if (lgDisp) lgDisp.innerHTML = '<span style="color:#DC2626; font-size:12px;">Unavailable (Manual Active)</span>';
+          if (lgVal) lgVal.value = 0;
+          const gManualRadio = document.querySelector('input[name="gold_rate_mode"][value="manual"]');
+          if (gManualRadio) gManualRadio.checked = true;
         }
-        if (rates && rates.live_silver_rate) {
-          const lsDisp = document.getElementById('live_silver_rate_display');
-          const lsVal = document.getElementById('live_silver_rate_val');
+        if (rates && rates.gold_rate_mode === 'manual') {
+          const gManualRadio = document.querySelector('input[name="gold_rate_mode"][value="manual"]');
+          if (gManualRadio) gManualRadio.checked = true;
+        }
+
+        const lsDisp = document.getElementById('live_silver_rate_display');
+        const lsVal = document.getElementById('live_silver_rate_val');
+        if (rates && rates.live_silver_rate > 0) {
           if (lsDisp) lsDisp.textContent = Math.round(rates.live_silver_rate);
           if (lsVal) lsVal.value = rates.live_silver_rate;
+        } else {
+          if (lsDisp) lsDisp.innerHTML = '<span style="color:#DC2626; font-size:12px;">Unavailable (Manual Active)</span>';
+          if (lsVal) lsVal.value = 0;
+          const sManualRadio = document.querySelector('input[name="silver_rate_mode"][value="manual"]');
+          if (sManualRadio) sManualRadio.checked = true;
+        }
+        if (rates && rates.silver_rate_mode === 'manual') {
+          const sManualRadio = document.querySelector('input[name="silver_rate_mode"][value="manual"]');
+          if (sManualRadio) sManualRadio.checked = true;
         }
         recalculateEngine();
 
