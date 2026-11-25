@@ -94,5 +94,15 @@ Route::prefix('admin')->group(function () {
         // Settings
         Route::get('/settings', [AdminWebController::class, 'settings'])->name('admin.settings');
         Route::post('/settings', [AdminWebController::class, 'updateSettings'])->name('admin.settings.update');
+
+        // Email Templates
+        Route::get('/email-templates', [\App\Http\Controllers\Admin\AdminEmailTemplateController::class, 'index'])->name('admin.email-templates');
+        Route::get('/email-templates/create', [\App\Http\Controllers\Admin\AdminEmailTemplateController::class, 'create'])->name('admin.email-templates.create');
+        Route::post('/email-templates', [\App\Http\Controllers\Admin\AdminEmailTemplateController::class, 'store'])->name('admin.email-templates.store');
+        Route::get('/email-templates/{id}/edit', [\App\Http\Controllers\Admin\AdminEmailTemplateController::class, 'edit'])->name('admin.email-templates.edit');
+        Route::put('/email-templates/{id}', [\App\Http\Controllers\Admin\AdminEmailTemplateController::class, 'update'])->name('admin.email-templates.update');
+        Route::delete('/email-templates/{id}', [\App\Http\Controllers\Admin\AdminEmailTemplateController::class, 'destroy'])->name('admin.email-templates.delete');
+        Route::post('/email-templates/preview', [\App\Http\Controllers\Admin\AdminEmailTemplateController::class, 'preview'])->name('admin.email-templates.preview');
+        Route::post('/email-templates/{id}/test', [\App\Http\Controllers\Admin\AdminEmailTemplateController::class, 'sendTest'])->name('admin.email-templates.test');
     });
 });

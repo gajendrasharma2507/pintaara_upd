@@ -26,21 +26,24 @@ class EmailAddressChangedMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: "PINTAARA | Email Address Updated",
+        $resolved = \App\Services\EmailTemplateService::resolve(
+            'email_address_changed',
+            ['customer_name' => $this->user?->name ?? 'Valued Client', 'customer_email' => $this->newEmailAddress],
+            "PINTAARA | Email Address Updated",
+            'emails.auth.email_address_changed'
         );
+        return new Envelope(subject: $resolved['subject']);
     }
 
     public function content(): Content
     {
-        return new Content(
-            view: 'emails.auth.email_address_changed',
-            with: [
-                'newEmailAddress' => $this->newEmailAddress,
-                'user' => $this->user,
-                'contactSupportUrl' => $this->contactSupportUrl,
-                'emailSubject' => "PINTAARA | Email Address Updated",
-            ],
+        $resolved = \App\Services\EmailTemplateService::resolve(
+            'email_address_changed',
+            ['customer_name' => $this->user?->name ?? 'Valued Client', 'customer_email' => $this->newEmailAddress],
+            "PINTAARA | Email Address Updated",
+            'emails.auth.email_address_changed',
+            ['newEmailAddress' => $this->newEmailAddress, 'user' => $this->user, 'contactSupportUrl' => $this->contactSupportUrl]
         );
+        return new Content(view: $resolved['view'], with: $resolved['with']);
     }
 }
