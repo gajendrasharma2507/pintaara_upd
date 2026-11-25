@@ -193,24 +193,13 @@ class ProductApiController extends Controller
                 'images' => $product->images,
                 'images_by_finish' => $product->images->groupBy(fn($img) => $img->finish_key ?: 'YG'),
                 'base_pricing' => $basePricing,
-                'options' => (function() use ($product, $masters, $allMasterValues, $valPricesMap) {
-                    // 1. Collect dynamic options from ProductOptionAssignment if present
+                'options' => (function() use ($product, $allMasterValues) {
                     $dynamicOptions = collect();
-                    $dynamicGroupNorms = [];
                     $assignments = $product->optionAssignments;
                     if ($assignments && $assignments->count() > 0) {
                         foreach ($assignments as $assign) {
                             $grp = $assign->group;
                             if (!$grp || !$grp->is_active) continue;
-
-                            $gNameLower = strtolower($grp->name);
-                            $gNorm = $gNameLower;
-                            if (str_contains($gNameLower, 'purity') || str_contains($gNameLower, 'metal') || str_contains($gNameLower, 'karat')) $gNorm = 'purity';
-                            elseif (str_contains($gNameLower, 'finish') || str_contains($gNameLower, 'tone')) $gNorm = 'finish';
-                            elseif (str_contains($gNameLower, 'size')) $gNorm = 'size';
-                            elseif (str_contains($gNameLower, 'chain')) $gNorm = 'chain';
-                            elseif (str_contains($gNameLower, 'gem') || str_contains($gNameLower, 'stone')) $gNorm = 'gem';
-                            $dynamicGroupNorms[] = $gNorm;
 
                             $selIds = $assign->selected_values;
                             $grpValues = $grp->values ? $grp->values->where('is_active', true) : collect();
@@ -249,120 +238,9 @@ class ProductApiController extends Controller
                                 ]);
                             }
                         }
-
-                        // If dynamic option assignments exist, they are the authoritative options configured by the Admin.
-                        // ONLY return the explicitly assigned dynamic options! Do not resurrect unassigned legacy options!
-                        return $dynamicOptions;
                     }
 
-                    // 2. Fallback to legacy options ONLY for legacy products with ZERO dynamic assignments
-                    $finalOptions = collect();
-                    foreach ($product->options as $o) {
-                        $nameLower = strtolower($o->name);
-                        $normKey = $nameLower;
-                        if (str_contains($nameLower, 'purity') || str_contains($nameLower, 'metal') || str_contains($nameLower, 'karat')) $normKey = 'purity';
-                        elseif (str_contains($nameLower, 'finish') || str_contains($nameLower, 'tone')) $normKey = 'finish';
-                        elseif (str_contains($nameLower, 'size')) $normKey = 'size';
-                        elseif (str_contains($nameLower, 'chain')) $normKey = 'chain';
-                        elseif (str_contains($nameLower, 'gem') || str_contains($nameLower, 'stone')) $normKey = 'gem';
-
-                        if (in_array($normKey, $dynamicGroupNorms)) {
-                            continue; // dynamic assignment already takes precedence!
-                        }
-
-                        $isGem = str_contains($nameLower, 'gem') || str_contains($nameLower, 'stone');
-                        $isPurity = str_contains($nameLower, 'purity') || str_contains($nameLower, 'metal') || str_contains($nameLower, 'karat');
-                        $isFinish = !$isGem && (str_contains($nameLower, 'finish') || preg_match('/\bhue\b/i', $nameLower) || strtoupper($o->name) === 'FINISH');
-                        $gems = $masters['gems'] ?? collect();
-
-                        $vals = $o->values;
-                        if ($isPurity && !empty($product->available_purities) && is_array($product->available_purities)) {
-                            $allowedPurities = array_map(fn($p) => strtoupper(str_replace(' ', '', $p)), $product->available_purities);
-                            $vals = $vals->filter(function($v) use ($allowedPurities) {
-                                $clean = strtoupper(str_replace(' ', '', $v->value));
-                                return in_array($clean, $allowedPurities);
-                            });
-                        }
-
-                        if ($isFinish && !empty($product->available_finishes) && is_array($product->available_finishes)) {
-                            $allowedFinishes = $product->available_finishes;
-                            $vals = $vals->filter(function($v) use ($allowedFinishes) {
-                                $valLower = strtolower($v->value);
-                                if (in_array('YG', $allowedFinishes) && str_contains($valLower, 'yellow')) return true;
-                                if (in_array('WG', $allowedFinishes) && str_contains($valLower, 'white')) return true;
-                                if (in_array('RG', $allowedFinishes) && str_contains($valLower, 'rose')) return true;
-                                if ((in_array('BLK', $allowedFinishes) || in_array('BG', $allowedFinishes)) && (str_contains($valLower, 'black') || str_contains($valLower, 'ruthenium'))) return true;
-                                return false;
-                            });
-                        }
-
-                        $mappedVals = $vals->values()->map(function ($v) use ($isGem, $gems, $allMasterValues, $valPricesMap) {
-                            $delta = (float) ($v->price_delta ?? 0);
-                            if (isset($valPricesMap[$v->id])) {
-                                $delta = (float) $valPricesMap[$v->id];
-                            }
-                            $vLower = strtolower(trim($v->value));
-                            $isNoStone = in_array($vLower, ['none', 'no stone', 'solid gold', 'no stone / solid gold', 'no stone/solid gold', '']);
-
-                            // Match against Customization Masters for dynamic image and rate resolution
-                            $matchedMaster = $allMasterValues->first(function($mv) use ($v, $vLower) {
-                                if (!empty($mv->code) && !empty($v->code) && strtoupper($mv->code) === strtoupper($v->code)) {
-                                    return true;
-                                }
-                                $mvLower = strtolower(trim($mv->value));
-                                if ($mvLower === $vLower) return true;
-                                if (str_contains($mvLower, 'diamond') && str_contains($vLower, 'diamond')) return true;
-                                if (str_contains($mvLower, 'emerald') && str_contains($vLower, 'emerald')) return true;
-                                if (str_contains($mvLower, 'sapphire') && str_contains($vLower, 'sapphire')) return true;
-                                if (str_contains($mvLower, 'ruby') && str_contains($vLower, 'ruby')) return true;
-                                return false;
-                            });
-
-                            $img = $v->image;
-                            if ($matchedMaster && !empty($matchedMaster->image)) {
-                                if (empty($img) || str_contains($img, 'unsplash.com') || str_contains($matchedMaster->image, '/storage/')) {
-                                    $img = $matchedMaster->image;
-                                }
-                            }
-                            if ($isNoStone) {
-                                $img = null;
-                            } elseif (!empty($img) && str_starts_with($img, '/storage/')) {
-                                $img = url($img);
-                            }
-
-                            if ($delta == 0.0 && $isGem && !$isNoStone) {
-                                if ($matchedMaster && (float)$matchedMaster->price_delta > 0) {
-                                    $delta = (float) $matchedMaster->price_delta;
-                                } else {
-                                    $matched = $gems->first(function ($g) use ($v) {
-                                        return stripos($v->value, $g->stone_type) !== false || stripos($g->stone_type, $v->value) !== false;
-                                    });
-                                    if ($matched) {
-                                        $delta = (float) $matched->default_stone_charge;
-                                    }
-                                }
-                            }
-                            return [
-                                'id' => $v->id,
-                                'value' => $v->value,
-                                'code' => $v->code ?? ($matchedMaster?->code ?? null),
-                                'image' => $img,
-                                'price_delta' => $delta,
-                                'hex_color' => $v->hex_color ?? ($matchedMaster?->hex_color ?? null),
-                            ];
-                        });
-
-                        $finalOptions->push([
-                            'id' => $o->id,
-                            'name' => $o->name,
-                            'code' => strtoupper(preg_replace('/[^A-Za-z0-9]/', '_', $o->name)),
-                            'display_type' => $isFinish || $isGem ? 'image_swatch' : ($isPurity ? 'text_button' : 'dropdown'),
-                            'input_type' => $isFinish || $isGem ? 'image_swatch' : ($isPurity ? 'text_button' : 'dropdown'),
-                            'values' => $mappedVals,
-                        ]);
-                    }
-
-                    return $finalOptions;
+                    return $dynamicOptions;
                 })(),
                 'variants' => $variantData,
                 'design_log' => $product->designLog,

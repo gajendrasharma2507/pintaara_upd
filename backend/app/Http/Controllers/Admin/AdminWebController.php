@@ -1112,25 +1112,29 @@ class AdminWebController extends Controller
     private function syncProductOptionsAndVariants(Product $product, Request $request): void
     {
         // 1. Sync Option Group Assignments
-        $rawAssignments = $request->input('option_assignments_json') ?: $request->input('option_assignments');
-        if ($rawAssignments) {
-            $assignments = is_string($rawAssignments) ? json_decode($rawAssignments, true) : $rawAssignments;
-            if (is_array($assignments)) {
-                ProductOptionAssignment::where('product_id', $product->id)->delete();
-                foreach ($assignments as $idx => $item) {
-                    if (empty($item['group_id'])) continue;
-                    ProductOptionAssignment::create([
-                        'product_id' => $product->id,
-                        'group_id' => $item['group_id'],
-                        'display_type' => $item['display_type'] ?? null,
-                        'is_required' => !empty($item['is_required']),
-                        'selected_values' => !empty($item['selected_values']) ? (array)$item['selected_values'] : null,
-                        'value_prices' => !empty($item['value_prices']) ? (array)$item['value_prices'] : null,
-                        'sort_order' => (int)($item['sort_order'] ?? ($idx + 1)),
-                    ]);
+        if ($request->has('option_assignments_json') || $request->has('option_assignments')) {
+            ProductOptionAssignment::where('product_id', $product->id)->delete();
+            $rawAssignments = $request->input('option_assignments_json') ?: $request->input('option_assignments');
+            if ($rawAssignments) {
+                $assignments = is_string($rawAssignments) ? json_decode($rawAssignments, true) : $rawAssignments;
+                if (is_array($assignments)) {
+                    foreach ($assignments as $idx => $item) {
+                        if (empty($item['group_id'])) continue;
+                        ProductOptionAssignment::create([
+                            'product_id' => $product->id,
+                            'group_id' => $item['group_id'],
+                            'display_type' => $item['display_type'] ?? null,
+                            'is_required' => !empty($item['is_required']),
+                            'selected_values' => !empty($item['selected_values']) ? (array)$item['selected_values'] : null,
+                            'value_prices' => !empty($item['value_prices']) ? (array)$item['value_prices'] : null,
+                            'sort_order' => (int)($item['sort_order'] ?? ($idx + 1)),
+                        ]);
+                    }
                 }
             }
         }
+        // Purge legacy product_options so old table never has stale rows
+        ProductOption::where('product_id', $product->id)->delete();
 
         // 2. Sync Variants Matrix
         $rawVariants = $request->input('variants_matrix_json') ?: $request->input('variants');
