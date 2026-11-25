@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { apiFetch } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function BookAppointmentPage() {
     const router = useRouter();
+    const { user } = useAuth();
 
     const handleNavigate = (index) => {
         const slideIds = ['slide-1', 'slide-2', 'slide-3', 'slide-4', 'slide-5', 'slide-6', 'slide-7'];
@@ -35,7 +37,10 @@ export default function BookAppointmentPage() {
         try {
             await apiFetch('/appointments', {
                 method: 'POST',
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    email: user?.email || formData.email,
+                }),
             });
             setIsSubmitted(true);
             setFormData({
@@ -144,21 +149,23 @@ export default function BookAppointmentPage() {
                                 </div>
                             </div>
 
-                            {/* EMAIL */}
-                            <div className="appointment-form-group">
-                                <label className="appointment-form-label">EMAIL</label>
-                                <div className="appointment-input-wrapper">
-                                    <input
-                                        type="email"
-                                        required
-                                        placeholder="Email Address"
-                                        className="appointment-input"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    />
-                                    <span className="appointment-input-arrow">&gt;</span>
+                            {/* EMAIL (Only shown for guests who are not logged in) */}
+                            {!user && (
+                                <div className="appointment-form-group">
+                                    <label className="appointment-form-label">EMAIL</label>
+                                    <div className="appointment-input-wrapper">
+                                        <input
+                                            type="email"
+                                            required
+                                            placeholder="Email Address"
+                                            className="appointment-input"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        />
+                                        <span className="appointment-input-arrow">&gt;</span>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* DATE */}
                             <div className="appointment-form-group">
