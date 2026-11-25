@@ -770,7 +770,7 @@ class AdminWebController extends Controller
     public function storeProduct(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
             'design_code' => 'required|string|max:100|unique:products,design_code',
             'collection_master_id' => 'required|exists:collections_master,id',
             'base_weight_grams' => 'required|numeric|min:0.001',
@@ -804,6 +804,10 @@ class AdminWebController extends Controller
         ]);
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition', true);
+        if (empty($validated['name'])) {
+            $code = $validated['design_code'] ?? '';
+            $validated['name'] = !empty($code) ? "Piece {$code}" : 'Bespoke Jewelry Piece';
+        }
         $rawSections = $request->input('custom_sections_json') ?: $request->input('custom_sections');
         $cleanedSections = $this->cleanCustomSections($rawSections);
         $validated['custom_sections'] = $cleanedSections;
@@ -864,7 +868,7 @@ class AdminWebController extends Controller
     {
         $product = Product::findOrFail($id);
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
             'collection_master_id' => 'required|exists:collections_master,id',
             'base_weight_grams' => 'required|numeric|min:0.001',
             'making_charge_percent' => 'nullable|numeric|min:0',
@@ -898,6 +902,9 @@ class AdminWebController extends Controller
         ]);
 
         $validated['is_limited_edition'] = $request->boolean('is_limited_edition');
+        if (array_key_exists('name', $validated) && empty($validated['name'])) {
+            $validated['name'] = !empty($product->design_code) ? "Piece {$product->design_code}" : 'Bespoke Jewelry Piece';
+        }
         $rawSections = $request->input('custom_sections_json') ?: $request->input('custom_sections');
         $cleanedSections = $this->cleanCustomSections($rawSections);
         $validated['custom_sections'] = $cleanedSections;

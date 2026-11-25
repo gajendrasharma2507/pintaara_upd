@@ -54,8 +54,8 @@
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
       <div>
-        <label class="admin-label">Product Name *</label>
-        <input type="text" name="name" value="{{ old('name') }}" required placeholder="e.g. Origin Signet Ring" class="admin-input">
+        <label class="admin-label">Product Name <span style="font-size: 11px; font-weight: 400; color: var(--admin-muted);">(Optional)</span></label>
+        <input type="text" name="name" value="{{ old('name') }}" placeholder="e.g. Origin Signet Ring (Optional)" class="admin-input">
       </div>
       <div>
         <label class="admin-label">Design Code (SKU) *</label>
