@@ -85,8 +85,8 @@
     </div>
   </div>
 
-  <!-- ==================== AARAV BULLION LIVE STREAM FEED TABLE ==================== -->
-  <div class="admin-card" style="padding: 24px; border-radius: 16px; background: var(--admin-surface); border: 1px solid var(--admin-border);">
+  <!-- ==================== AARAV BULLION LIVE STREAM FEED TABLE (HIDDEN) ==================== -->
+  <div class="admin-card" style="display: none; padding: 24px; border-radius: 16px; background: var(--admin-surface); border: 1px solid var(--admin-border);">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 18px;">
       <div>
         <h3 style="font-size: 17px; font-weight: 800; color: var(--admin-text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
