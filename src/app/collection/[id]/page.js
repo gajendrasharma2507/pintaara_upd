@@ -2214,13 +2214,12 @@ export default function DynamicCollectionPage({ params }) {
                         <div className="atelier-bottom-inner">
                             <div className="atelier-price-block">
                                 <div className="atelier-price-value">₹ {displayPrice}</div>
-                                <button
-                                    type="button"
+                                <span
                                     className="atelier-taxes-link"
-                                    onClick={() => setShowBreakdownModal(true)}
+                                    style={{ cursor: 'default', textDecoration: 'none', userSelect: 'none' }}
                                 >
                                     Incl. taxes &amp; charges
-                                </button>
+                                </span>
                             </div>
 
                             <div className="atelier-buttons-block">
@@ -2302,8 +2301,8 @@ export default function DynamicCollectionPage({ params }) {
                 <span className="bottom-copyright">© ALL RIGHTS RESERVED.</span>
             </footer>
 
-            {/* Price Transparency Breakdown Modal */}
-            {showBreakdownModal && priceBreakdown && (
+            {/* Price Transparency Breakdown Modal (Hidden as requested) */}
+            {false && showBreakdownModal && priceBreakdown && (
                 <div
                     style={{
                         position: 'fixed',
