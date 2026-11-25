@@ -93,4 +93,15 @@ class AdminAppointmentController extends Controller
 
         return redirect()->route('admin.appointments')->with('success', $msg);
     }
+
+    public function destroy($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $name = $appointment->full_name;
+        $appointment->delete();
+
+        AuditLog::log('appointment_deleted_by_admin', 'Appointment', $id, ['full_name' => $name], null);
+
+        return redirect()->route('admin.appointments')->with('success', 'Booking for "' . $name . '" deleted.');
+    }
 }

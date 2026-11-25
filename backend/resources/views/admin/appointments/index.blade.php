@@ -90,11 +90,20 @@
                 </span>
               </td>
               <td style="padding: 14px 16px; text-align: right; white-space: nowrap;">
-                <button type="button"
-                        onclick='openEditAppointmentModal(@json($apt), @json($resolvedEmail))'
-                        style="padding: 7px 14px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid #CBD5E1; background: #FFFFFF; color: #0F172A; cursor: pointer;">
-                  Change Time / Edit
-                </button>
+                <div style="display: inline-flex; align-items: center; gap: 8px;">
+                  <button type="button"
+                          onclick='openEditAppointmentModal(@json($apt), @json($resolvedEmail))'
+                          style="padding: 7px 14px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid #CBD5E1; background: #FFFFFF; color: #0F172A; cursor: pointer;">
+                    Change Time / Edit
+                  </button>
+                  <form action="{{ route('admin.appointments.delete', $apt->id) }}" method="POST" onsubmit="return confirm('Delete this booking?');" style="margin: 0;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" style="padding: 7px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid #FECACA; background: #FEF2F2; color: #DC2626; cursor: pointer;">
+                      Delete
+                    </button>
+                  </form>
+                </div>
               </td>
             </tr>
           @empty
