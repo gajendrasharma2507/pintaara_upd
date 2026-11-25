@@ -61,6 +61,10 @@ export default function PasswordPage() {
           document.cookie = `pintaara_unlocked=1; path=/; max-age=${expiresInSec}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
         } catch (err) {}
 
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("pintaara_unlocked"));
+        }
+
         const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
         const redirectUrl = urlParams?.get("redirect") || "/";
         router.push(redirectUrl);

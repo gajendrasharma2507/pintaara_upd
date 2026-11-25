@@ -20,14 +20,43 @@ export default function PasswordGate({ children }) {
   const [shake, setShake] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const checkLocalUnlocked = () => {
+    const unlocked = safeStorage.getItem("pintaara_unlocked");
+    const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
+    if (unlocked === "1" && expiresAt > Date.now()) {
+      return true;
+    }
+    if (typeof document !== "undefined" && document.cookie.split(";").some((c) => c.trim().startsWith("pintaara_unlocked=1"))) {
+      return true;
+    }
+    return false;
+  };
+
   useEffect(() => {
     // Listen for custom trigger to open password gate from homepage enter screen
     const handleOpenGate = () => {
+      if (checkLocalUnlocked()) {
+        setIsUnlocked(true);
+        setShowGateOnHome(false);
+        return;
+      }
       setShowGateOnHome(true);
     };
 
+    const handleUnlockedEvent = () => {
+      setIsUnlocked(true);
+      setShowGateOnHome(false);
+      setLoading(false);
+    };
+
     window.addEventListener("pintaara_open_password_gate", handleOpenGate);
-    return () => window.removeEventListener("pintaara_open_password_gate", handleOpenGate);
+    window.addEventListener("pintaara_unlocked", handleUnlockedEvent);
+    window.addEventListener("storage", handleUnlockedEvent);
+    return () => {
+      window.removeEventListener("pintaara_open_password_gate", handleOpenGate);
+      window.removeEventListener("pintaara_unlocked", handleUnlockedEvent);
+      window.removeEventListener("storage", handleUnlockedEvent);
+    };
   }, []);
 
   useEffect(() => {
@@ -50,6 +79,26 @@ export default function PasswordGate({ children }) {
       return;
     }
 
+    // Fast path: if already unlocked within the 24-hour window, unlock immediately without re-prompting
+    if (checkLocalUnlocked()) {
+      setIsUnlocked(true);
+      setShowGateOnHome(false);
+      setLoading(false);
+      const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
+      if (expiresAt > Date.now()) {
+        const timer = setTimeout(() => {
+          safeStorage.removeItem("pintaara_unlocked");
+          safeStorage.removeItem("pintaara_unlocked_expires_at");
+          try {
+            document.cookie = "pintaara_unlocked=; path=/; max-age=0";
+          } catch (err) { }
+          setIsUnlocked(false);
+        }, expiresAt - Date.now());
+        return () => clearTimeout(timer);
+      }
+      return;
+    }
+
     let isCancelled = false;
     api.getStorefrontPasscodeStatus().then((res) => {
       if (isCancelled) return;
@@ -59,29 +108,11 @@ export default function PasswordGate({ children }) {
         return;
       }
 
-      const unlocked = safeStorage.getItem("pintaara_unlocked");
-      const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
-      const now = Date.now();
-
-      // Check if unlocked AND within the 24-hour window
-      if (unlocked === "1" && expiresAt > now) {
+      if (checkLocalUnlocked()) {
         setIsUnlocked(true);
         setLoading(false);
-
-        // Auto-lock when the 24 hours expire in the current session
-        const remainingTime = expiresAt - now;
-        const timer = setTimeout(() => {
-          safeStorage.removeItem("pintaara_unlocked");
-          safeStorage.removeItem("pintaara_unlocked_expires_at");
-          try {
-            document.cookie = "pintaara_unlocked=; path=/; max-age=0";
-          } catch (err) { }
-          setIsUnlocked(false);
-        }, remainingTime);
-
-        return () => clearTimeout(timer);
       } else {
-        // 24 hours elapsed or not unlocked — require entering passcode again
+        // 24 hours elapsed or not unlocked — require entering passcode
         safeStorage.removeItem("pintaara_unlocked");
         safeStorage.removeItem("pintaara_unlocked_expires_at");
         try {
@@ -92,18 +123,12 @@ export default function PasswordGate({ children }) {
       }
     }).catch(() => {
       if (isCancelled) return;
-      const unlocked = safeStorage.getItem("pintaara_unlocked");
-      const expiresAt = Number(safeStorage.getItem("pintaara_unlocked_expires_at") || "0");
-      if (unlocked === "1" && expiresAt > Date.now()) {
-        setIsUnlocked(true);
-      } else {
-        setIsUnlocked(false);
-      }
+      setIsUnlocked(checkLocalUnlocked());
       setLoading(false);
     });
 
     return () => { isCancelled = true; };
-  }, [isAdmin]);
+  }, [isAdmin, pathname]);
 
   // Immediately render admin or password page without any password gate or spinner
   if (isAdmin || isPasswordPage) {
