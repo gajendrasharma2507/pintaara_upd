@@ -16,6 +16,7 @@ export default function AccountAddressesPage() {
             if (res && res.data && Array.isArray(res.data)) {
                 const mapped = res.data.map(a => ({
                     id: a.id,
+                    type: (a.type || 'shipping').toUpperCase(),
                     tag: 'HOME',
                     isDefault: Boolean(a.is_default),
                     name: a.recipient_name,
@@ -28,8 +29,10 @@ export default function AccountAddressesPage() {
                     country: a.country || 'India',
                     cityStateCountryPin: `${a.city || ''}, ${a.state || ''}, ${a.country || 'India'} - ${a.pincode || ''}`.replace(/^,\s*|,\s*$/g, ''),
                 }));
-                setShippingAddresses(mapped);
-                setBillingAddresses(mapped);
+                const shipping = mapped.filter(a => a.type === 'SHIPPING');
+                const billing = mapped.filter(a => a.type === 'BILLING');
+                setShippingAddresses(shipping);
+                setBillingAddresses(billing);
             } else {
                 setShippingAddresses([]);
                 setBillingAddresses([]);
@@ -128,6 +131,7 @@ export default function AccountAddressesPage() {
 
         const isEdit = modalState.mode === 'EDIT' && typeof modalState.id === 'number';
         const addressPayload = {
+            type: (modalState.type || 'SHIPPING').toLowerCase(),
             recipient_name: formData.fullName || defaultName,
             phone: formData.contact || defaultPhone,
             address_line1: formData.line1 || formData.line2 || '',

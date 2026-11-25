@@ -101,8 +101,10 @@ export default function CheckoutPage() {
             try {
                 const res = await api.getUserAddresses();
                 if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
-                    setSavedAddresses(res.data);
-                    const defaultAddr = res.data.find(a => a.is_default) || res.data[0];
+                    const shippingOnly = res.data.filter(a => (a.type || 'shipping').toLowerCase() === 'shipping');
+                    const list = shippingOnly.length > 0 ? shippingOnly : res.data;
+                    setSavedAddresses(list);
+                    const defaultAddr = list.find(a => a.is_default) || list[0];
                     if (defaultAddr) {
                         applySavedAddress(defaultAddr);
                         setIsAddingNewAddress(false);

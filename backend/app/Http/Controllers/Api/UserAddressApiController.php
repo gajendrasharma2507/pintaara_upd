@@ -19,7 +19,12 @@ class UserAddressApiController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
         }
 
-        $addresses = $user->addresses()->orderByDesc('is_default')->orderByDesc('created_at')->get();
+        $query = $user->addresses()->orderByDesc('is_default')->orderByDesc('created_at');
+        if ($request->filled('type')) {
+            $query->where('type', strtolower($request->type));
+        }
+
+        $addresses = $query->get();
 
         return response()->json([
             'success' => true,
@@ -36,6 +41,11 @@ class UserAddressApiController extends Controller
         $user = $request->user();
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
+
+        $type = strtolower($request->type ?? $request->address_type ?? 'shipping');
+        if ($type !== 'billing') {
+            $type = 'shipping';
         }
 
         $recipientName = $request->recipient_name ?? $request->fullName ?? $request->name ?? ($user->name ?? 'Patron');
@@ -57,11 +67,12 @@ class UserAddressApiController extends Controller
         }
 
         if ($isDefault) {
-            $user->addresses()->update(['is_default' => false]);
+            $user->addresses()->where('type', $type)->update(['is_default' => false]);
         }
 
-        // Avoid duplicating exact same address
+        // Avoid duplicating exact same address within the same type
         $existing = $user->addresses()
+            ->where('type', $type)
             ->where('address_line1', $line1)
             ->where('pincode', $pincode)
             ->first();
@@ -79,6 +90,7 @@ class UserAddressApiController extends Controller
             $address = $existing;
         } else {
             $address = $user->addresses()->create([
+                'type' => $type,
                 'recipient_name' => $recipientName,
                 'phone' => $phone,
                 'address_line1' => $line1,
@@ -115,6 +127,7 @@ class UserAddressApiController extends Controller
         }
 
         $validated = $request->validate([
+            'type' => 'nullable|string|in:shipping,billing,SHIPPING,BILLING',
             'recipient_name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:50',
             'address_line1' => 'nullable|string|max:255',
@@ -126,8 +139,14 @@ class UserAddressApiController extends Controller
             'is_default' => 'nullable|boolean',
         ]);
 
+        if (isset($validated['type'])) {
+            $validated['type'] = strtolower($validated['type']);
+        }
+
+        $targetType = $validated['type'] ?? $address->type ?? 'shipping';
+
         if (!empty($validated['is_default'])) {
-            $user->addresses()->where('id', '!=', $id)->update(['is_default' => false]);
+            $user->addresses()->where('type', $targetType)->where('id', '!=', $id)->update(['is_default' => false]);
         }
 
         $address->update(array_filter($validated, fn($v) => $v !== null));
