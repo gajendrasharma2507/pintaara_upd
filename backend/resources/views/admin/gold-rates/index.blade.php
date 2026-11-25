@@ -20,6 +20,10 @@
   $gold14kGram = $rates['gold_14kt_rate_per_gram'] ?? round(($goldCap * 0.585) / 10.0, 2);
   $silver925Gram = $rates['silver_925_per_gram'] ?? round(($silverCap * 0.925) / 1000.0, 2);
 
+  $pure24k10g = $rates['pure_24kt_rate_per_10g'] ?? $goldCap;
+  $base22k10g = $rates['gold_base_22kt_per_10g'] ?? round($goldCap * 0.916, 2);
+  $silver10g = $rates['silver_base_per_10g'] ?? round(($silverCap * 0.925) / 100.0, 2);
+
   $streamItems = $liveData['stream_items'] ?? [];
   $goldRow = $liveData['gold_row'] ?? null;
   $silverRow = $liveData['silver_row'] ?? null;
