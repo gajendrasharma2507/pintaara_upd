@@ -32,6 +32,7 @@ class OrderDispatchedMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $liveTrackingUrl = $this->order->tracking_link ?: (config('app.frontend_url', 'https://pintaara.com') . '/account/orders');
         $resolved = \App\Services\EmailTemplateService::resolve(
             'order_dispatched',
             [
@@ -40,7 +41,8 @@ class OrderDispatchedMail extends Mailable
                 'courier_name' => $this->courierName,
                 'tracking_number' => $this->trackingNumber,
                 'estimated_delivery' => $this->estimatedDelivery,
-                'action_url' => config('app.frontend_url', 'https://pintaara.com') . '/account/orders',
+                'tracking_url' => $liveTrackingUrl,
+                'action_url' => $liveTrackingUrl,
             ],
             "PINTAARA | Your Piece Is on Its Way",
             'emails.orders.dispatched'
@@ -50,6 +52,7 @@ class OrderDispatchedMail extends Mailable
 
     public function content(): Content
     {
+        $liveTrackingUrl = $this->order->tracking_link ?: (config('app.frontend_url', 'https://pintaara.com') . '/account/orders');
         $resolved = \App\Services\EmailTemplateService::resolve(
             'order_dispatched',
             [
@@ -58,7 +61,8 @@ class OrderDispatchedMail extends Mailable
                 'courier_name' => $this->courierName,
                 'tracking_number' => $this->trackingNumber,
                 'estimated_delivery' => $this->estimatedDelivery,
-                'action_url' => config('app.frontend_url', 'https://pintaara.com') . '/account/orders',
+                'tracking_url' => $liveTrackingUrl,
+                'action_url' => $liveTrackingUrl,
             ],
             "PINTAARA | Your Piece Is on Its Way",
             'emails.orders.dispatched',
@@ -67,6 +71,7 @@ class OrderDispatchedMail extends Mailable
                 'courierName' => $this->courierName,
                 'trackingNumber' => $this->trackingNumber,
                 'estimatedDelivery' => $this->estimatedDelivery,
+                'liveTrackingUrl' => $liveTrackingUrl,
             ]
         );
         return new Content(view: $resolved['view'], with: $resolved['with']);
