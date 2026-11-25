@@ -196,11 +196,21 @@ class ProductApiController extends Controller
                 'options' => (function() use ($product, $masters, $allMasterValues, $valPricesMap) {
                     // 1. Collect dynamic options from ProductOptionAssignment if present
                     $dynamicOptions = collect();
+                    $dynamicGroupNorms = [];
                     $assignments = $product->optionAssignments;
                     if ($assignments && $assignments->count() > 0) {
                         foreach ($assignments as $assign) {
                             $grp = $assign->group;
                             if (!$grp || !$grp->is_active) continue;
+
+                            $gNameLower = strtolower($grp->name);
+                            $gNorm = $gNameLower;
+                            if (str_contains($gNameLower, 'purity') || str_contains($gNameLower, 'metal') || str_contains($gNameLower, 'karat')) $gNorm = 'purity';
+                            elseif (str_contains($gNameLower, 'finish') || str_contains($gNameLower, 'tone')) $gNorm = 'finish';
+                            elseif (str_contains($gNameLower, 'size')) $gNorm = 'size';
+                            elseif (str_contains($gNameLower, 'chain')) $gNorm = 'chain';
+                            elseif (str_contains($gNameLower, 'gem') || str_contains($gNameLower, 'stone')) $gNorm = 'gem';
+                            $dynamicGroupNorms[] = $gNorm;
 
                             $selIds = $assign->selected_values;
                             $grpValues = $grp->values ? $grp->values->where('is_active', true) : collect();
