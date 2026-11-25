@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import InvoiceViewer from './InvoiceViewer';
 
 export const metadata = {
-    title: 'Official Tax Invoice | Pintaara Atelier',
+    title: 'Official Tax Invoice | Pintaara',
     description: 'Official verified Tax Invoice for bespoke jewellery pieces crafted by Pintaara.',
 };
 

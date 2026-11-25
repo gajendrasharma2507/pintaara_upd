@@ -1,9 +1,10 @@
+import os
 import paramiko
 
 def run():
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect('145.79.210.26', port=65002, username='u573062443', password='Prayosha@2024', timeout=20)
+    ssh.connect('145.79.210.26', port=65002, username='u573062443', password=os.getenv('SSH_PASSWORD', ''), timeout=20)
     
     php_script = """<?php
 require __DIR__ . '/vendor/autoload.php';

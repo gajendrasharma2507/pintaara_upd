@@ -96,7 +96,7 @@ export default function AdminLayout({ children }) {
 
   // Live gold rate state (fetched from backend which proxies aaravbullion feed)
   const [goldRates, setGoldRates] = useState({ gold24k: null, gold22k: null, silver: null, source: null });
-  const [adminUser, setAdminUser] = useState({ name: 'Admin', email: 'admin@pintaara.com' });
+  const [adminUser, setAdminUser] = useState({ name: 'Admin', email: '' });
 
   // Fetch live gold rates from backend every 60 seconds
   const fetchGoldRates = async () => {
@@ -124,7 +124,7 @@ export default function AdminLayout({ children }) {
     try {
       const data = await api.getProfile();
       if (data && (data.name || data.email)) {
-        setAdminUser({ name: data.name || 'Admin', email: data.email || 'admin@pintaara.com' });
+        setAdminUser({ name: data.name || 'Admin', email: data.email || '' });
       }
     } catch (e) {}
   };
@@ -292,7 +292,7 @@ export default function AdminLayout({ children }) {
                   margin: 0,
                   fontWeight: 600
                 }}>
-                  Atelier Executive
+                  Executive
                 </p>
               </div>
             </Link>

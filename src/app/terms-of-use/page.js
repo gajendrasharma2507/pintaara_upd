@@ -254,7 +254,7 @@ function LegalContent({ pageType = "terms" }) {
                 .terms-main-container {
                     max-width: 1360px;
                     margin: 0 auto;
-                    padding: 2.75rem 2rem 1rem 2rem;
+                    padding: 2.75rem 2rem 3.5rem 2rem;
                     width: 100%;
                     flex: 1;
                     display: flex;
@@ -274,8 +274,9 @@ function LegalContent({ pageType = "terms" }) {
                     display: flex;
                     flex-direction: column;
                     position: sticky;
-                    top: 48px;
-                    max-height: calc(100vh - 96px);
+                    top: 110px;
+                    max-height: calc(100vh - 220px);
+                    padding-bottom: 1.5rem;
                     overflow: hidden;
                     user-select: none;
                 }
@@ -316,7 +317,7 @@ function LegalContent({ pageType = "terms" }) {
                 }
                 .terms-sidebar-list {
                     list-style: none;
-                    padding: 0;
+                    padding: 0 0 2rem 0;
                     margin: 0;
                     display: flex;
                     flex-direction: column;

@@ -351,3 +351,154 @@ html body .main-header.header-page-floating {
     -webkit-backdrop-filter: none !important;
     box-shadow: none !important;
 }
+
+
+/* ============================================================
+   AARAV BULLION LIVE SPOT RATE PILL & POPOVER (Storefront Header)
+   ============================================================ */
+.header-spot-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    position: relative;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.header-spot-pill:hover {
+    background: rgba(212, 175, 55, 0.22);
+    border-color: rgba(212, 175, 55, 0.7);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+}
+.header-spot-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10B981;
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0.6);
+    animation: spotPulseAnim 2s infinite;
+}
+@keyframes spotPulseAnim {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.header-spot-text {
+    font-family: var(--font-sans, "Avenir Next", sans-serif);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #F8F3EE;
+    white-space: nowrap;
+}
+.main-header.header-dark .header-spot-text {
+    color: #2C2825;
+}
+.header-spot-label {
+    color: #D4AF37;
+    font-weight: 800;
+    margin-right: 2px;
+}
+
+/* Spot Popover Card */
+.header-spot-popover {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 300px;
+    background: rgba(20, 16, 13, 0.98);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    z-index: 1000;
+    animation: fadeInSpotPopover 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: left;
+}
+@keyframes fadeInSpotPopover {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.spot-popover-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #D4AF37;
+}
+.spot-popover-badge {
+    background: rgba(212, 175, 55, 0.15);
+    color: #D4AF37;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: monospace;
+}
+.spot-popover-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 0;
+}
+.spot-popover-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
+.spot-metal-name {
+    color: #C5BFB8;
+    font-weight: 500;
+}
+.spot-metal-price {
+    color: #FFFFFF;
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 13.5px;
+}
+.spot-popover-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 10.5px;
+    color: #8C847B;
+}
+.spot-popover-footer a {
+    color: #D4AF37;
+    text-decoration: none;
+    font-weight: 600;
+}
+.spot-popover-footer a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+    .header-spot-pill {
+        padding: 4px 9px;
+    }
+    .header-spot-text {
+        font-size: 10px;
+    }
+    .header-spot-label {
+        display: none;
+    }
+    .header-spot-popover {
+        right: -30px;
+        width: 280px;
+    }
+}

@@ -489,7 +489,7 @@ class AdminMasterApiController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Customization masters reset to atelier factory presets.',
+                'message' => 'Customization masters reset to factory presets.',
                 'data' => $masters,
             ]);
         } catch (\Exception $e) {

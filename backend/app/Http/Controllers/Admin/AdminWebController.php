@@ -315,7 +315,7 @@ class AdminWebController extends Controller
                 return [
                     'id' => $d->id,
                     'title' => ($d->design_code ? '[' . $d->design_code . '] ' : '') . $prodName,
-                    'subtitle' => implode(' • ', $meta) ?: 'Atelier Documentation',
+                    'subtitle' => implode(' • ', $meta) ?: 'Product Documentation',
                     'url' => route('admin.design-logs.show', $d->id),
                     'badge' => $d->status ?: 'Design Log',
                     'badge_color' => '#8B5CF6',

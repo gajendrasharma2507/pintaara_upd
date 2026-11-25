@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
       city: "Mumbai, MH",
       items: "Sovereign Diamond Band (18K Rose Gold)",
       amount: "₹1,84,500",
-      status: "Crafting Atelier",
+      status: "Crafting",
       statusType: "warning",
       date: "Today, 11:20 AM"
     },
@@ -149,11 +149,11 @@ export default function AdminDashboardPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
             <span style={{ fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--admin-gold)", fontWeight: 600 }}>
-              Atelier Command Centre
+              Command Centre
             </span>
           </div>
           <h2 className="admin-serif" style={{ fontSize: "28px", fontWeight: 700, margin: 0, color: "var(--admin-text-primary)" }}>
-            Atelier Executive Overview
+            Executive Overview
           </h2>
           <p style={{ fontSize: "13px", color: "var(--admin-text-secondary)", margin: "4px 0 0 0" }}>
             Real-time performance, client orders, and precious metal spot benchmarking.
@@ -267,13 +267,13 @@ export default function AdminDashboardPage() {
           }}>
             <div>
               <h3 className="admin-serif" style={{ fontSize: "17px", fontWeight: 600, margin: 0 }}>
-                Recent Atelier Orders
+                Recent Orders
               </h3>
               <p style={{ fontSize: "12px", color: "var(--admin-text-muted)", margin: "3px 0 0 0" }}>
                 Latest orders awaiting artisan crafting or delivery dispatch
               </p>
             </div>
-            <Link href="http://localhost:3001/orders" className="admin-btn-ghost" style={{ fontSize: "12px" }}>
+            <Link href="/admin/orders" className="admin-btn-ghost" style={{ fontSize: "12px" }}>
               <span>View All</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14" />
@@ -333,17 +333,17 @@ export default function AdminDashboardPage() {
           {/* Quick Actions Panel */}
           <div className="admin-card" style={{ padding: "22px" }}>
             <h3 className="admin-serif" style={{ fontSize: "16px", fontWeight: 600, margin: "0 0 14px 0" }}>
-              Quick Atelier Actions
+              Quick Actions
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <Link href="http://localhost:3001/products" className="admin-btn-gold" style={{ justifyContent: "center", width: "100%" }}>
+              <Link href="/admin/products" className="admin-btn-gold" style={{ justifyContent: "center", width: "100%" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
                 <span>Add Jewelry Piece</span>
               </Link>
-              <Link href="http://localhost:3001/gold-rates" className="admin-btn-outline" style={{ justifyContent: "center", width: "100%" }}>
+              <Link href="/admin/pricing" className="admin-btn-outline" style={{ justifyContent: "center", width: "100%" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="12" y1="1" x2="12" y2="23" />
                   <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -356,7 +356,7 @@ export default function AdminDashboardPage() {
           {/* Activity Feed */}
           <div className="admin-card" style={{ padding: "22px" }}>
             <h3 className="admin-serif" style={{ fontSize: "16px", fontWeight: 600, margin: "0 0 16px 0" }}>
-              Atelier Pulse
+              Activity Pulse
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {recentActivity.map((act, i) => (

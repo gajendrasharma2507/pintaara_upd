@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-
 export default function Header({ headerStyle, reveal, onNavigate }) {
     const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false);

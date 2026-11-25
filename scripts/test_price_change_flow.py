@@ -1,3 +1,4 @@
+import os
 import paramiko
 import urllib.request
 import json
@@ -5,7 +6,7 @@ import json
 def test():
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect('145.79.210.26', port=65002, username='u573062443', password='Prayosha@2024', timeout=20)
+    ssh.connect('145.79.210.26', port=65002, username='u573062443', password=os.getenv('SSH_PASSWORD', ''), timeout=20)
     
     # 1. Update Ceylon Blue Sapphire to 35000 in DB for product 60
     php_code = """<?php

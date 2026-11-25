@@ -264,7 +264,7 @@ export default function AccountCollectionPage() {
                                 fontWeight: 600,
                             }}
                         >
-                            Explore Atelier Collection
+                            Explore Collection
                         </a>
                     </div>
                 ) : (
@@ -449,7 +449,7 @@ export default function AccountCollectionPage() {
                             <h2 className="cert-modal-title">
                                 {selectedCertificate.cert_title ? selectedCertificate.cert_title.toUpperCase() : 'CERTIFICATE OF AUTHENTICITY'}
                             </h2>
-                            <p className="cert-modal-subtitle">BUREAU OF INDIAN STANDARDS &middot; ATELIER ARCHIVE</p>
+                            <p className="cert-modal-subtitle">BUREAU OF INDIAN STANDARDS &middot; ARCHIVE</p>
                         </div>
 
                         <div className="cert-body-content">

@@ -18,7 +18,7 @@ return new class extends Migration
                 $table->text('metadata')->nullable(); // JSON payload for pending registration or new email
                 $table->integer('attempts')->default(0);
                 $table->timestamp('resend_available_at')->nullable();
-                $table->timestamp('expires_at')->index();
+                $table->timestamp('expires_at')->nullable()->index();
                 $table->timestamp('used_at')->nullable();
                 $table->timestamps();
             });

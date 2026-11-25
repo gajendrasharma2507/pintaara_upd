@@ -232,7 +232,7 @@ class OrderApiController extends Controller
         $statusSteps = [
 
             'confirmed' => ['step' => 1, 'label' => 'Order Confirmed', 'desc' => 'Gold rate locked & invoice generated'],
-            'in_production' => ['step' => 2, 'label' => 'In Production', 'desc' => 'Cast, forged & hand-crafted at atelier'],
+            'in_production' => ['step' => 2, 'label' => 'In Production', 'desc' => 'Cast, forged & hand-crafted'],
             'inspection' => ['step' => 3, 'label' => 'Quality Inspection', 'desc' => 'Gemological audit & hallmarking'],
             'shipped' => ['step' => 4, 'label' => 'Armored Transit', 'desc' => 'Dispatched with tamper-proof seal'],
             'delivered' => ['step' => 5, 'label' => 'Delivered', 'desc' => 'Hand-delivered to patron'],

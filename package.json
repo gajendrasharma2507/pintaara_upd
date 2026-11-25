@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "dev:admin": "npm --prefix admin run dev",
     "build": "next build --webpack",
     "build:admin": "npm --prefix admin run build",

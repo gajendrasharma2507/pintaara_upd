@@ -729,7 +729,7 @@ class JewelryPricingService
             $validatedItems[] = [
                 'product_id' => $product?->id,
                 'design_code' => $designCode ?? $product?->design_code ?? 'BESPOKE-PIECE',
-                'product_name' => $item['name'] ?? $item['product_name'] ?? $product?->name ?? 'Bespoke Atelier Piece',
+                'product_name' => $item['name'] ?? $item['product_name'] ?? $product?->name ?? 'Bespoke Piece',
                 'metal_purity' => $purityStr,
                 'finish' => $item['finish'] ?? 'White Gold',
                 'size' => $item['size'] ?? null,

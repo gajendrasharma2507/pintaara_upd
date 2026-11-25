@@ -51,7 +51,7 @@ class EmailTemplate extends Model
 <p>Dear {{customer_name}},</p>
 <p>You can now manage your details, view your orders and access your purchase records in one place.</p>
 <div class="btn-container"><a href="{{action_url}}" class="btn-primary">VIEW YOUR ACCOUNT</a></div>
-<div class="note-box">Your PINTAARA client profile provides lifetime access to your jewelry certificates, HUID verification reports, and private atelier commissions.</div>',
+<div class="note-box">Your PINTAARA client profile provides lifetime access to your jewelry certificates, HUID verification reports, and private commissions.</div>',
             ],
             [
                 'slug' => 'email_verification_otp',
@@ -97,7 +97,7 @@ class EmailTemplate extends Model
                 'body_html' => '<h2 class="h1-title">Your password has been updated.</h2>
 <p>Dear {{customer_name}},</p>
 <p>This is a confirmation that the password for your PINTAARA account ({{customer_email}}) was recently changed.</p>
-<div class="note-box">If you did not make this change, please contact our atelier concierge immediately.</div>',
+<div class="note-box">If you did not make this change, please contact our concierge immediately.</div>',
             ],
             [
                 'slug' => 'email_address_changed',
@@ -127,7 +127,7 @@ class EmailTemplate extends Model
                 'variables_hint' => 'customer_name, order_number, total_amount, action_url',
                 'body_html' => '<h2 class="h1-title">Thank you for your order.</h2>
 <p>Dear {{customer_name}},</p>
-<p>Your PINTAARA order <strong>#{{order_number}}</strong> for <strong>{{total_amount}}</strong> has been confirmed and is entering our atelier workflow.</p>
+<p>Your PINTAARA order <strong>#{{order_number}}</strong> for <strong>{{total_amount}}</strong> has been confirmed and is entering our production workflow.</p>
 <div class="btn-container"><a href="{{action_url}}" class="btn-primary">VIEW ORDER DETAILS</a></div>',
             ],
             [
@@ -138,7 +138,7 @@ class EmailTemplate extends Model
                 'variables_hint' => 'customer_name, order_number, action_url',
                 'body_html' => '<h2 class="h1-title">Craftsmanship has begun.</h2>
 <p>Dear {{customer_name}},</p>
-<p>Master artisans at PINTAARA Atelier have begun crafting your piece(s) for order <strong>#{{order_number}}</strong>.</p>
+<p>Master artisans at PINTAARA have begun crafting your piece(s) for order <strong>#{{order_number}}</strong>.</p>
 <div class="btn-container"><a href="{{action_url}}" class="btn-primary">TRACK YOUR ORDER</a></div>',
             ],
             [
@@ -217,7 +217,7 @@ class EmailTemplate extends Model
                 'variables_hint' => 'customer_name, appointment_date, appointment_time, appointment_status, appointment_purpose, admin_note, action_url',
                 'body_html' => '<h2 class="h1-title">Your studio appointment has been updated.</h2>
 <p>Dear {{customer_name}},</p>
-<p>Your appointment details have been updated by our atelier team:</p>
+<p>Your appointment details have been updated by our team:</p>
 <div class="note-box"><strong>Date:</strong> {{appointment_date}}<br><strong>Time:</strong> {{appointment_time}}<br><strong>Status:</strong> {{appointment_status}}<br><strong>Purpose:</strong> {{appointment_purpose}}<br>{{admin_note}}</div>
 <p>If you need any further adjustments, please reply to this email or contact our studio.</p>',
             ],

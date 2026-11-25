@@ -455,7 +455,7 @@
           }
 
           $steps = [
-            1 => ['title' => 'Atelier', 'sub' => in_array($order->status, ['in_production', 'inspection']) ? 'In Workshop' : 'Piece Packed', 'icon' => '📦'],
+            1 => ['title' => 'Workshop', 'sub' => in_array($order->status, ['in_production', 'inspection']) ? 'In Workshop' : 'Piece Packed', 'icon' => '📦'],
             2 => ['title' => 'Docket Created', 'sub' => $docketSub, 'icon' => '🏷️'],
             3 => ['title' => 'Armored Transit', 'sub' => in_array($order->status, ['shipped', 'dispatched']) ? 'In Transit' : 'Armed Escort', 'icon' => '🛡️'],
             4 => ['title' => 'Out for Delivery', 'sub' => 'Arriving Today', 'icon' => '🚚'],

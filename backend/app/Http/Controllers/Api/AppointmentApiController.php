@@ -95,7 +95,7 @@ class AppointmentApiController extends Controller
         return response()->json([
             'success' => true,
             'status' => 'success',
-            'message' => 'Appointment booked successfully. Our atelier concierge will contact you shortly.',
+            'message' => 'Appointment booked successfully. Our concierge will contact you shortly.',
             'data' => $appointment,
         ], 201);
     }

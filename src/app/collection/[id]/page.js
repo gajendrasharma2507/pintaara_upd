@@ -397,7 +397,7 @@ export default function DynamicCollectionPage({ params }) {
                             id: found.id,
                             slug: found.slug,
                             name: (found.name || paramId).toUpperCase(),
-                            watermark: 'PINTAARA ATELIER',
+                            watermark: 'PINTAARA',
                             products: []
                         };
                         setLiveCollection(matchedCol);
@@ -479,7 +479,7 @@ export default function DynamicCollectionPage({ params }) {
                                                 id: item.design_code || item.id,
                                                 code: item.design_code || String(item.id),
                                                 name: item.name,
-                                                collection: item.collection?.name || prod.collection?.name || 'ATELIER PIECE',
+                                                collection: item.collection?.name || prod.collection?.name || 'SIGNATURE PIECE',
                                                 image: resolveProductImage(item, imageUrl),
                                                 livePrice: item.live_price?.total_price || item.base_pricing?.total_price || null,
                                             };
@@ -1729,13 +1729,13 @@ export default function DynamicCollectionPage({ params }) {
                 <Header headerStyle="dark" onNavigate={handleNavigate} />
                 <div style={{ minHeight: '65vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 1.5rem', textAlign: 'center' }}>
                     <span style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#9A7228', fontWeight: 600, marginBottom: '8px' }}>
-                        Atelier Registry
+                        Registry
                     </span>
                     <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '28px', fontWeight: 600, color: '#111', margin: '0 0 12px 0' }}>
                         Piece Not Found
                     </h1>
                     <p style={{ fontSize: '14px', color: '#666', maxWidth: '440px', lineHeight: 1.6, marginBottom: '24px' }}>
-                        The requested jewelry piece or collection is not currently cataloged in the Pintaara Atelier archives.
+                        The requested jewelry piece or collection is not currently cataloged in the Pintaara archives.
                     </p>
                     <Link href="/collection" style={{ display: 'inline-block', padding: '12px 28px', background: '#111', color: '#FFF', fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none' }}>
                         Return to Collections

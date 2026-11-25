@@ -275,7 +275,7 @@ class AuthApiController extends Controller
             return response()->json([
                 'success' => false,
                 'status' => 'error',
-                'message' => 'Your account login has been disabled by the administration. Please contact the atelier.',
+                'message' => 'Your account login has been disabled by the administration. Please contact support.',
             ], 403);
         }
 
@@ -284,7 +284,7 @@ class AuthApiController extends Controller
             return response()->json([
                 'success' => false,
                 'status' => 'error',
-                'message' => 'Your patron account application was rejected. Please contact the atelier.',
+                'message' => 'Your patron account application was rejected. Please contact support.',
             ], 403);
         }
 
@@ -735,7 +735,7 @@ class AuthApiController extends Controller
         if ($inputPasscode === '') {
             return response()->json([
                 'success' => false,
-                'message' => 'Please enter the atelier passcode.',
+                'message' => 'Please enter the passcode.',
             ], 422);
         }
 

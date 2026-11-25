@@ -170,7 +170,7 @@
           ],
           '14KT' => [
             'label' => '14KT Gold',
-            'sub' => '58.5% Everyday Atelier',
+            'sub' => '58.5% Everyday',
             'rate' => (float) ($rates['purities'][2]['rate_per_gram'] ?? ($rates['gold_14kt_per_gram'] ?? 8775.00)),
             'badge' => '#9A7C38'
           ],

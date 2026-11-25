@@ -14,18 +14,6 @@ export default function AccountLayout({ children }) {
     const { user, logout, loading } = useAuth();
     const { cartCount } = useCart();
     const [isRegionOpen, setIsRegionOpen] = React.useState(false);
-    const [greeting, setGreeting] = React.useState('GOOD MORNING');
-
-    React.useEffect(() => {
-        const hour = new Date().getHours();
-        if (hour < 12) {
-            setGreeting('GOOD MORNING');
-        } else if (hour < 17) {
-            setGreeting('GOOD AFTERNOON');
-        } else {
-            setGreeting('GOOD EVENING');
-        }
-    }, []);
 
     React.useEffect(() => {
         if (!loading && !user) {
@@ -62,7 +50,7 @@ export default function AccountLayout({ children }) {
                 {/* Sidebar */}
                 <aside className="acct-sidebar">
                     <div className="acct-greeting-section">
-                        <span className="acct-greeting-sub">{greeting}</span>
+                        <span className="acct-greeting-sub">GOOD MORNING / AFTERNOON</span>
                         <h2 className="acct-greeting-name">{clientName}</h2>
                     </div>
 

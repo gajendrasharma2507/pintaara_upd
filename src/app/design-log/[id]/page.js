@@ -105,11 +105,11 @@ export default function DesignLogSubPage({ params }) {
       <div className="dl-subpage-root" style={{ display: 'flex', flexDirection: 'column', minHeight: '80vh', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '5rem 1.5rem' }}>
         <Header headerStyle="light" />
         <span style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#9A7228', fontWeight: 600, marginBottom: '8px' }}>
-          Atelier Archives
+          Design Archives
         </span>
         <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '28px', color: '#111', margin: '0 0 12px 0' }}>Design Log Not Found</h1>
         <p style={{ color: '#666', marginBottom: '24px', maxWidth: '440px', lineHeight: 1.6, fontSize: '14px' }}>
-          The requested design blueprint is not cataloged in the Pintaara Atelier archives.
+          The requested design blueprint is not cataloged in the Pintaara archives.
         </p>
         <Link href="/design-log" style={{ display: 'inline-block', padding: '12px 28px', background: '#111', color: '#FFF', fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none' }}>
           RETURN TO DESIGN LOG

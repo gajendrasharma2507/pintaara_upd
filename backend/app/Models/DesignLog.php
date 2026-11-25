@@ -10,6 +10,7 @@ class DesignLog extends Model
     use HasFactory;
 
     protected $fillable = [
+        'design_code',
         'product_id',
         'blueprint_image',
         'design_type',

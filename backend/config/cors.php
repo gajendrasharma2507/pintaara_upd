@@ -30,7 +30,7 @@ return [
     ]))),
 
     'allowed_origins_patterns' => [
-        '#^https://.*\.vercel\.app$#',
+        '#^https://(pintaara|p1)[a-zA-Z0-9\-_]*\.vercel\.app$#',
         '#^http://localhost:\d+$#',
         '#^http://127\.0\.0\.1:\d+$#',
     ],

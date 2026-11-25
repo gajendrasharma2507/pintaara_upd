@@ -54,7 +54,7 @@ class AdminDashboardApiController extends Controller
 
             return [
                 'id' => $order->order_number ?: ('#PIN-' . $order->id),
-                'client' => $order->customer_name ?: 'Atelier Patron',
+                'client' => $order->customer_name ?: 'Patron',
                 'email' => $order->customer_email ?: '',
                 'product' => $itemDesc,
                 'amount' => '₹' . number_format($order->total_amount, 2),

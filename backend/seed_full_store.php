@@ -25,7 +25,7 @@ echo "Seeding full store with 100% real data...\n";
 // 1. Settings
 Setting::set('gst_percent', 3.0, 'number', 'Goods and Services Tax percentage for fine jewelry');
 Setting::set('default_wastage_percent', 0.0, 'number', 'Default wastage buffer percentage');
-Setting::set('brand_name', 'PINTAARA', 'string', 'Luxury Fine Jewelry Atelier');
+Setting::set('brand_name', 'PINTAARA', 'string', 'Luxury Fine Jewelry');
 Setting::set('currency_symbol', '₹', 'string', 'Currency symbol');
 Setting::set('contact_email', 'concierge@pintaara.com', 'string', 'Customer concierge email');
 Setting::set('contact_phone', '+91 98765 43210', 'string', 'Concierge VIP hotline');
@@ -242,7 +242,7 @@ $catalog = [
         'making' => 17500,
         'image' => '/images/products/bracelet.png',
         'desc' => 'Braided Kundan gold filaments laser micro-welded into a seamless ergonomic cuff.',
-        'inspiration' => 'Ancient rope filigree and modern atelier metallurgy',
+        'inspiration' => 'Ancient rope filigree and modern metallurgy',
     ],
     [
         'code' => 'BR-SG-FS-003',
@@ -356,7 +356,7 @@ $catalog = [
         'making' => 16000,
         'image' => '/images/products/chain.png',
         'desc' => 'V-shaped chevron interlocking chain with dense heft and flat side bevels.',
-        'inspiration' => 'Italian atelier curb techniques and brutalist links',
+        'inspiration' => 'Italian curb techniques and brutalist links',
     ],
 
     // NECKLACES
@@ -534,7 +534,7 @@ foreach ($catalog as $item) {
             'craft_image' => '/images/design/step3.png',
             'craft_note' => "Lost-wax micro-casting, multi-stage hand filing, satin flank brushing, and 22KT hallmark stamping.",
             'creation_image' => $item['image'],
-            'creation_note' => "Master atelier specimen certified with Bureau of Indian Standards (BIS) hallmark.",
+            'creation_note' => "Master specimen certified with Bureau of Indian Standards (BIS) hallmark.",
             'inspired_by' => $item['inspiration'],
             'release_date' => date('Y-m-d', strtotime('-1 month')),
         ]

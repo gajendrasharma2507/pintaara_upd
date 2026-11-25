@@ -107,7 +107,7 @@ export default function BookAppointmentPage() {
                     <div className="appointment-form-column">
                         {isSubmitted && (
                             <div className="appointment-success-banner">
-                                Thank you. Your appointment request has been received. Our atelier team will contact you shortly.
+                                Thank you. Your appointment request has been received. Our team will contact you shortly.
                             </div>
                         )}
                         {submitError && (

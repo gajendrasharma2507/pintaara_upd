@@ -1,16 +1,17 @@
+import os
 import paramiko
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect('145.79.210.26', port=65002, username='u573062443', password='Prayosha@2024', timeout=20)
+ssh.connect('145.79.210.26', port=65002, username='u573062443', password=os.getenv('SSH_PASSWORD', ''), timeout=20)
 
 # Update database settings to use real Razorpay test keys from .env
 cmd = """php -r "require 'vendor/autoload.php'; \\$app = require_once 'bootstrap/app.php'; \\$kernel = \\$app->make(Illuminate\\Contracts\\Console\\Kernel::class); \\$kernel->bootstrap();
-App\\Models\\Setting::set('razorpay_test_key_id', 'rzp_test_TAzQnfWccCWrqq', 'string', 'Razorpay Test Key ID');
-App\\Models\\Setting::set('razorpay_test_key_secret', 'gOxwbqhtPz136rYuc6Tx1O5a', 'string', 'Razorpay Test Key Secret');
+App\\Models\\Setting::set('razorpay_test_key_id', 'os.getenv('RAZORPAY_KEY_ID', '')', 'string', 'Razorpay Test Key ID');
+App\\Models\\Setting::set('razorpay_test_key_secret', 'os.getenv('RAZORPAY_KEY_SECRET', '')', 'string', 'Razorpay Test Key Secret');
 echo 'Keys updated in Setting table! Testing Razorpay API order creation...\\n';
 
-\\$response = Illuminate\\Support\\Facades\\Http::withBasicAuth('rzp_test_TAzQnfWccCWrqq', 'gOxwbqhtPz136rYuc6Tx1O5a')
+\\$response = Illuminate\\Support\\Facades\\Http::withBasicAuth('os.getenv('RAZORPAY_KEY_ID', '')', 'os.getenv('RAZORPAY_KEY_SECRET', '')')
     ->post('https://api.razorpay.com/v1/orders', [
         'amount' => 15034300,
         'currency' => 'INR',

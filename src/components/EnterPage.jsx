@@ -3,16 +3,16 @@
 import React, { useEffect, useState } from 'react';
 
 export default function EnterPage({ onEnter, isExiting, config }) {
-    const [isTriggered, setIsTriggered] = useState(false);
-
     const handleTrigger = () => {
-        if (isTriggered) return;
-        setIsTriggered(true);
         if (onEnter) onEnter();
     };
 
     useEffect(() => {
         const handleKeyDown = (e) => {
+            const tagName = e.target?.tagName?.toLowerCase();
+            if (tagName === 'input' || tagName === 'textarea' || tagName === 'button') {
+                return;
+            }
             if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
                 e.preventDefault();
                 handleTrigger();
@@ -32,9 +32,9 @@ export default function EnterPage({ onEnter, isExiting, config }) {
             window.removeEventListener('wheel', handlePreventScroll);
             window.removeEventListener('touchmove', handlePreventScroll);
         };
-    }, [onEnter, isTriggered]);
+    }, [onEnter]);
 
-    const activeExit = isExiting || isTriggered;
+    const activeExit = isExiting;
 
     return (
         <aside

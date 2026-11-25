@@ -31,9 +31,10 @@ class DesignLogApiController extends Controller
                 ->orWhere('product_id', (int) $identifier)
                 ->first();
         } else {
-            $log = $query->whereHas('product', function ($q) use ($identifier) {
-                $q->whereRaw('UPPER(design_code) = UPPER(?)', [$identifier]);
-            })->first();
+            $log = $query->whereRaw('UPPER(design_code) = UPPER(?)', [$identifier])
+                ->orWhereHas('product', function ($q) use ($identifier) {
+                    $q->whereRaw('UPPER(design_code) = UPPER(?)', [$identifier]);
+                })->first();
         }
 
         if (!$log) {

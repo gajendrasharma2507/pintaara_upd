@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
         // 2. Global Settings
         Setting::set('gst_percent', 3.0, 'number', 'Goods and Services Tax percentage for fine jewelry');
         Setting::set('default_wastage_percent', 0.0, 'number', 'Default wastage buffer percentage');
-        Setting::set('brand_name', 'PINTAARA', 'string', 'Luxury Fine Jewelry Atelier');
+        Setting::set('brand_name', 'PINTAARA', 'string', 'Luxury Fine Jewelry');
         Setting::set('currency_symbol', '₹', 'string', 'Currency symbol');
         Setting::set('contact_email', 'info@pintaara.com', 'string', 'Customer concierge email');
         Setting::set('contact_phone', '+91 98765 43210', 'string', 'Concierge VIP hotline');
@@ -174,7 +174,7 @@ class DatabaseSeeder extends Seeder
                 'craft_image' => 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800&auto=format&fit=crop',
                 'craft_note' => 'Lost-wax casting followed by multi-stage hand filing, satin brushed flanking, and 22KT hallmark stamping.',
                 'creation_image' => 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=800&auto=format&fit=crop',
-                'creation_note' => 'Master piece finalized in atelier with high mirror polish and certified Bureau of Indian Standards (BIS) hallmark.',
+                'creation_note' => 'Master piece finalized with high mirror polish and certified Bureau of Indian Standards (BIS) hallmark.',
                 'inspired_by' => 'Brutalist monuments and geometric balance',
                 'release_date' => now()->subMonths(1)->toDateString(),
             ]

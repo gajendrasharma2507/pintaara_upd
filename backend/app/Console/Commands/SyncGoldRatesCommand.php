@@ -149,7 +149,7 @@ class SyncGoldRatesCommand extends Command
                     ['18KT Fine Gold', '75.0% Fine (Diamond)', '₹' . number_format(($rawGold24k / 10.0) * 0.75, 2), '+₹' . number_format(($goldOffset / 10.0) * 0.75, 2), '₹' . number_format($gold18kPerGram, 2), '₹' . number_format($gold18kPerGram * 10, 2)],
                     ['14KT Modern Gold', '58.5% Fine', '₹' . number_format(($rawGold24k / 10.0) * 0.585, 2), '+₹' . number_format(($goldOffset / 10.0) * 0.585, 2), '₹' . number_format($gold14kPerGram, 2), '₹' . number_format($gold14kPerGram * 10, 2)],
                     ['Silver 999 Pure', 'Bullion Standard (1KG)', '₹' . number_format($rawSilverKg / 1000.0, 2), '+₹' . number_format($silverOffset / 10.0, 2), '₹' . number_format($silverPerGram, 2), '₹' . number_format($silverPerGram * 10, 2)],
-                    ['925 Sterling Silver', '92.5% Fine (Atelier)', '₹' . number_format(($rawSilverKg / 1000.0) * 0.925, 2), '+₹' . number_format(($silverOffset / 10.0) * 0.925, 2), '₹' . number_format($silver925PerGram, 2), '₹' . number_format($silver925PerGram * 10, 2)],
+                    ['925 Sterling Silver', '92.5% Fine', '₹' . number_format(($rawSilverKg / 1000.0) * 0.925, 2), '+₹' . number_format(($silverOffset / 10.0) * 0.925, 2), '₹' . number_format($silver925PerGram, 2), '₹' . number_format($silver925PerGram * 10, 2)],
                 ]
             );
 

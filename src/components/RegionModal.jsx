@@ -170,7 +170,7 @@ export default function RegionModal({ isOpen, onClose }) {
 
                 {/* Footer disclaimer */}
                 <div className="region-modal-footer">
-                    <span className="region-footer-note">PINTAARA™ Global Atelier & International Concierge Services</span>
+                    <span className="region-footer-note">PINTAARA™ Global & International Concierge Services</span>
                 </div>
 
             </div>

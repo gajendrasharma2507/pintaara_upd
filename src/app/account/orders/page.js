@@ -191,7 +191,7 @@ export default function AccountOrdersPage() {
                                 fontWeight: 600,
                             }}
                         >
-                            Explore Atelier Collection
+                            Explore Collection
                         </a>
                     </div>
                 ) : (

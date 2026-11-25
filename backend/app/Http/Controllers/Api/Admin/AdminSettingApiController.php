@@ -52,7 +52,7 @@ class AdminSettingApiController extends Controller
             'support_email' => Setting::get('support_email', 'info@pintaara.com'),
             'support_phone' => Setting::get('support_phone', '+91 98765 43210'),
             'invoice_prefix' => Setting::get('invoice_prefix', 'INV-PT-'),
-            'address' => Setting::get('address', 'Atelier Suite 402, Platinum Tower, Bandra West, Mumbai, Maharashtra 400050'),
+            'address' => Setting::get('address', 'Suite 402, Platinum Tower, Bandra West, Mumbai, Maharashtra 400050'),
         ];
 
         // 2. Razorpay Payment Gateway Settings

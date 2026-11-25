@@ -41,15 +41,15 @@ const baskerville = Libre_Baskerville({
 });
 
 export const metadata = {
-  title: "Pintaara | Luxury Jewellery & Original Forms",
-  description: "Others follow what already exists. Pintaara searches for forms that don't. Explore our premium collection of luxury jewellery and timeless original designs.",
+  title: "PINTAARA | Luxury Jewellery & Original Forms",
+  description: "Others follow what already exists. PINTAARA searches for forms that don't. Explore our premium collection of luxury jewellery and timeless original designs.",
   icons: {
     icon: "/images/logo-butterfly.png",
     shortcut: "/images/logo-butterfly.png",
     apple: "/images/logo-butterfly.png",
   },
   openGraph: {
-    title: "Pintaara | Luxury Jewellery",
+    title: "PINTAARA | Luxury Jewellery",
     description: "Explore our premium collection of luxury jewellery and timeless original designs.",
     type: "website",
   }
