@@ -132,6 +132,7 @@ export default function AccountOrdersPage() {
             <div className="acct-page-header">
                 <div className="acct-title-group">
                     <h1 className="acct-page-title">ORDERS</h1>
+                    <span className="acct-page-subtitle">/ CURRENT ORDERS</span>
                 </div>
                 <div className="acct-hairline" />
             </div>
@@ -253,9 +254,7 @@ export default function AccountOrdersPage() {
                     margin-bottom: 2.8rem;
                 }
                 .acct-title-group {
-                    display: flex;
-                    align-items: baseline;
-                    gap: 0.8rem;
+                    display: block;
                     margin-bottom: 1.2rem;
                 }
                 .acct-page-title {
@@ -267,11 +266,16 @@ export default function AccountOrdersPage() {
                     margin: 0;
                 }
                 .acct-page-subtitle {
-                    font-size: 0.88rem;
+                    display: block;
+                    font-family: var(--font-body);
+                    font-size: calc(20 * var(--p, 0.8px));
                     font-weight: 400;
-                    letter-spacing: 0.04em;
-                    color: #222222;
+                    line-height: 1.35;
+                    letter-spacing: 0;
+                    color: #000000;
+                    opacity: 1;
                     text-transform: uppercase;
+                    margin: calc(8 * var(--p, 0.8px)) 0 0 0;
                 }
                 .acct-hairline {
                     height: 1px;

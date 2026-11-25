@@ -238,6 +238,7 @@ export default function AccountCollectionPage() {
             {/* Header */}
             <div className="acct-collection-header">
                 <h1 className="acct-col-title">MY COLLECTION</h1>
+                <span className="acct-col-subtitle">/ {pieces.length} {pieces.length === 1 ? 'PIECE' : 'PIECES'} IN YOUR COLLECTION</span>
                 <div className="acct-hairline acct-col-divider" />
             </div>
 
@@ -590,7 +591,19 @@ export default function AccountCollectionPage() {
                     font-weight: 400;
                     letter-spacing: 0.04em;
                     color: #111111;
-                    margin: 0 0 1.2rem 0;
+                    margin: 0;
+                }
+                .acct-col-subtitle {
+                    display: block;
+                    font-family: var(--font-body);
+                    font-size: calc(20 * var(--p, 0.8px));
+                    font-weight: 400;
+                    line-height: 1.35;
+                    letter-spacing: 0;
+                    text-transform: uppercase;
+                    color: #000000;
+                    opacity: 1;
+                    margin: calc(8 * var(--p, 0.8px)) 0 1.2rem 0;
                 }
                 .acct-col-divider,
                 .acct-hairline {

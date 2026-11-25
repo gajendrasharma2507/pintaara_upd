@@ -427,11 +427,9 @@ export default function AccountProfilePage() {
             />
 
             {/* ── Page Header ── */}
-            <div className={`profile-header ${isEditing ? 'has-subtitle' : ''}`}>
+            <div className="profile-header has-subtitle">
                 <h1 className="profile-title">PROFILE</h1>
-                {isEditing && (
-                    <p className="profile-subtitle">/ MANAGE YOUR PERSONAL INFORMATION AND ACCOUNT SETTINGS</p>
-                )}
+                <p className="profile-subtitle">/ MANAGE YOUR PERSONAL INFORMATION AND ACCOUNT SETTINGS</p>
                 <div className="profile-divider" />
             </div>
 
@@ -985,15 +983,18 @@ export default function AccountProfilePage() {
                     text-transform: uppercase;
                 }
                 .profile-header.has-subtitle .profile-title {
-                    margin: 0 0 0.4rem 0;
+                    margin: 0;
                 }
                 .profile-subtitle {
+                    display: block;
                     font-family: var(--font-body), sans-serif;
-                    font-size: 0.72rem;
-                    letter-spacing: 0.08em;
-                    color: #1A1A1A;
+                    font-size: calc(20 * var(--p, 0.8px));
                     font-weight: 400;
-                    margin-top: 0;
+                    line-height: 1.35;
+                    letter-spacing: 0;
+                    color: #000000;
+                    opacity: 1;
+                    margin-top: calc(8 * var(--p, 0.8px));
                     margin-bottom: 1.25rem;
                     text-transform: uppercase;
                 }

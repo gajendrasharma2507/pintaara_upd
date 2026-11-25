@@ -170,6 +170,7 @@ export default function AccountAddressesPage() {
             {/* Header */}
             <div className="acct-address-header">
                 <h1 className="acct-addr-title">ADDRESS</h1>
+                <span className="acct-addr-subtitle">/ MANAGE YOUR SHIPPING AND BILLING ADDRESS</span>
                 <div className="acct-addr-divider" />
             </div>
 
@@ -505,7 +506,7 @@ export default function AccountAddressesPage() {
                     font-weight: 500;
                     letter-spacing: 0.04em;
                     color: #1A1A1A;
-                    margin: 0 0 1.25rem 0;
+                    margin: 0;
                 }
                 .acct-addr-subtitle-row {
                     display: flex;
@@ -516,10 +517,16 @@ export default function AccountAddressesPage() {
                     gap: 1rem;
                 }
                 .acct-addr-subtitle {
-                    font-size: 0.85rem;
-                    letter-spacing: 0.05em;
-                    color: #1A1A1A;
+                    display: block;
+                    font-family: var(--font-body);
+                    font-size: calc(20 * var(--p, 0.8px));
                     font-weight: 400;
+                    line-height: 1.35;
+                    letter-spacing: 0;
+                    text-transform: uppercase;
+                    color: #000000;
+                    opacity: 1;
+                    margin: calc(8 * var(--p, 0.8px)) 0 1.25rem 0;
                 }
                 .acct-view-switchers {
                     display: flex;
