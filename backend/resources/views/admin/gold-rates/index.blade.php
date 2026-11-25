@@ -237,48 +237,48 @@
                 </td>
               </tr>
 
-              <!-- Ceiling Formula Header (Pink/Coral background) -->
-              <tr style="background: #FCA5A5; border-bottom: 1px solid #F87171;">
-                <td colspan="2" style="padding: 8px 18px; font-size: 12px; font-weight: 700; color: #7F1D1D; text-align: center; font-family: monospace;">
-                  CEILING(Active Gold Rate, <input type="number" step="500" name="gold_step_gap" id="gold_step_gap_input" value="{{ $goldStepGap }}" oninput="recalculateEngine()" style="width: 70px; display: inline-block; padding: 2px 6px; font-weight: 800; font-size: 12px; border: 1px solid #DC2626; border-radius: 4px; text-align: center; background: #FEF2F2;">)
+              <!-- Ceiling Formula Header -->
+              <tr style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
+                <td colspan="2" style="padding: 8px 18px; font-size: 12px; font-weight: 600; color: #475569; text-align: center; font-family: monospace;">
+                  CEILING(Active Gold Rate, <input type="number" step="500" name="gold_step_gap" id="gold_step_gap_input" value="{{ $goldStepGap }}" oninput="recalculateEngine()" style="width: 70px; display: inline-block; padding: 2px 6px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; border-radius: 4px; text-align: center; background: #FFFFFF; color: #0F172A;">)
                 </td>
               </tr>
 
               <!-- Gold Rate CAP -->
-              <tr style="background: #FFF1F2; border-bottom: 2px solid #FECDD3;">
-                <td style="padding: 14px 18px; font-weight: 800; font-size: 14px; color: #9F1239;">Gold Rate CAP</td>
-                <td style="padding: 14px 18px; font-weight: 900; font-family: monospace; font-size: 18px; color: #9F1239;">
+              <tr style="background: #FFFFFF; border-bottom: 1px solid #E2E8F0;">
+                <td style="padding: 14px 18px; font-weight: 700; font-size: 14px; color: #0F172A;">Gold Rate CAP</td>
+                <td style="padding: 14px 18px; font-weight: 800; font-family: monospace; font-size: 17px; color: #0F172A;">
                   <span id="gold_cap_display">{{ number_format($goldCap, 0, '', '') }}</span>
                 </td>
               </tr>
 
-              <!-- Formula (B6 x 91.6%) / 10 Header (Pink/Coral background) -->
-              <tr style="background: #FCA5A5; border-bottom: 1px solid #F87171;">
-                <td colspan="2" style="padding: 8px 18px; font-size: 12px; font-weight: 700; color: #7F1D1D; text-align: center; font-family: monospace;">
+              <!-- Formula Header -->
+              <tr style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
+                <td colspan="2" style="padding: 8px 18px; font-size: 12px; font-weight: 600; color: #475569; text-align: center; font-family: monospace;">
                   (Gold Rate CAP × Purity%) ÷ 10
                 </td>
               </tr>
 
-              <!-- 22KT (91.6%) / G (Cyan background) -->
-              <tr style="background: #A5F3FC; border-bottom: 1px solid #67E8F9;">
-                <td style="padding: 12px 18px; font-weight: 700; color: #0E7490;">22KT (91.6%) / G</td>
-                <td style="padding: 12px 18px; font-weight: 900; font-family: monospace; font-size: 16px; color: #083344;">
+              <!-- 22KT (91.6%) / G -->
+              <tr style="background: #FFFFFF; border-bottom: 1px solid #E2E8F0;">
+                <td style="padding: 12px 18px; font-weight: 600; color: #475569;">22KT (91.6%) / G</td>
+                <td style="padding: 12px 18px; font-weight: 800; font-family: monospace; font-size: 15px; color: #0F172A;">
                   ₹<span id="gold_22kt_g_display">{{ number_format($base22kGram, 2) }}</span>
                 </td>
               </tr>
 
-              <!-- 18KT (75%) / G (Cyan background) -->
-              <tr style="background: #A5F3FC; border-bottom: 1px solid #67E8F9;">
-                <td style="padding: 12px 18px; font-weight: 700; color: #0E7490;">18KT (75%) / G</td>
-                <td style="padding: 12px 18px; font-weight: 900; font-family: monospace; font-size: 16px; color: #083344;">
+              <!-- 18KT (75%) / G -->
+              <tr style="background: #FFFFFF; border-bottom: 1px solid #E2E8F0;">
+                <td style="padding: 12px 18px; font-weight: 600; color: #475569;">18KT (75%) / G</td>
+                <td style="padding: 12px 18px; font-weight: 800; font-family: monospace; font-size: 15px; color: #0F172A;">
                   ₹<span id="gold_18kt_g_display">{{ number_format($gold18kGram, 2) }}</span>
                 </td>
               </tr>
 
-              <!-- 14KT (58.5%) / G (Cyan background) -->
-              <tr style="background: #A5F3FC;">
-                <td style="padding: 12px 18px; font-weight: 700; color: #0E7490;">14KT (58.5%) / G</td>
-                <td style="padding: 12px 18px; font-weight: 900; font-family: monospace; font-size: 16px; color: #083344;">
+              <!-- 14KT (58.5%) / G -->
+              <tr style="background: #FFFFFF;">
+                <td style="padding: 12px 18px; font-weight: 600; color: #475569;">14KT (58.5%) / G</td>
+                <td style="padding: 12px 18px; font-weight: 800; font-family: monospace; font-size: 15px; color: #0F172A;">
                   ₹<span id="gold_14kt_g_display">{{ number_format($gold14kGram, 2) }}</span>
                 </td>
               </tr>
@@ -324,40 +324,40 @@
                 </td>
               </tr>
 
-              <!-- Ceiling Formula Header (Pink/Coral background) -->
-              <tr style="background: #FCA5A5; border-bottom: 1px solid #F87171;">
-                <td colspan="2" style="padding: 8px 18px; font-size: 12px; font-weight: 700; color: #7F1D1D; text-align: center; font-family: monospace;">
-                  CEILING(Active Silver Rate, <input type="number" step="1000" name="silver_step_gap" id="silver_step_gap_input" value="{{ $silverStepGap }}" oninput="recalculateEngine()" style="width: 75px; display: inline-block; padding: 2px 6px; font-weight: 800; font-size: 12px; border: 1px solid #DC2626; border-radius: 4px; text-align: center; background: #FEF2F2;">)
+              <!-- Ceiling Formula Header -->
+              <tr style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
+                <td colspan="2" style="padding: 8px 18px; font-size: 12px; font-weight: 600; color: #475569; text-align: center; font-family: monospace;">
+                  CEILING(Active Silver Rate, <input type="number" step="1000" name="silver_step_gap" id="silver_step_gap_input" value="{{ $silverStepGap }}" oninput="recalculateEngine()" style="width: 75px; display: inline-block; padding: 2px 6px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; border-radius: 4px; text-align: center; background: #FFFFFF; color: #0F172A;">)
                 </td>
               </tr>
 
               <!-- Silver Rate CAP -->
-              <tr style="background: #FFF1F2; border-bottom: 2px solid #FECDD3;">
-                <td style="padding: 14px 18px; font-weight: 800; font-size: 14px; color: #9F1239;">Silver Rate CAP</td>
-                <td style="padding: 14px 18px; font-weight: 900; font-family: monospace; font-size: 18px; color: #9F1239;">
+              <tr style="background: #FFFFFF; border-bottom: 1px solid #E2E8F0;">
+                <td style="padding: 14px 18px; font-weight: 700; font-size: 14px; color: #0F172A;">Silver Rate CAP</td>
+                <td style="padding: 14px 18px; font-weight: 800; font-family: monospace; font-size: 17px; color: #0F172A;">
                   <span id="silver_cap_display">{{ number_format($silverCap, 0, '', '') }}</span>
                 </td>
               </tr>
 
-              <!-- Formula (E6 x 92.5%) / 1000 Header (Pink/Coral background) -->
-              <tr style="background: #FCA5A5; border-bottom: 1px solid #F87171;">
-                <td colspan="2" style="padding: 8px 18px; font-size: 12px; font-weight: 700; color: #7F1D1D; text-align: center; font-family: monospace;">
+              <!-- Formula Header -->
+              <tr style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
+                <td colspan="2" style="padding: 8px 18px; font-size: 12px; font-weight: 600; color: #475569; text-align: center; font-family: monospace;">
                   (Silver Rate CAP × 92.5%) ÷ 1000
                 </td>
               </tr>
 
-              <!-- 92.5% / G (Yellow background) -->
-              <tr style="background: #FEF08A; border-bottom: 1px solid #FDE047;">
-                <td style="padding: 12px 18px; font-weight: 700; color: #854D0E;">92.5% / G</td>
-                <td style="padding: 12px 18px; font-weight: 900; font-family: monospace; font-size: 16px; color: #713F12;">
+              <!-- 92.5% / G -->
+              <tr style="background: #FFFFFF; border-bottom: 1px solid #E2E8F0;">
+                <td style="padding: 12px 18px; font-weight: 600; color: #475569;">92.5% / G</td>
+                <td style="padding: 12px 18px; font-weight: 800; font-family: monospace; font-size: 15px; color: #0F172A;">
                   ₹<span id="silver_925_g_display">{{ number_format($silver925Gram, 2) }}</span>
                 </td>
               </tr>
 
-              <!-- Pure Silver 999 / G (Soft Gray) -->
-              <tr style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
-                <td style="padding: 12px 18px; font-weight: 600; color: #64748B;">Pure 999 / G</td>
-                <td style="padding: 12px 18px; font-weight: 700; font-family: monospace; font-size: 14px; color: #334155;">
+              <!-- Pure Silver 999 / G -->
+              <tr style="background: #FFFFFF; border-bottom: 1px solid #E2E8F0;">
+                <td style="padding: 12px 18px; font-weight: 600; color: #475569;">Pure 999 / G</td>
+                <td style="padding: 12px 18px; font-weight: 800; font-family: monospace; font-size: 15px; color: #0F172A;">
                   ₹<span id="silver_999_g_display">{{ number_format($silverCap / 1000.0, 2) }}</span>
                 </td>
               </tr>
