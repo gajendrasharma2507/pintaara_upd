@@ -58,30 +58,36 @@ class AdminAppointmentController extends Controller
             'status' => $appointment->status,
         ]);
 
-        // Send email notification to the client if email is available
+        // Send email notification to the client (and copy to info@pintaara.com)
         $emailSent = false;
         $recipient = $appointment->resolveCustomerEmail();
-        if ($recipient && $request->boolean('notify_user', true)) {
-            try {
-                EmailTemplate::ensureDefaultsExist();
-                $tpl = EmailTemplate::where('slug', 'appointment_updated')->where('is_active', true)->first();
-                if ($tpl) {
-                    $vars = [
-                        'customer_name'       => $appointment->full_name ?: 'Valued Client',
-                        'customer_email'      => $recipient,
-                        'appointment_date'    => $appointment->date ?: 'To be confirmed',
-                        'appointment_time'    => $appointment->time ?: 'To be confirmed',
-                        'appointment_status'  => ucfirst($appointment->status),
-                        'appointment_purpose' => $appointment->purpose ?: 'Studio Consultation',
-                        'admin_note'          => !empty($validated['admin_note']) ? ('<strong>Note:</strong> ' . e($validated['admin_note'])) : '',
-                        'action_url'          => config('app.frontend_url', 'https://pintaara.com') . '/book-an-appointment',
-                    ];
+        try {
+            EmailTemplate::ensureDefaultsExist();
+            $tpl = EmailTemplate::where('slug', 'appointment_updated')->where('is_active', true)->first();
+            if ($tpl) {
+                $vars = [
+                    'customer_name'       => $appointment->full_name ?: 'Valued Client',
+                    'customer_email'      => $recipient ?: '',
+                    'appointment_date'    => $appointment->date ?: 'To be confirmed',
+                    'appointment_time'    => $appointment->time ?: 'To be confirmed',
+                    'appointment_status'  => ucfirst($appointment->status),
+                    'appointment_purpose' => $appointment->purpose ?: 'Studio Consultation',
+                    'admin_note'          => !empty($validated['admin_note']) ? ('<strong>Note:</strong> ' . e($validated['admin_note'])) : '',
+                    'action_url'          => config('app.frontend_url', 'https://pintaara.com') . '/book-an-appointment',
+                ];
+
+                if ($recipient && $request->boolean('notify_user', true)) {
                     Mail::to($recipient)->send(new CustomTemplateMail($tpl, $vars));
                     $emailSent = true;
                 }
-            } catch (\Throwable $e) {
-                Log::error('[AdminAppointmentController] Failed to send appointment update email: ' . $e->getMessage());
+
+                $studioEmail = 'info@pintaara.com';
+                if (strtolower((string) $recipient) !== $studioEmail) {
+                    Mail::to($studioEmail)->send(new CustomTemplateMail($tpl, $vars));
+                }
             }
+        } catch (\Throwable $e) {
+            Log::error('[AdminAppointmentController] Failed to send appointment update email: ' . $e->getMessage());
         }
 
         $msg = 'Appointment #' . $appointment->id . ' updated.';

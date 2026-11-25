@@ -54,23 +54,42 @@ class AppointmentApiController extends Controller
         ]);
 
         $recipient = $appointment->resolveCustomerEmail();
-        if ($recipient) {
-            try {
-                \App\Models\EmailTemplate::ensureDefaultsExist();
-                $tpl = \App\Models\EmailTemplate::where('slug', 'appointment_confirmation')->where('is_active', true)->first();
-                if ($tpl) {
-                    \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\CustomTemplateMail($tpl, [
-                        'customer_name'       => $appointment->full_name ?: 'Valued Client',
-                        'customer_email'      => $recipient,
-                        'appointment_date'    => $appointment->date ?: 'To be confirmed',
-                        'appointment_time'    => $appointment->time ?: 'To be confirmed',
-                        'appointment_purpose' => $appointment->purpose ?: 'Studio Consultation',
-                        'action_url'          => config('app.frontend_url', 'https://pintaara.com') . '/book-an-appointment',
-                    ]));
-                }
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('[AppointmentApiController] Failed to send confirmation email: ' . $e->getMessage());
+        try {
+            \App\Models\EmailTemplate::ensureDefaultsExist();
+            $tpl = \App\Models\EmailTemplate::where('slug', 'appointment_confirmation')->where('is_active', true)->first();
+            $vars = [
+                'customer_name'       => $appointment->full_name ?: 'Valued Client',
+                'customer_email'      => $recipient ?: '',
+                'appointment_date'    => $appointment->date ?: 'To be confirmed',
+                'appointment_time'    => $appointment->time ?: 'To be confirmed',
+                'appointment_purpose' => $appointment->purpose ?: 'Studio Consultation',
+                'action_url'          => config('app.frontend_url', 'https://pintaara.com') . '/book-an-appointment',
+            ];
+
+            if ($recipient && $tpl) {
+                \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\CustomTemplateMail($tpl, $vars));
             }
+
+            // Always send appointment booking notification to info@pintaara.com
+            $studioEmail = 'info@pintaara.com';
+            $studioTpl = new \App\Models\EmailTemplate([
+                'subject' => 'PINTAARA | New Studio Appointment - ' . ($appointment->full_name ?: 'Client') . ' (' . ($appointment->date ?: 'TBD') . ')',
+                'body_html' => '<h2 class="h1-title">New Studio Appointment Booked.</h2>'
+                    . '<p>A new studio appointment has been submitted on pintaara.com:</p>'
+                    . '<div class="note-box">'
+                    . '<strong>Client Name:</strong> ' . e($appointment->full_name) . '<br>'
+                    . '<strong>Contact:</strong> ' . e($appointment->contact) . '<br>'
+                    . '<strong>Email:</strong> ' . e($recipient ?: 'Not provided') . '<br>'
+                    . '<strong>Date:</strong> ' . e($appointment->date ?: '—') . '<br>'
+                    . '<strong>Time:</strong> ' . e($appointment->time ?: '—') . '<br>'
+                    . '<strong>Purpose:</strong> ' . e($appointment->purpose ?: '—') . '<br>'
+                    . (!empty($appointment->notes) ? ('<strong>Notes:</strong> ' . e($appointment->notes)) : '')
+                    . '</div>'
+                    . '<div class="btn-container"><a href="https://admin.pintaara.com/admin/appointments" class="btn-primary">MANAGE IN ADMIN</a></div>',
+            ]);
+            \Illuminate\Support\Facades\Mail::to($studioEmail)->send(new \App\Mail\CustomTemplateMail($studioTpl, $vars));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[AppointmentApiController] Failed to send appointment email: ' . $e->getMessage());
         }
 
         return response()->json([
