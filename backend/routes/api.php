@@ -51,6 +51,9 @@ Route::post('/admin/auth/login', [AuthApiController::class, 'adminLogin']);
 Route::get('/gold-rate/today', [GoldRateApiController::class, 'today']);
 Route::post('/gold-rate/settings', [GoldRateApiController::class, 'updateRates']);
 
+// Currency Exchange Rates & Country Markups (Frankfurter API cached in DB)
+Route::get('/currencies/rates', [\App\Http\Controllers\Api\CurrencyApiController::class, 'rates']);
+
 // Catalog, Categories & Customizer
 Route::get('/collections', [CollectionApiController::class, 'index']);
 Route::get('/products', [ProductApiController::class, 'index']);

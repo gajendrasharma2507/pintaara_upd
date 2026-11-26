@@ -215,6 +215,11 @@
           <span>Live Gold Spot Rates</span>
         </a>
 
+        <!-- Currency & FX Rates -->
+        <a href="{{ route('admin.currencies') }}" class="admin-filter-btn {{ request()->routeIs('admin.currencies*') ? 'nav-item-active' : '' }}" style="width: 100%; justify-content: flex-start; padding: 10px 14px; border-radius: 8px; border: none; font-size: 13.5px; text-decoration: none; color: var(--admin-text-secondary);">
+          <span>Currency &amp; FX Rates</span>
+        </a>
+
         <!-- Email Templates -->
         <a href="{{ route('admin.email-templates') }}" class="admin-filter-btn {{ request()->routeIs('admin.email-templates*') ? 'nav-item-active' : '' }}" style="width: 100%; justify-content: flex-start; padding: 10px 14px; border-radius: 8px; border: none; font-size: 13.5px; text-decoration: none; color: var(--admin-text-secondary);">
           <span>Email Templates</span>

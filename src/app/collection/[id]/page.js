@@ -9,6 +9,7 @@ import { useCart } from '@/context/CartContext';
 import api, { apiFetch } from '@/lib/api';
 import ThreeDModelViewer from '@/components/ThreeDModelViewer';
 import { useAuth } from '@/context/AuthContext';
+import { useCurrency } from '@/context/CurrencyContext';
 
 
 const resolveImageUrl = (img) => {
@@ -306,6 +307,7 @@ export default function DynamicCollectionPage({ params }) {
     const router = useRouter();
     const { addToCart, cartCount } = useCart();
     const { user, loading: authLoading } = useAuth();
+    const { formatPrice } = useCurrency();
 
     const resolvedParams = (params && typeof params.then === "function") ? use(params) : (params || {});
     const rawParam = resolvedParams?.id || '';
@@ -1666,7 +1668,7 @@ export default function DynamicCollectionPage({ params }) {
                                                 {customProductName ? customProductName.toUpperCase() : '\u00A0'}
                                             </span>
                                             <h3 className="cat-prod-code">{itemCode || nameStr}</h3>
-                                            <span className="cat-prod-price">₹ {formattedPrice}</span>
+                                            <span className="cat-prod-price">{formatPrice(total)}</span>
                                         </div>
                                     </Link>
                                 );
@@ -1755,18 +1757,18 @@ export default function DynamicCollectionPage({ params }) {
         );
     }
 
-    const displayPrice = (() => {
+    const rawInrPrice = (() => {
         const finalCalculated = priceBreakdown?.total || priceBreakdown?.total_price || priceBreakdown?.final_amount;
         if (finalCalculated && Number(finalCalculated) > 0) {
-            return Number(Math.round(finalCalculated)).toLocaleString('en-IN');
+            return Number(finalCalculated);
         }
         if (activeVariant && (Number(activeVariant.price_override) > 0 || Number(activeVariant.price) > 0)) {
-            return Number(Math.round(activeVariant.price_override || activeVariant.price)).toLocaleString('en-IN');
+            return Number(activeVariant.price_override || activeVariant.price);
         }
         if (productDetail?.base_pricing?.total_price) {
-            return Number(Math.round(productDetail.base_pricing.total_price)).toLocaleString('en-IN');
+            return Number(productDetail.base_pricing.total_price);
         }
-        return '0';
+        return 0;
     })();
 
     const rawCustomSections = productDetail?.custom_sections;
@@ -2216,7 +2218,7 @@ export default function DynamicCollectionPage({ params }) {
                         <div className="atelier-btn-accent-line" />
                         <div className="atelier-bottom-inner">
                             <div className="atelier-price-block">
-                                <div className="atelier-price-value">₹ {displayPrice}</div>
+                                <div className="atelier-price-value">{formatPrice(rawInrPrice)}</div>
                                 <span
                                     className="atelier-taxes-link"
                                     style={{ cursor: 'default', textDecoration: 'none', userSelect: 'none' }}

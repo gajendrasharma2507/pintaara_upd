@@ -86,6 +86,11 @@ Route::prefix('admin')->group(function () {
         Route::get('/gold-rates/live-feed', [AdminWebController::class, 'liveGoldRatesFeed'])->name('admin.gold-rates.feed');
         Route::post('/gold-rates', [AdminWebController::class, 'updateGoldRates'])->name('admin.gold-rates.update');
 
+        // Currency & FX Rates (Frankfurter API)
+        Route::get('/currencies', [\App\Http\Controllers\Admin\AdminCurrencyController::class, 'index'])->name('admin.currencies');
+        Route::post('/currencies/sync', [\App\Http\Controllers\Admin\AdminCurrencyController::class, 'sync'])->name('admin.currencies.sync');
+        Route::post('/currencies/update', [\App\Http\Controllers\Admin\AdminCurrencyController::class, 'update'])->name('admin.currencies.update');
+
         // Masters (Hidden and redirected to dynamic Options & Variants)
         Route::get('/masters', function () {
             return redirect()->route('admin.product-options');

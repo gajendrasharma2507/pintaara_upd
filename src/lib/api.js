@@ -83,6 +83,7 @@ export default {
   resetPassword: (data) => apiFetch('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
   getStorefrontPasscodeStatus: () => apiFetch('/storefront/passcode-status'),
   verifyStorefrontPasscode: (passcode) => apiFetch('/auth/verify-storefront-passcode', { method: 'POST', body: JSON.stringify({ passcode }) }),
+  getCurrencyRates: () => apiFetch('/currencies/rates'),
 
   // User Protected Resources
   getUserOrders: () => apiFetch('/user/orders'),

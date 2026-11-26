@@ -13,6 +13,7 @@ import "@/styles/pdf-pages.css";
 import "@/styles/mobile-home.css";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import PasswordGate from "@/components/PasswordGate";
 
 // Fallback: loaded only if the local font cannot render
@@ -60,11 +61,13 @@ export default function RootLayout({ children }) {
     <html lang="en" data-scroll-behavior="smooth">
       <body className={`${cinzel.variable} ${montserrat.variable} ${cormorant.variable} ${baskerville.variable}`}>
         <AuthProvider>
-          <CartProvider>
-            <PasswordGate>
-              {children}
-            </PasswordGate>
-          </CartProvider>
+          <CurrencyProvider>
+            <CartProvider>
+              <PasswordGate>
+                {children}
+              </PasswordGate>
+            </CartProvider>
+          </CurrencyProvider>
         </AuthProvider>
       </body>
     </html>

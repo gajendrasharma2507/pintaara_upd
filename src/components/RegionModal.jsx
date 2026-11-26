@@ -74,9 +74,11 @@ const REGIONS_DATA = [
 ];
 
 import { safeStorage } from '@/lib/storage';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export default function RegionModal({ isOpen, onClose }) {
     const [selectedLang, setSelectedLang] = useState("en-US");
+    const { setCurrencyByRegion } = useCurrency();
 
     useEffect(() => {
         const saved = safeStorage.getItem('pintaara_region_lang');
@@ -105,9 +107,10 @@ export default function RegionModal({ isOpen, onClose }) {
 
     if (!isOpen) return null;
 
-    const handleSelectLanguage = (langCode) => {
+    const handleSelectLanguage = (langCode, countryName) => {
         setSelectedLang(langCode);
         safeStorage.setItem('pintaara_region_lang', langCode);
+        setCurrencyByRegion(countryName, langCode);
         setTimeout(() => {
             onClose();
         }, 150);
@@ -149,7 +152,7 @@ export default function RegionModal({ isOpen, onClose }) {
                                                             <button
                                                                 type="button"
                                                                 className={`lang-choice-btn ${isSelected ? 'active-lang' : ''}`}
-                                                                onClick={() => handleSelectLanguage(lang.code)}
+                                                                onClick={() => handleSelectLanguage(lang.code, country.name)}
                                                             >
                                                                 {lang.label}
                                                             </button>

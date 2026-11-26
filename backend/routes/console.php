@@ -24,3 +24,11 @@ Schedule::command('rates:sync')
     ->between('09:00', '18:00')
     ->timezone('Asia/Kolkata')
     ->runInBackground();
+
+/**
+ * Frankfurter API Currency Exchange Rates Schedule:
+ * Automatically refreshes enabled storefront currency rates every 6 hours.
+ */
+Schedule::command('currencies:sync')
+    ->everySixHours()
+    ->runInBackground();
