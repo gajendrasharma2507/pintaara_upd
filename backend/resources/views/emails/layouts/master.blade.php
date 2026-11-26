@@ -6,6 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>{{ $emailSubject ?? 'PINTAARA Fine Jewellery' }}</title>
   <style type="text/css">
+    * { box-sizing: border-box; }
     body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
@@ -20,12 +21,15 @@
     }
     .wrapper {
       width: 100%;
+      box-sizing: border-box;
       table-layout: fixed;
       background-color: #FAF9F5;
       padding: 40px 16px;
     }
     .email-container {
+      width: 100%;
       max-width: 600px;
+      box-sizing: border-box;
       margin: 0 auto;
       background-color: #FFFFFF;
       border: 1px solid #EAE6DF;
@@ -170,6 +174,39 @@
     .footer a {
       color: #B8860B;
       text-decoration: none;
+    }
+    @media only screen and (max-width: 620px) {
+      .wrapper {
+        padding: 16px 8px !important;
+      }
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 6px !important;
+      }
+      .header {
+        padding: 24px 16px 18px 16px !important;
+      }
+      .content {
+        padding: 24px 18px 22px 18px !important;
+        font-size: 14px !important;
+      }
+      .h1-title {
+        font-size: 19px !important;
+      }
+      .note-box {
+        padding: 12px 14px !important;
+        margin: 18px 0 !important;
+        word-break: break-word !important;
+      }
+      .btn-primary {
+        padding: 13px 24px !important;
+        font-size: 12px !important;
+        max-width: 100% !important;
+      }
+      .footer {
+        padding: 18px 16px 24px 16px !important;
+      }
     }
   </style>
 </head>
