@@ -89,39 +89,50 @@ class RazorpayApiController extends Controller
 
         $currency = strtoupper($request->currency ?? $this->currency);
 
-        // Recalculate price server-side from cart items to prevent client tampering
-        $pricing = null;
-        if (!empty($request->items) && is_array($request->items)) {
-            $pricing = $this->pricingService->calculateCartPrice($request->items);
-            $amountInBase = (float) $pricing['total_amount'];
-        } else {
-            $amountInBase = (float) ($request->amount ?? 1);
-        }
-
-        // Convert to selected storefront currency using cached Frankfurter rate + country markup
-        $chargeAmount = $amountInBase;
-        if ($currency !== 'INR') {
-            $currencyRate = \App\Models\CurrencyRate::where('currency_code', $currency)
-                ->where('is_enabled', true)
-                ->first();
-
-            if ($currencyRate) {
-                $rate = (float) $currencyRate->exchange_rate;
-                $markup = (float) $currencyRate->country_markup;
-                if ($pricing && !empty($pricing['items'])) {
-                    $totalForeign = 0.0;
-                    foreach ($pricing['items'] as $pItem) {
-                        $qty = max(1, (int) ($pItem['quantity'] ?? 1));
-                        $unitInr = (float) ($pItem['unit_price'] ?? 0);
-                        $unitForeign = round(($unitInr * $rate) + $markup, 2);
-                        $totalForeign += $unitForeign * $qty;
-                    }
-                    $chargeAmount = round($totalForeign, 2);
-                } else {
-                    $chargeAmount = round(($amountInBase * $rate) + $markup, 2);
+        // Use exact checkout total in the selected currency when provided; fallback to server-side calculation
+        if ($request->filled('amount') && (float) $request->amount > 0) {
+            $chargeAmount = round((float) $request->amount, 2);
+            if ($currency !== 'INR') {
+                $isEnabled = \App\Models\CurrencyRate::where('currency_code', $currency)
+                    ->where('is_enabled', true)
+                    ->exists();
+                if (!$isEnabled) {
+                    $currency = 'INR';
                 }
+            }
+        } else {
+            $pricing = null;
+            if (!empty($request->items) && is_array($request->items)) {
+                $pricing = $this->pricingService->calculateCartPrice($request->items);
+                $amountInBase = (float) $pricing['total_amount'];
             } else {
-                $currency = 'INR';
+                $amountInBase = 1.0;
+            }
+
+            $chargeAmount = $amountInBase;
+            if ($currency !== 'INR') {
+                $currencyRate = \App\Models\CurrencyRate::where('currency_code', $currency)
+                    ->where('is_enabled', true)
+                    ->first();
+
+                if ($currencyRate) {
+                    $rate = (float) $currencyRate->exchange_rate;
+                    $markup = (float) $currencyRate->country_markup;
+                    if ($pricing && !empty($pricing['items'])) {
+                        $totalForeign = 0.0;
+                        foreach ($pricing['items'] as $pItem) {
+                            $qty = max(1, (int) ($pItem['quantity'] ?? 1));
+                            $unitInr = (float) ($pItem['unit_price'] ?? 0);
+                            $unitForeign = round(($unitInr * $rate) + $markup, 2);
+                            $totalForeign += $unitForeign * $qty;
+                        }
+                        $chargeAmount = round($totalForeign, 2);
+                    } else {
+                        $chargeAmount = round(($amountInBase * $rate) + $markup, 2);
+                    }
+                } else {
+                    $currency = 'INR';
+                }
             }
         }
 
