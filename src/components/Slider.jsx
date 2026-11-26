@@ -282,7 +282,7 @@ export default function Slider({ slidesConfig, activeIdx, setActiveIdx, scrollTo
                                                 </p>
                                             </div>
                                             <div className="footer-bottom-right">
-                                                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="footer-ig-link" aria-label="Instagram">
+                                                <a href="https://www.instagram.com/pintaara753" target="_blank" rel="noopener noreferrer" className="footer-ig-link" aria-label="Instagram">
                                                     <picture>
                                                         <source media="(max-width: 767px)" srcSet="/images/mobile/instagram.png" />
                                                         <img src="/images/instagram-icon.svg" alt="Instagram" className="footer-ig-icon" />
