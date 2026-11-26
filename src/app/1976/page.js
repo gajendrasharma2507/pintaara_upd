@@ -167,81 +167,99 @@ export default function Legacy1976Page() {
             {/* Sound of Pintaara Audio */}
             <audio ref={audioRef} src="/audio/sound-of-pintaara.mp3" loop preload="auto" />
 
-            {/* Floating Language Switcher (EN / GU) */}
+            {/* Floating Controls (Language + Audio) on one side above footer */}
             <div
-                role="group"
-                aria-label="Language"
+                className="legacy-floating-controls"
                 style={{
                     position: 'fixed',
-                    bottom: 'clamp(24px, 4vh, 40px)',
-                    left: 'clamp(24px, 4vw, 50px)',
+                    bottom: 'clamp(72px, 9.5vh, 92px)',
+                    right: 'clamp(24px, 4vw, 50px)',
                     zIndex: 100,
                     display: 'inline-flex',
                     alignItems: 'center',
-                    padding: '4px',
-                    background: 'rgba(22, 14, 9, 0.75)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(235, 191, 154, 0.3)',
-                    borderRadius: '30px',
-                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                    gap: '10px',
+                    flexWrap: 'wrap',
+                    justifyContent: 'flex-end',
                 }}
             >
-                <button
-                    type="button"
-                    onClick={() => setLang('en')}
+                <div
+                    role="group"
+                    aria-label="Language"
                     style={{
-                        border: 'none',
-                        borderRadius: '24px',
-                        padding: '6px 13px',
-                        fontSize: '11px',
-                        fontWeight: 500,
-                        letterSpacing: '0.14em',
-                        cursor: 'pointer',
-                        background: lang === 'en' ? '#EBBF9A' : 'transparent',
-                        color: lang === 'en' ? '#160E09' : '#EBBF9A',
-                        transition: 'all 0.2s ease',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        padding: '4px',
+                        background: 'rgba(22, 14, 9, 0.75)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(235, 191, 154, 0.3)',
+                        borderRadius: '30px',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
                     }}
                 >
-                    ENG
-                </button>
+                    <button
+                        type="button"
+                        onClick={() => setLang('en')}
+                        style={{
+                            border: 'none',
+                            borderRadius: '24px',
+                            padding: '6px 13px',
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            letterSpacing: '0.14em',
+                            cursor: 'pointer',
+                            background: lang === 'en' ? '#EBBF9A' : 'transparent',
+                            color: lang === 'en' ? '#160E09' : '#EBBF9A',
+                            transition: 'all 0.2s ease',
+                        }}
+                    >
+                        ENGLISH
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setLang('gu')}
+                        style={{
+                            border: 'none',
+                            borderRadius: '24px',
+                            padding: '6px 13px',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            letterSpacing: '0.04em',
+                            cursor: 'pointer',
+                            background: lang === 'gu' ? '#EBBF9A' : 'transparent',
+                            color: lang === 'gu' ? '#160E09' : '#EBBF9A',
+                            transition: 'all 0.2s ease',
+                        }}
+                    >
+                        ગુજરાતી
+                    </button>
+                </div>
+
+                {/* Floating Luxury Audio Controller */}
                 <button
-                    type="button"
-                    onClick={() => setLang('gu')}
-                    style={{
-                        border: 'none',
-                        borderRadius: '24px',
-                        padding: '6px 13px',
-                        fontSize: '12px',
-                        fontWeight: 500,
-                        letterSpacing: '0.04em',
-                        cursor: 'pointer',
-                        background: lang === 'gu' ? '#EBBF9A' : 'transparent',
-                        color: lang === 'gu' ? '#160E09' : '#EBBF9A',
-                        transition: 'all 0.2s ease',
-                    }}
+                    className={`legacy-audio-toggle ${isPlaying ? 'audio-playing' : 'audio-muted'}`}
+                    onClick={toggleAudio}
+                    title={isPlaying ? t.muteTitle : t.playTitle}
+                    aria-label="Toggle Sound"
                 >
-                    ગુજરાતી
+                    <div className="sound-bars-icon">
+                        <span className="sound-bar bar-1"></span>
+                        <span className="sound-bar bar-2"></span>
+                        <span className="sound-bar bar-3"></span>
+                        <span className="sound-bar bar-4"></span>
+                    </div>
+                    <span className="audio-toggle-label">
+                        {isPlaying ? t.soundOn : t.soundOff}
+                    </span>
                 </button>
             </div>
-
-            {/* Floating Luxury Audio Controller */}
-            <button
-                className={`legacy-audio-toggle ${isPlaying ? 'audio-playing' : 'audio-muted'}`}
-                onClick={toggleAudio}
-                title={isPlaying ? t.muteTitle : t.playTitle}
-                aria-label="Toggle Sound"
-            >
-                <div className="sound-bars-icon">
-                    <span className="sound-bar bar-1"></span>
-                    <span className="sound-bar bar-2"></span>
-                    <span className="sound-bar bar-3"></span>
-                    <span className="sound-bar bar-4"></span>
-                </div>
-                <span className="audio-toggle-label">
-                    {isPlaying ? t.soundOn : t.soundOff}
-                </span>
-            </button>
+            <style jsx>{`
+                .legacy-floating-controls :global(.legacy-audio-toggle) {
+                    position: static !important;
+                    bottom: auto !important;
+                    right: auto !important;
+                }
+            `}</style>
 
             {/* HERO: Full-bleed sepia background with giant year number */}
             <section className="legacy-hero">
