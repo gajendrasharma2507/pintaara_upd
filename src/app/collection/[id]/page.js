@@ -1317,6 +1317,9 @@ export default function DynamicCollectionPage({ params }) {
             ? Number(productDetail.silver_making_charge_percent)
             : Number(productDetail.making_charge_percent || 0);
 
+        const effectiveMakingFlat = Number(productDetail.making_charge || 0);
+        const effectiveWastagePercent = Number(productDetail.wastage_percent || 0);
+
         const effectiveBrandMarkup = isSilver && productDetail.silver_brand_markup_percent !== null && productDetail.silver_brand_markup_percent !== undefined && productDetail.silver_brand_markup_percent !== ''
             ? Number(productDetail.silver_brand_markup_percent)
             : (Number(productDetail.brand_markup_percent) || 0);
@@ -1340,9 +1343,12 @@ export default function DynamicCollectionPage({ params }) {
             localRatePerGram = (rates?.gold_24kt_per_g || 14500) * purityFraction;
         }
         const localMetalVal = Math.round(effectiveWeight * localRatePerGram * 100) / 100;
-        const localMakingVal = Math.round(localMetalVal * (effectiveMakingPercent / 100) * 100) / 100;
+        const localWastageVal = Math.round(localMetalVal * (effectiveWastagePercent / 100) * 100) / 100;
+        const localMakingVal = effectiveMakingPercent > 0
+            ? Math.round(localMetalVal * (effectiveMakingPercent / 100) * 100) / 100
+            : Math.round(effectiveMakingFlat * 100) / 100;
         const localMarkupVal = Math.round(localMetalVal * (effectiveBrandMarkup / 100) * 100) / 100;
-        const localSubtotal = Math.round((localMetalVal + localMakingVal + localMarkupVal + effectiveOtherCharges + totalOptionsDelta) * 100) / 100;
+        const localSubtotal = Math.round((localMetalVal + localWastageVal + localMakingVal + localMarkupVal + effectiveOtherCharges + totalOptionsDelta) * 100) / 100;
         const localGst = Math.round(localSubtotal * 0.03 * 100) / 100;
         const localTotal = Math.round(localSubtotal + localGst);
 
@@ -1352,6 +1358,8 @@ export default function DynamicCollectionPage({ params }) {
             weight_grams: effectiveWeight,
             rate_per_gram: localRatePerGram,
             metal_value: localMetalVal,
+            wastage_percent: effectiveWastagePercent,
+            wastage_value: localWastageVal,
             making_charge_percent: effectiveMakingPercent,
             making_charge: localMakingVal,
             brand_markup_percent: effectiveBrandMarkup,
@@ -1376,7 +1384,9 @@ export default function DynamicCollectionPage({ params }) {
         const calculate = async () => {
             try {
                 const safeWeight = Math.max(0.01, effectiveWeight || 0.01);
+                const safeMakingFlat = Math.max(0, effectiveMakingFlat || 0);
                 const safeMakingPercent = Math.min(100, Math.max(0, effectiveMakingPercent || 0));
+                const safeWastagePercent = Math.min(100, Math.max(0, effectiveWastagePercent || 0));
                 const safeBrandMarkup = Math.min(100, Math.max(0, effectiveBrandMarkup || 0));
                 const safeOtherCharges = Math.max(0, (effectiveOtherCharges || 0) + totalOptionsDelta);
 
@@ -1387,11 +1397,11 @@ export default function DynamicCollectionPage({ params }) {
                         purity: purityStr,
                         purity_fraction: purityFraction,
                         metal_type: isSilver ? 'silver' : 'gold',
-                        making_charge_flat: 0,
+                        making_charge_flat: safeMakingFlat,
                         making_charge_percent: safeMakingPercent,
                         brand_markup_percent: safeBrandMarkup,
                         other_charges: safeOtherCharges,
-                        wastage_percent: 0,
+                        wastage_percent: safeWastagePercent,
                     }),
                 });
                 const data = response?.data;
