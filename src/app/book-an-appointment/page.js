@@ -26,7 +26,7 @@ export default function BookAppointmentPage() {
         purpose: 'Design a Jewellery Piece',
         notes: ''
     });
-    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [bookingModal, setBookingModal] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState('');
 
@@ -34,15 +34,16 @@ export default function BookAppointmentPage() {
         e.preventDefault();
         setIsSubmitting(true);
         setSubmitError('');
+        const submittedInfo = {
+            ...formData,
+            email: user?.email || formData.email,
+        };
         try {
             await apiFetch('/appointments', {
                 method: 'POST',
-                body: JSON.stringify({
-                    ...formData,
-                    email: user?.email || formData.email,
-                }),
+                body: JSON.stringify(submittedInfo),
             });
-            setIsSubmitted(true);
+            setBookingModal(submittedInfo);
             setFormData({
                 fullName: '',
                 contact: '',
@@ -52,7 +53,6 @@ export default function BookAppointmentPage() {
                 purpose: 'Design a Jewellery Piece',
                 notes: ''
             });
-            setTimeout(() => setIsSubmitted(false), 5000);
         } catch (err) {
             setSubmitError(err?.message || 'Unable to book appointment. Please try again.');
         } finally {
@@ -105,11 +105,6 @@ export default function BookAppointmentPage() {
 
                     {/* Right Column: Appointment Booking Form */}
                     <div className="appointment-form-column">
-                        {isSubmitted && (
-                            <div className="appointment-success-banner">
-                                Thank you. Your appointment request has been received. Our team will contact you shortly.
-                            </div>
-                        )}
                         {submitError && (
                             <div className="appointment-success-banner" style={{ backgroundColor: '#FEF2F2', borderColor: '#FECACA', color: '#991B1B' }}>
                                 {submitError}
@@ -635,7 +630,142 @@ export default function BookAppointmentPage() {
                         display: none;
                     }
                 }
+
+                .appt-success-backdrop {
+                    position: fixed;
+                    inset: 0;
+                    background-color: rgba(0, 0, 0, 0.35);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 2000;
+                    padding: 1.5rem;
+                }
+                .appt-success-modal-box {
+                    width: 100%;
+                    max-width: 480px;
+                    background-color: #F5F2EB;
+                    padding: 3rem 2.5rem 2.5rem 2.5rem;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                }
+                .appt-success-close-x {
+                    position: absolute;
+                    top: 1.25rem;
+                    right: 1.25rem;
+                    background: transparent;
+                    border: none;
+                    font-size: 1.15rem;
+                    color: #1A1A1A;
+                    cursor: pointer;
+                    padding: 4px 8px;
+                    line-height: 1;
+                }
+                .appt-success-close-x:hover {
+                    opacity: 0.7;
+                }
+                .appt-success-check-icon {
+                    margin-bottom: 1.5rem;
+                }
+                .appt-success-heading {
+                    font-size: 1.05rem;
+                    font-weight: 500;
+                    letter-spacing: 0.06em;
+                    color: #1A1A1A;
+                    margin: 0 0 1.8rem 0;
+                    text-transform: uppercase;
+                }
+                .appt-success-preview-card {
+                    width: 100%;
+                    background-color: #FAF7F2;
+                    border-radius: 20px;
+                    padding: 1.6rem 2rem;
+                    text-align: left;
+                    margin-bottom: 2rem;
+                    box-sizing: border-box;
+                }
+                .appt-success-tag {
+                    font-size: 0.95rem;
+                    font-weight: 500;
+                    letter-spacing: 0.05em;
+                    color: #1A1A1A;
+                    margin-bottom: 0.8rem;
+                    text-transform: uppercase;
+                }
+                .appt-success-text {
+                    font-size: 0.88rem;
+                    color: #1A1A1A;
+                    line-height: 1.45;
+                }
+                .appt-success-done-btn {
+                    width: 100%;
+                    height: 46px;
+                    background-color: #1A1A1A;
+                    color: #F5F2EB;
+                    border: 1px solid #1A1A1A;
+                    font-family: var(--font-body), sans-serif;
+                    font-size: 0.84rem;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    transition: opacity 0.15s ease;
+                }
+                .appt-success-done-btn:hover {
+                    opacity: 0.88;
+                }
             `}</style>
+
+            {bookingModal && (
+                <div className="appt-success-backdrop" onClick={() => setBookingModal(null)}>
+                    <div className="appt-success-modal-box" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            className="appt-success-close-x"
+                            aria-label="Close"
+                            onClick={() => setBookingModal(null)}
+                        >
+                            ✕
+                        </button>
+
+                        <div className="appt-success-check-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                                <polyline points="20 6 9 17 4 12" stroke="#7B7D50" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </div>
+
+                        <h3 className="appt-success-heading">BOOK AN APPOINTMENT</h3>
+
+                        <div className="appt-success-preview-card">
+                            <div className="appt-success-tag">{bookingModal.purpose || 'APPOINTMENT'}</div>
+                            <div className="appt-success-text">{bookingModal.fullName}</div>
+                            <div className="appt-success-text">
+                                {bookingModal.date}{bookingModal.time ? ` · ${bookingModal.time}` : ''}
+                            </div>
+                            <div className="appt-success-text">{bookingModal.contact}</div>
+                            {bookingModal.email && (
+                                <div className="appt-success-text">{bookingModal.email}</div>
+                            )}
+                            {bookingModal.notes && (
+                                <div className="appt-success-text" style={{ marginTop: '0.5rem', color: '#555' }}>
+                                    {bookingModal.notes}
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            type="button"
+                            className="appt-success-done-btn"
+                            onClick={() => setBookingModal(null)}
+                        >
+                            DONE
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
