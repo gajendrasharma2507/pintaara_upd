@@ -19,8 +19,18 @@
       $finish = $firstItem?->finish ?? 'Yellow Gold';
       $sizeOrLength = $firstItem?->size ?: ($firstItem?->chain ?: 'Standard');
       $stoneDetails = $firstItem?->gem ?: 'Natural Diamond';
-      $currency = $currency ?? '₹';
-      $totalPaid = number_format($order->total_amount, 2);
+      $orderCurr = $order->gold_rate_snapshot['currency'] ?? null;
+      $currCode = strtoupper($orderCurr['code'] ?? 'INR');
+      $currency = $currency ?? ($orderCurr['symbol'] ?? '₹');
+      $rawTotal = (float) ($order->total_amount ?? 0);
+      if ($currCode !== 'INR' && $orderCurr) {
+          $conv = $rawTotal * (float) ($orderCurr['exchange_rate'] ?? 1);
+          $markup = (float) ($orderCurr['country_markup'] ?? 0);
+          $rawTotal = ($orderCurr['markup_type'] ?? 'flat') === 'percent'
+              ? round($conv * (1 + $markup / 100), 2)
+              : round($conv + $markup, 2);
+      }
+      $totalPaid = number_format($rawTotal, 2);
     @endphp
     <div class="detail-row">
       <span class="detail-label">Product:</span>

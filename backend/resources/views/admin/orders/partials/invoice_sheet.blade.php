@@ -97,6 +97,26 @@
   $paymentMethod = (stripos($rawPayment, 'card') !== false || stripos($rawPayment, 'upi') !== false || stripos($rawPayment, 'gpay') !== false) ? 'Gpay' : ucfirst($rawPayment);
   $paymentTxnId = $order->razorpay_payment_id ?: ('pay_' . substr(md5('txn_' . $order->id . $order->created_at), 0, 14));
 
+  // Order currency formatting helper (uses locked checkout currency if available, else INR)
+  $invCurrency = $order->gold_rate_snapshot['currency'] ?? null;
+  $invCurrCode = strtoupper($invCurrency['code'] ?? 'INR');
+  $invCurrSym = $invCurrency['symbol'] ?? '₹';
+  $invRate = (float) ($invCurrency['exchange_rate'] ?? 1);
+  $invMarkup = (float) ($invCurrency['country_markup'] ?? 0);
+  $invMarkupType = $invCurrency['markup_type'] ?? 'flat';
+  $fmtInvMoney = function($inrVal, $withSymbol = true) use ($invCurrCode, $invCurrSym, $invRate, $invMarkup, $invMarkupType) {
+      $base = (float) ($inrVal ?? 0);
+      if ($invCurrCode === 'INR') {
+          $amt = $invMarkupType === 'percent' ? round($base * (1 + $invMarkup / 100), 2) : round($base + $invMarkup, 2);
+      } else {
+          $conv = $base * $invRate;
+          $amt = $invMarkupType === 'percent' ? round($conv * (1 + $invMarkup / 100), 2) : round($conv + $invMarkup, 2);
+      }
+      $num = number_format($amt, 2);
+      if (!$withSymbol) return $num;
+      return ($invCurrCode === 'INR' ? '&#8377;' : e($invCurrSym) . ' ') . $num;
+  };
+
   // Items list (fallback to demo item if empty)
   $items = $order->items;
   if ($items->isEmpty()) {
@@ -716,9 +736,9 @@
             <div>Stone: {{ ($item->gem && $item->gem !== 'None') ? $item->gem : 'No Stone / Solid Gold' }}</div>
           </div>
         </div>
-        <div class="pnt-inv-td-unit-col">{{ number_format($unitPrice, 2) }}</div>
+        <div class="pnt-inv-td-unit-col">{!! $fmtInvMoney($unitPrice, false) !!}</div>
         <div class="pnt-inv-td-qty-col">{{ $quantity }}</div>
-        <div class="pnt-inv-td-net-col">&#8377;{{ number_format($netTotal, 2) }}</div>
+        <div class="pnt-inv-td-net-col">{!! $fmtInvMoney($netTotal) !!}</div>
       </div>
     @endforeach
   </div>
@@ -741,15 +761,15 @@
       
       <div class="pnt-summary-row">
         <span class="pnt-summary-label">Sub Total</span>
-        <span class="pnt-summary-val">&#8377;{{ number_format($order->subtotal ?: 54611.25, 2) }}</span>
+        <span class="pnt-summary-val">{!! $fmtInvMoney($order->subtotal ?: 54611.25) !!}</span>
       </div>
       <div class="pnt-summary-row">
         <span class="pnt-summary-label">Tax 3%</span>
-        <span class="pnt-summary-val">&#8377;{{ number_format($order->gst_amount ?: ($order->total_amount ? ($order->total_amount - ($order->subtotal ?: 0)) : 1638.34), 2) }}</span>
+        <span class="pnt-summary-val">{!! $fmtInvMoney($order->gst_amount ?: ($order->total_amount ? ($order->total_amount - ($order->subtotal ?: 0)) : 1638.34)) !!}</span>
       </div>
       <div class="pnt-summary-row">
         <span class="pnt-summary-label">Shipping</span>
-        <span class="pnt-summary-val">&#8377;0.00</span>
+        <span class="pnt-summary-val">{!! $invCurrCode === 'INR' ? '&#8377;0.00' : (e($invCurrSym) . ' 0.00') !!}</span>
       </div>
     </div>
   </div>
@@ -762,7 +782,7 @@
   <!-- Total Amount Row -->
   <div class="pnt-inv-total-row">
     <span class="pnt-total-label">TOTAL AMOUNT</span>
-    <span class="pnt-total-val">&#8377;{{ number_format($order->total_amount ?: 54611.25, 2) }}</span>
+    <span class="pnt-total-val">{!! $fmtInvMoney($order->total_amount ?: 54611.25) !!}</span>
   </div>
 
   <!-- 6. Signature Section -->

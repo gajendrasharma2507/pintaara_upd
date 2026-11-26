@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { downloadInvoicePdfFromElement } from '@/lib/downloadInvoicePdf';
+import { useCurrency } from '@/context/CurrencyContext';
 
 /**
  * Official Pintaara Tax Invoice Component
@@ -11,6 +12,7 @@ import { downloadInvoicePdfFromElement } from '@/lib/downloadInvoicePdf';
 export default function OfficialInvoice({ invoice, user, onClose, isStandalone = false }) {
     const [copied, setCopied] = useState(false);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+    const { activeCurrency } = useCurrency();
     if (!invoice) return null;
 
     // Normalize invoice data with fallback to official reference values
@@ -146,15 +148,49 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
     const pieceSize = invoice.size ? `Size: ${invoice.size}` : 'Size: 12';
     const stoneDesc = invoice.stone || invoice.gem ? `Stone: ${invoice.stone || invoice.gem}` : 'Stone: 0.7CT';
 
-    // Financial Calculation
+    // Financial Calculation & Currency Formatting
+    const lockedCurrency = invoice.currency && invoice.currency.code && invoice.currency.code !== 'INR'
+        ? invoice.currency
+        : null;
+
+    const invCurrencyCode = lockedCurrency ? lockedCurrency.code : (activeCurrency?.currency_code || 'INR');
+    const invCurrencySym = lockedCurrency ? (lockedCurrency.symbol || lockedCurrency.code) : (activeCurrency?.currency_symbol || '₹');
+    const invRate = lockedCurrency ? (Number(lockedCurrency.exchange_rate) || 1) : (Number(activeCurrency?.exchange_rate) || 1);
+    const invMarkup = lockedCurrency ? (Number(lockedCurrency.country_markup) || 0) : (Number(activeCurrency?.country_markup) || 0);
+    const invMarkupType = lockedCurrency ? (lockedCurrency.markup_type || 'flat') : (activeCurrency?.markup_type || 'flat');
+
+    const convertInvoiceAmount = (inrVal) => {
+        const base = Number(inrVal) || 0;
+        if (invCurrencyCode === 'INR') {
+            return invMarkupType === 'percent'
+                ? Math.round(base * (1 + invMarkup / 100) * 100) / 100
+                : Math.round((base + invMarkup) * 100) / 100;
+        }
+        const converted = base * invRate;
+        return invMarkupType === 'percent'
+            ? Math.round(converted * (1 + invMarkup / 100) * 100) / 100
+            : Math.round((converted + invMarkup) * 100) / 100;
+    };
+
+    const formatInvoiceMoney = (inrVal, includeSymbol = true) => {
+        const converted = convertInvoiceAmount(inrVal);
+        const locale = invCurrencyCode === 'INR' ? 'en-IN' : 'en-US';
+        const formatted = converted.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return includeSymbol ? `${invCurrencySym} ${formatted}` : formatted;
+    };
+
     const totalAmountNum = Number(invoice.total || invoice.price || 26250);
-    const subTotalNum = Number(invoice.metal_value || (invoice.price ? Math.round(invoice.price / 1.05) : 25000));
-    const subTotalFormatted = subTotalNum.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const unitPriceFormatted = subTotalNum.toLocaleString('en-IN');
-    
-    // Total Amount Formatted
-    const totalAmountFormatted = `₹${totalAmountNum.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    const taxAmountFormatted = `₹${totalAmountNum.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const subTotalNum = Number(invoice.subtotal || invoice.metal_value || (totalAmountNum ? Math.round((totalAmountNum / 1.03) * 100) / 100 : 25000));
+    const taxAmountNum = (invoice.gst_amount !== undefined && invoice.gst_amount !== null)
+        ? Number(invoice.gst_amount)
+        : Math.max(0, Math.round((totalAmountNum - subTotalNum) * 100) / 100);
+
+    const unitPriceFormatted = formatInvoiceMoney(subTotalNum, false);
+    const netAmountFormatted = formatInvoiceMoney(subTotalNum, true);
+    const subTotalFormatted = formatInvoiceMoney(subTotalNum, true);
+    const taxAmountFormatted = formatInvoiceMoney(taxAmountNum, true);
+    const shippingFormatted = `${invCurrencySym} 0.00`;
+    const totalAmountFormatted = formatInvoiceMoney(totalAmountNum, true);
 
     // Payment Info from Razorpay / Order
     const resolvePaymentMethod = () => {
@@ -373,7 +409,7 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                         </div>
                         <div className="pnt-inv-td-unit-col">{unitPriceFormatted}</div>
                         <div className="pnt-inv-td-qty-col">1</div>
-                        <div className="pnt-inv-td-net-col">₹{subTotalFormatted}</div>
+                        <div className="pnt-inv-td-net-col">{netAmountFormatted}</div>
                     </div>
                 </div>
 
@@ -397,7 +433,7 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                         
                         <div className="pnt-summary-row">
                             <span className="pnt-summary-label">Sub Total</span>
-                            <span className="pnt-summary-val">₹{subTotalFormatted}</span>
+                            <span className="pnt-summary-val">{subTotalFormatted}</span>
                         </div>
                         <div className="pnt-summary-row">
                             <span className="pnt-summary-label">Tax 3%</span>
@@ -405,7 +441,7 @@ export default function OfficialInvoice({ invoice, user, onClose, isStandalone =
                         </div>
                         <div className="pnt-summary-row">
                             <span className="pnt-summary-label">Shipping</span>
-                            <span className="pnt-summary-val">₹0.00</span>
+                            <span className="pnt-summary-val">{shippingFormatted}</span>
                         </div>
                     </div>
                 </div>

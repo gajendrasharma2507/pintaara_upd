@@ -213,6 +213,7 @@ class RazorpayApiController extends Controller
             'razorpay_payment_id' => 'required|string',
             'razorpay_order_id' => 'required|string',
             'razorpay_signature' => 'nullable|string',
+            'currency' => 'nullable|string|max:10',
             'customer_name' => 'nullable|string|max:255',
             'customer_email' => 'nullable|email|max:255',
             'customer_phone' => 'nullable|string|max:50',
@@ -273,6 +274,24 @@ class RazorpayApiController extends Controller
             $validatedItems = [];
         }
 
+        $paidCurrencyCode = strtoupper(trim((string) ($request->currency ?? 'INR')));
+        $currencyModel = null;
+        if ($paidCurrencyCode !== 'INR') {
+            $currencyModel = \App\Models\CurrencyRate::where('currency_code', $paidCurrencyCode)
+                ->where('is_enabled', true)
+                ->first();
+            if (!$currencyModel) {
+                $paidCurrencyCode = 'INR';
+            }
+        }
+        $goldRateSnapshot['currency'] = [
+            'code' => $currencyModel->currency_code ?? 'INR',
+            'symbol' => $currencyModel->currency_symbol ?? '₹',
+            'exchange_rate' => (float) ($currencyModel->exchange_rate ?? 1),
+            'country_markup' => (float) ($currencyModel->country_markup ?? 0),
+            'markup_type' => $currencyModel->markup_type ?? 'flat',
+        ];
+
         $user = $request->user('sanctum') ?? $request->user();
         if (!$user && !empty($request->customer_email)) {
             $user = \App\Models\User::whereRaw('LOWER(TRIM(email)) = ?', [strtolower(trim($request->customer_email))])->first();
@@ -282,10 +301,20 @@ class RazorpayApiController extends Controller
         try {
             $orderNumber = 'PT-' . date('Y') . '-' . strtoupper(Str::random(6));
 
+            $currMeta = $goldRateSnapshot['currency'];
+            $displayPaidAmount = $totalAmount;
+            if ($currMeta['code'] !== 'INR') {
+                $converted = $totalAmount * $currMeta['exchange_rate'];
+                $displayPaidAmount = $currMeta['markup_type'] === 'percent'
+                    ? round($converted * (1 + ($currMeta['country_markup'] / 100)), 2)
+                    : round($converted + $currMeta['country_markup'], 2);
+            }
+            $currSym = $currMeta['symbol'];
+
             $timeline = [
                 [
                     'id' => (int) (microtime(true) * 1000),
-                    'title' => "Payment of ₹" . number_format($totalAmount, 2) . " INR verified via Razorpay. (Payment ID: {$paymentId})",
+                    'title' => "Payment of {$currSym}" . number_format($displayPaidAmount, 2) . " {$currMeta['code']} verified via Razorpay. (Payment ID: {$paymentId})",
                     'collapsible' => false,
                     'time' => 'Just now',
                 ],

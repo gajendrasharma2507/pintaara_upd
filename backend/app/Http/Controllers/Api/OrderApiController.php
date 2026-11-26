@@ -268,6 +268,7 @@ class OrderApiController extends Controller
                     'subtotal' => $order->subtotal,
                     'gst_amount' => $order->gst_amount,
                     'total_amount' => $order->total_amount,
+                    'currency' => $order->gold_rate_snapshot['currency'] ?? null,
                     'gold_rate_snapshot' => $order->gold_rate_snapshot,
                 ],
                 'payment_method' => $order->payment_method ?? 'Gpay',
