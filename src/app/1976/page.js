@@ -168,68 +168,23 @@ export default function Legacy1976Page() {
             <audio ref={audioRef} src="/audio/sound-of-pintaara.mp3" loop preload="auto" />
 
             {/* Floating Controls (Language + Audio) on one side above footer */}
-            <div
-                className="legacy-floating-controls"
-                style={{
-                    position: 'fixed',
-                    bottom: 'clamp(108px, 13vh, 132px)',
-                    right: 'clamp(24px, 4vw, 50px)',
-                    zIndex: 100,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    flexWrap: 'wrap',
-                    justifyContent: 'flex-end',
-                }}
-            >
+            <div className="legacy-floating-controls">
                 <div
                     role="group"
                     aria-label="Language"
-                    style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        padding: '4px',
-                        background: 'rgba(22, 14, 9, 0.75)',
-                        backdropFilter: 'blur(12px)',
-                        WebkitBackdropFilter: 'blur(12px)',
-                        border: '1px solid rgba(235, 191, 154, 0.3)',
-                        borderRadius: '30px',
-                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
-                    }}
+                    className="legacy-lang-toggle"
                 >
                     <button
                         type="button"
                         onClick={() => setLang('en')}
-                        style={{
-                            border: 'none',
-                            borderRadius: '24px',
-                            padding: '6px 13px',
-                            fontSize: '11px',
-                            fontWeight: 500,
-                            letterSpacing: '0.14em',
-                            cursor: 'pointer',
-                            background: lang === 'en' ? '#EBBF9A' : 'transparent',
-                            color: lang === 'en' ? '#160E09' : '#EBBF9A',
-                            transition: 'all 0.2s ease',
-                        }}
+                        className={`legacy-lang-btn ${lang === 'en' ? 'active' : ''}`}
                     >
                         ENGLISH
                     </button>
                     <button
                         type="button"
                         onClick={() => setLang('gu')}
-                        style={{
-                            border: 'none',
-                            borderRadius: '24px',
-                            padding: '6px 13px',
-                            fontSize: '12px',
-                            fontWeight: 500,
-                            letterSpacing: '0.04em',
-                            cursor: 'pointer',
-                            background: lang === 'gu' ? '#EBBF9A' : 'transparent',
-                            color: lang === 'gu' ? '#160E09' : '#EBBF9A',
-                            transition: 'all 0.2s ease',
-                        }}
+                        className={`legacy-lang-btn legacy-lang-gu ${lang === 'gu' ? 'active' : ''}`}
                     >
                         ગુજરાતી
                     </button>
@@ -254,10 +209,75 @@ export default function Legacy1976Page() {
                 </button>
             </div>
             <style jsx>{`
+                .legacy-floating-controls {
+                    position: fixed;
+                    bottom: clamp(108px, 13vh, 132px);
+                    right: clamp(24px, 4vw, 50px);
+                    z-index: 100;
+                    display: inline-flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .legacy-lang-toggle {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 4px;
+                    background: rgba(22, 14, 9, 0.75);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    border: 1px solid rgba(235, 191, 154, 0.3);
+                    border-radius: 30px;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+                }
+                .legacy-lang-btn {
+                    border: none;
+                    border-radius: 24px;
+                    padding: 6px 13px;
+                    font-size: 11px;
+                    font-weight: 500;
+                    letter-spacing: 0.14em;
+                    cursor: pointer;
+                    background: transparent;
+                    color: #EBBF9A;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                }
+                .legacy-lang-gu {
+                    font-size: 12px;
+                    letter-spacing: 0.04em;
+                }
+                .legacy-lang-btn.active {
+                    background: #EBBF9A;
+                    color: #160E09;
+                }
                 .legacy-floating-controls :global(.legacy-audio-toggle) {
                     position: static !important;
                     bottom: auto !important;
                     right: auto !important;
+                }
+                @media (max-width: 1024px) {
+                    .legacy-floating-controls {
+                        bottom: calc(62 * var(--u, 1px));
+                        right: calc(20 * var(--u, 1px));
+                        flex-direction: column;
+                        align-items: flex-end;
+                        gap: 8px;
+                    }
+                    .legacy-lang-btn {
+                        padding: 5px 10px;
+                        font-size: 10px;
+                        letter-spacing: 0.1em;
+                    }
+                    .legacy-lang-gu {
+                        font-size: 11px;
+                        letter-spacing: 0.02em;
+                    }
+                    .legacy-floating-controls :global(.legacy-audio-toggle) {
+                        padding: 8px 14px !important;
+                        font-size: 10px !important;
+                        gap: 8px !important;
+                    }
                 }
             `}</style>
 
