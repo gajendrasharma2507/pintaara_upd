@@ -109,15 +109,14 @@ class RazorpayApiController extends Controller
                 $rate = (float) $currencyRate->exchange_rate;
                 $markup = (float) $currencyRate->country_markup;
                 if ($pricing && !empty($pricing['items'])) {
-                    $subtotalForeign = 0.0;
+                    $totalForeign = 0.0;
                     foreach ($pricing['items'] as $pItem) {
                         $qty = max(1, (int) ($pItem['quantity'] ?? 1));
                         $unitInr = (float) ($pItem['unit_price'] ?? 0);
                         $unitForeign = round(($unitInr * $rate) + $markup, 2);
-                        $subtotalForeign += $unitForeign * $qty;
+                        $totalForeign += $unitForeign * $qty;
                     }
-                    $taxForeign = round(((float) ($pricing['gst_amount'] ?? 0) * $rate), 2);
-                    $chargeAmount = round($subtotalForeign + $taxForeign, 2);
+                    $chargeAmount = round($totalForeign, 2);
                 } else {
                     $chargeAmount = round(($amountInBase * $rate) + $markup, 2);
                 }
