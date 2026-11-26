@@ -457,8 +457,8 @@ class JewelryPricingService
         return $this->calculatePrice(
             weightGrams: (float) $weight,
             purityFraction: $purityFraction,
-            wastagePercent: (float) ($product->wastage_percent ?? 0),
-            makingChargeFlat: $product->making_charge,
+            wastagePercent: 0,
+            makingChargeFlat: null,
             makingChargePercent: $product->making_charge_percent,
             stoneCharge: $stoneCharge,
             metalType: $metalType,
@@ -528,8 +528,8 @@ class JewelryPricingService
         return $this->calculatePrice(
             weightGrams: (float) $weight,
             purityFraction: $purityFraction,
-            wastagePercent: (float) ($product->wastage_percent ?? 0),
-            makingChargeFlat: $product->making_charge,
+            wastagePercent: 0,
+            makingChargeFlat: null,
             makingChargePercent: $product->making_charge_percent,
             stoneCharge: $stoneCharge,
             metalType: $metalType,
