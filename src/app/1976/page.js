@@ -5,10 +5,61 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 
+const COPY = {
+    en: {
+        soundOn: 'SOUND ON',
+        soundOff: 'SOUND OFF',
+        muteTitle: 'Mute Sound',
+        playTitle: 'Play Sound of PINTAARA',
+        heroSubtitle: 'THE STORY BEFORE PINTAARA',
+        exploreLegacy: 'EXPLORE LEGACY',
+        item1Title: 'THE BEGINNING',
+        item1Year: '1976',
+        item1P1: "In 1976, my father began his journey in jewellery with a simple belief that honesty, quality, and relationships matter above everything else.",
+        item1P2: "What started as one craftsman's dedication became the foundation of everything that followed.",
+        item2YearsLabel: 'YEARS',
+        item2Sub: 'OF CRAFT & TRUST',
+        item2P1: 'Over five decades, that dedication earned the trust of generations of families.',
+        item2P2: "For us, jewellery has never been just metal and stones; it has always been a part of life's most meaningful moments.",
+        item3Title: 'TODAY',
+        item3Year: '2025',
+        item3P1: 'PINTAARA is the next chapter of that journey.',
+        item3P2: 'Built on decades of craftsmanship, it carries the same values forward through original design, thoughtful creation, and jewellery made to be remembered for generations.',
+        futureHeadline: "THE PAST SHAPED US. NOW IT'S TIME TO SHAPE WHAT'S NEXT.",
+        futureSubtext: 'Foundation — Old.\u00A0 Vision — New.\u00A0 Commitment — The same.',
+        beginYours: 'BEGIN YOURS',
+    },
+    gu: {
+        soundOn: 'અવાજ ચાલુ',
+        soundOff: 'અવાજ બંધ',
+        muteTitle: 'અવાજ બંધ કરો',
+        playTitle: 'PINTAARA નો અવાજ ચાલુ કરો',
+        heroSubtitle: 'પિંતારા પહેલાંની વાર્તા',
+        exploreLegacy: 'વારસો જાણો',
+        item1Title: 'શરૂઆત',
+        item1Year: '1976',
+        item1P1: '૧૯૭૬માં, મારા પિતાએ એક સરળ વિશ્વાસ સાથે જ્વેલરીની સફર શરૂ કરી હતી કે પ્રામાણિકતા, ગુણવત્તા અને સંબંધો દરેક બાબત કરતાં વધુ મહત્વપૂર્ણ છે.',
+        item1P2: 'એક કારીગરના સમર્પણથી જે શરૂ થયું, તે પછીના દરેક અધ્યાયનો પાયો બન્યું.',
+        item2YearsLabel: 'વર્ષ',
+        item2Sub: 'કારીગરી અને વિશ્વાસના',
+        item2P1: 'પાંચ દાયકાથી વધુ સમયમાં, તે સમર્પણે પેઢી દર પેઢી પરિવારોનો વિશ્વાસ જીત્યો છે.',
+        item2P2: 'અમારા માટે જ્વેલરી ક્યારેય માત્ર ધાતુ અને રત્નો નથી રહી; તે હંમેશા જીવનની સૌથી યાદગાર ક્ષણોનો હિસ્સો રહી છે.',
+        item3Title: 'આજે',
+        item3Year: '2025',
+        item3P1: 'PINTAARA એ જ સફરનો આગળનો અધ્યાય છે.',
+        item3P2: 'દાયકાઓની કારીગરી પર બનેલું, તે મૌલિક ડિઝાઇન, વિચારશીલ સર્જન અને પેઢીઓ સુધી યાદ રહે તેવા ઘરેણાં દ્વારા એ જ મૂલ્યોને આગળ ધપાવે છે.',
+        futureHeadline: 'ભૂતકાળે અમને ઘડ્યા છે. હવે સમય છે આવનારા ભવિષ્યને ઘડવાનો.',
+        futureSubtext: 'પાયો — જૂનો.\u00A0 દ્રષ્ટિ — નવી.\u00A0 પ્રતિબદ્ધતા — એ જ.',
+        beginYours: 'તમારી શરૂઆત કરો',
+    },
+};
+
 export default function Legacy1976Page() {
     const [displayYear, setDisplayYear] = useState(2026);
     const [animationDone, setAnimationDone] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [lang, setLang] = useState('en');
+    const t = COPY[lang];
     const animRef = useRef(null);
     const audioRef = useRef(null);
 
@@ -116,11 +167,69 @@ export default function Legacy1976Page() {
             {/* Sound of Pintaara Audio */}
             <audio ref={audioRef} src="/audio/sound-of-pintaara.mp3" loop preload="auto" />
 
+            {/* Floating Language Switcher (EN / GU) */}
+            <div
+                role="group"
+                aria-label="Language"
+                style={{
+                    position: 'fixed',
+                    bottom: 'clamp(24px, 4vh, 40px)',
+                    left: 'clamp(24px, 4vw, 50px)',
+                    zIndex: 100,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '4px',
+                    background: 'rgba(22, 14, 9, 0.75)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(235, 191, 154, 0.3)',
+                    borderRadius: '30px',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                }}
+            >
+                <button
+                    type="button"
+                    onClick={() => setLang('en')}
+                    style={{
+                        border: 'none',
+                        borderRadius: '24px',
+                        padding: '6px 13px',
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        letterSpacing: '0.14em',
+                        cursor: 'pointer',
+                        background: lang === 'en' ? '#EBBF9A' : 'transparent',
+                        color: lang === 'en' ? '#160E09' : '#EBBF9A',
+                        transition: 'all 0.2s ease',
+                    }}
+                >
+                    ENG
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setLang('gu')}
+                    style={{
+                        border: 'none',
+                        borderRadius: '24px',
+                        padding: '6px 13px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        letterSpacing: '0.04em',
+                        cursor: 'pointer',
+                        background: lang === 'gu' ? '#EBBF9A' : 'transparent',
+                        color: lang === 'gu' ? '#160E09' : '#EBBF9A',
+                        transition: 'all 0.2s ease',
+                    }}
+                >
+                    ગુજરાતી
+                </button>
+            </div>
+
             {/* Floating Luxury Audio Controller */}
             <button
                 className={`legacy-audio-toggle ${isPlaying ? 'audio-playing' : 'audio-muted'}`}
                 onClick={toggleAudio}
-                title={isPlaying ? "Mute Sound" : "Play Sound of PINTAARA"}
+                title={isPlaying ? t.muteTitle : t.playTitle}
                 aria-label="Toggle Sound"
             >
                 <div className="sound-bars-icon">
@@ -130,7 +239,7 @@ export default function Legacy1976Page() {
                     <span className="sound-bar bar-4"></span>
                 </div>
                 <span className="audio-toggle-label">
-                    {isPlaying ? "SOUND ON" : "SOUND OFF"}
+                    {isPlaying ? t.soundOn : t.soundOff}
                 </span>
             </button>
 
@@ -145,7 +254,7 @@ export default function Legacy1976Page() {
 
                 {/* Subtitle overlaid across the middle of the number - permanently visible */}
                 <div className="legacy-subtitle-wrap">
-                    <p className="legacy-subtitle-text">THE STORY BEFORE PINTAARA</p>
+                    <p className="legacy-subtitle-text">{t.heroSubtitle}</p>
                 </div>
 
                 {/* Scroll Down Indicator */}
@@ -156,7 +265,7 @@ export default function Legacy1976Page() {
                         if (timelineEl) timelineEl.scrollIntoView({ behavior: 'smooth' });
                     }}
                 >
-                    <span>EXPLORE LEGACY</span>
+                    <span>{t.exploreLegacy}</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M12 5v14M19 12l-7 7-7-7" />
                     </svg>
@@ -179,15 +288,11 @@ export default function Legacy1976Page() {
                     {/* ITEM 1: THE BEGINNING 1976 */}
                     <div className="timeline-item item-left-text">
                         <div className="timeline-text-col text-right-align">
-                            <h2 className="timeline-title">THE BEGINNING</h2>
-                            <span className="timeline-year">1976</span>
+                            <h2 className="timeline-title">{t.item1Title}</h2>
+                            <span className="timeline-year">{t.item1Year}</span>
                             <div className="timeline-desc">
-                                <p>
-                                    In 1976, my father began his journey in jewellery with a simple belief that honesty, quality, and relationships matter above everything else.
-                                </p>
-                                <p>
-                                    What started as one craftsman's dedication became the foundation of everything that followed.
-                                </p>
+                                <p>{t.item1P1}</p>
+                                <p>{t.item1P2}</p>
                             </div>
                         </div>
                         <div className="timeline-media-col">
@@ -205,15 +310,11 @@ export default function Legacy1976Page() {
                             </div>
                         </div>
                         <div className="timeline-text-col text-left-align">
-                            <h2 className="timeline-title"><span className="timeline-title-num">50+</span> YEARS</h2>
-                            <span className="timeline-year">OF CRAFT & TRUST</span>
+                            <h2 className="timeline-title"><span className="timeline-title-num">50+</span> {t.item2YearsLabel}</h2>
+                            <span className="timeline-year">{t.item2Sub}</span>
                             <div className="timeline-desc">
-                                <p>
-                                    Over five decades, that dedication earned the trust of generations of families.
-                                </p>
-                                <p>
-                                    For us, jewellery has never been just metal and stones; it has always been a part of life's most meaningful moments.
-                                </p>
+                                <p>{t.item2P1}</p>
+                                <p>{t.item2P2}</p>
                             </div>
                         </div>
                     </div>
@@ -221,15 +322,11 @@ export default function Legacy1976Page() {
                     {/* ITEM 3: TODAY 2025 */}
                     <div className="timeline-item item-left-text">
                         <div className="timeline-text-col text-right-align">
-                            <h2 className="timeline-title">TODAY</h2>
-                            <span className="timeline-year">2025</span>
+                            <h2 className="timeline-title">{t.item3Title}</h2>
+                            <span className="timeline-year">{t.item3Year}</span>
                             <div className="timeline-desc">
-                                <p>
-                                    PINTAARA is the next chapter of that journey.
-                                </p>
-                                <p>
-                                    Built on decades of craftsmanship, it carries the same values forward through original design, thoughtful creation, and jewellery made to be remembered for generations.
-                                </p>
+                                <p>{t.item3P1}</p>
+                                <p>{t.item3P2}</p>
                             </div>
                         </div>
                         <div className="timeline-media-col">
@@ -250,17 +347,17 @@ export default function Legacy1976Page() {
 
                 <div className="future-content-container">
                     <h2 className="future-headline">
-                        THE PAST SHAPED US. NOW IT'S TIME TO SHAPE WHAT'S NEXT.
+                        {t.futureHeadline}
                     </h2>
                     <p className="future-subtext">
-                        Foundation — Old.&nbsp; Vision — New.&nbsp; Commitment — The same.
+                        {t.futureSubtext}
                     </p>
                 </div>
 
                 <div className="future-action-wrap">
                     <Link href="/collection" className="future-begin-link">
                         <span className="link-vertical-line"></span>
-                        BEGIN YOURS
+                        {t.beginYours}
                     </Link>
                 </div>
 
