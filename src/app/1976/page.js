@@ -172,7 +172,7 @@ export default function Legacy1976Page() {
                 className="legacy-floating-controls"
                 style={{
                     position: 'fixed',
-                    bottom: 'clamp(72px, 9.5vh, 92px)',
+                    bottom: 'clamp(108px, 13vh, 132px)',
                     right: 'clamp(24px, 4vw, 50px)',
                     zIndex: 100,
                     display: 'inline-flex',
