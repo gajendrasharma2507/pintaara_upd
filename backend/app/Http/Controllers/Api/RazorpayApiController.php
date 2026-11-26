@@ -87,16 +87,47 @@ class RazorpayApiController extends Controller
             'notes' => 'nullable|array',
         ]);
 
+        $currency = strtoupper($request->currency ?? $this->currency);
+
         // Recalculate price server-side from cart items to prevent client tampering
+        $pricing = null;
         if (!empty($request->items) && is_array($request->items)) {
             $pricing = $this->pricingService->calculateCartPrice($request->items);
-            $amountInRupees = $pricing['total_amount'];
+            $amountInBase = (float) $pricing['total_amount'];
         } else {
-            $amountInRupees = (float) ($request->amount ?? 1);
+            $amountInBase = (float) ($request->amount ?? 1);
         }
 
-        $amountInPaise = (int) round($amountInRupees * 100);
-        $currency = strtoupper($request->currency ?? $this->currency);
+        // Convert to selected storefront currency using cached Frankfurter rate + country markup
+        $chargeAmount = $amountInBase;
+        if ($currency !== 'INR') {
+            $currencyRate = \App\Models\CurrencyRate::where('currency_code', $currency)
+                ->where('is_enabled', true)
+                ->first();
+
+            if ($currencyRate) {
+                $rate = (float) $currencyRate->exchange_rate;
+                $markup = (float) $currencyRate->country_markup;
+                if ($pricing && !empty($pricing['items'])) {
+                    $subtotalForeign = 0.0;
+                    foreach ($pricing['items'] as $pItem) {
+                        $qty = max(1, (int) ($pItem['quantity'] ?? 1));
+                        $unitInr = (float) ($pItem['unit_price'] ?? 0);
+                        $unitForeign = round(($unitInr * $rate) + $markup, 2);
+                        $subtotalForeign += $unitForeign * $qty;
+                    }
+                    $taxForeign = round(((float) ($pricing['gst_amount'] ?? 0) * $rate), 2);
+                    $chargeAmount = round($subtotalForeign + $taxForeign, 2);
+                } else {
+                    $chargeAmount = round(($amountInBase * $rate) + $markup, 2);
+                }
+            } else {
+                $currency = 'INR';
+            }
+        }
+
+        $multiplier = in_array($currency, ['JPY', 'KRW']) ? 1 : 100;
+        $amountInPaise = (int) round($chargeAmount * $multiplier);
         $receipt = $request->receipt ?? ('rcpt_' . time() . '_' . rand(100, 999));
         $notes = $request->notes ?? [
             'store' => 'PINTAARA Fine Jewelry',

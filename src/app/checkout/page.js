@@ -236,8 +236,8 @@ export default function CheckoutPage() {
         try {
             // 1. Create Order via Laravel Backend Razorpay API with server-side price validation
             const orderRes = await api.createRazorpayOrder({
-                amount: total,
-                currency: 'INR',
+                amount: checkoutTotals.total,
+                currency: activeCurrency?.currency_code || 'INR',
                 items: cart.map(item => ({
                     product_id: (typeof item.id === 'number' || (typeof item.id === 'string' && /^\d+$/.test(item.id))) ? parseInt(item.id, 10) : null,
                     design_code: item.code || item.id || null,
