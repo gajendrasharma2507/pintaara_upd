@@ -90,12 +90,21 @@
                         <th style="padding: 12px 16px;">Country</th>
                         <th style="padding: 12px 16px;">Rate (1 INR =)</th>
                         <th style="padding: 12px 16px;">Country Markup</th>
-                        <th style="padding: 12px 16px;">Sample (₹1,00,000)</th>
+                        <th style="padding: 12px 16px;">1 Unit in INR (After Markup)</th>
                         <th style="padding: 12px 16px;">Rate Date / Synced</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($currencies as $c)
+                    @php
+                        $rate = (float) $c->exchange_rate;
+                        $inrPerUnit = $rate > 0 ? (1 / $rate) : 0;
+                        $mVal = (float) $c->country_markup;
+                        $mType = $c->markup_type ?: 'flat';
+                        $inrAfterMarkup = $mType === 'percent'
+                            ? $inrPerUnit * (1 + ($mVal / 100))
+                            : $inrPerUnit + ($rate > 0 ? ($mVal / $rate) : $mVal);
+                    @endphp
                     <tr style="border-bottom: 1px solid var(--admin-border);">
                         <td style="padding: 12px 16px;">
                             <input type="checkbox"
@@ -118,13 +127,26 @@
                             <input type="text" name="currencies[{{ $c->id }}][country_name]" value="{{ $c->country_name }}" class="admin-input" style="width: 140px; padding: 6px 8px;">
                         </td>
                         <td style="padding: 12px 16px; font-family: monospace;">
-                            {{ number_format((float)$c->exchange_rate, 6) }}
+                            <div>{{ number_format($rate, 6) }}</div>
+                            @if($c->currency_code !== 'INR' && $rate > 0)
+                                <div style="font-size: 11px; color: var(--admin-text-muted); font-family: sans-serif;">1 {{ $c->currency_code }} = ₹{{ number_format($inrPerUnit, 2) }}</div>
+                            @endif
                         </td>
                         <td style="padding: 12px 16px;">
-                            <input type="number" step="0.01" min="0" name="currencies[{{ $c->id }}][country_markup]" value="{{ number_format((float)$c->country_markup, 2, '.', '') }}" class="admin-input" style="width: 110px; padding: 6px 8px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <input type="number" step="0.01" min="0" name="currencies[{{ $c->id }}][country_markup]" value="{{ number_format($mVal, 2, '.', '') }}" class="admin-input" style="width: 90px; padding: 6px 8px;">
+                                <select name="currencies[{{ $c->id }}][markup_type]" class="admin-input" style="width: 72px; padding: 6px 6px;">
+                                    <option value="flat" {{ $mType === 'flat' ? 'selected' : '' }}>{{ $c->currency_symbol ?: $c->currency_code }}</option>
+                                    <option value="percent" {{ $mType === 'percent' ? 'selected' : '' }}>%</option>
+                                </select>
+                            </div>
                         </td>
                         <td style="padding: 12px 16px; font-weight: 600;">
-                            {{ $c->currency_symbol }} {{ number_format($c->convertFromInr(100000), 2) }}
+                            @if($c->currency_code === 'INR')
+                                ₹{{ number_format($mType === 'percent' ? (1 + $mVal / 100) : (1 + $mVal), 2) }}
+                            @else
+                                1 {{ $c->currency_symbol ?: $c->currency_code }} = ₹{{ number_format($inrAfterMarkup, 2) }}
+                            @endif
                         </td>
                         <td style="padding: 12px 16px; font-size: 11.5px; color: var(--admin-text-muted);">
                             <div>Date: {{ $c->rate_date ? $c->rate_date->format('Y-m-d') : '—' }}</div>

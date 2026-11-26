@@ -49,10 +49,12 @@ class AdminCurrencyController extends Controller
             if (!$currency) {
                 continue;
             }
+            $markupType = ($data['markup_type'] ?? 'flat') === 'percent' ? 'percent' : 'flat';
             $currency->update([
                 'country_name' => trim((string) ($data['country_name'] ?? $currency->country_name)),
                 'currency_symbol' => trim((string) ($data['currency_symbol'] ?? $currency->currency_symbol)),
                 'country_markup' => max(0, (float) ($data['country_markup'] ?? 0)),
+                'markup_type' => $markupType,
                 'is_enabled' => $currency->currency_code === 'INR' ? true : !empty($data['is_enabled']),
             ]);
         }

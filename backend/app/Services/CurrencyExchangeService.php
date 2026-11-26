@@ -148,6 +148,7 @@ class CurrencyExchangeService
                 'country_name' => $c->country_name,
                 'exchange_rate' => (float) $c->exchange_rate,
                 'country_markup' => (float) $c->country_markup,
+                'markup_type' => $c->markup_type ?: 'flat',
                 'rate_date' => $c->rate_date?->format('Y-m-d'),
                 'last_synced_at' => $c->last_synced_at?->toIso8601String(),
             ])->values()->all(),

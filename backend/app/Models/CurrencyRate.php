@@ -15,6 +15,7 @@ class CurrencyRate extends Model
         'country_name',
         'exchange_rate',
         'country_markup',
+        'markup_type',
         'is_enabled',
         'rate_date',
         'last_synced_at',
@@ -34,10 +35,19 @@ class CurrencyRate extends Model
      */
     public function convertFromInr(float $inrPrice): float
     {
+        $markup = (float) $this->country_markup;
+        $isPercent = ($this->markup_type ?? 'flat') === 'percent';
+
         if (strtoupper($this->currency_code) === 'INR') {
-            return round($inrPrice + (float) $this->country_markup, 2);
+            return $isPercent
+                ? round($inrPrice * (1 + ($markup / 100)), 2)
+                : round($inrPrice + $markup, 2);
         }
-        return round(($inrPrice * (float) $this->exchange_rate) + (float) $this->country_markup, 2);
+
+        $converted = $inrPrice * (float) $this->exchange_rate;
+        return $isPercent
+            ? round($converted * (1 + ($markup / 100)), 2)
+            : round($converted + $markup, 2);
     }
 
     /**

@@ -135,12 +135,19 @@ export function CurrencyProvider({ children }) {
      */
     const convertPrice = useCallback((inrAmount) => {
         const base = Number(inrAmount) || 0;
+        const markup = Number(activeCurrency.country_markup) || 0;
+        const isPercent = activeCurrency.markup_type === 'percent';
+
         if (activeCurrency.currency_code === 'INR') {
-            return Math.round(base + (Number(activeCurrency.country_markup) || 0));
+            return isPercent
+                ? Math.round(base * (1 + (markup / 100)))
+                : Math.round(base + markup);
         }
         const rate = Number(activeCurrency.exchange_rate) || 1;
-        const markup = Number(activeCurrency.country_markup) || 0;
-        return Math.round(((base * rate) + markup) * 100) / 100;
+        const converted = base * rate;
+        return isPercent
+            ? Math.round(converted * (1 + (markup / 100)) * 100) / 100
+            : Math.round((converted + markup) * 100) / 100;
     }, [activeCurrency]);
 
     const formatRawAmount = useCallback((amount) => {
