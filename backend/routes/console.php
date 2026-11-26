@@ -32,3 +32,12 @@ Schedule::command('rates:sync')
 Schedule::command('currencies:sync')
     ->everySixHours()
     ->runInBackground();
+
+/**
+ * Appointment Reminder Emails (1 hour & 15 minutes before scheduled time):
+ * Checks every minute and dispatches reminder with Google Meet button to client & info@pintaara.com.
+ */
+Schedule::command('appointments:send-reminders')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();

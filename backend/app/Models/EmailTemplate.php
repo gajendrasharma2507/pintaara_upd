@@ -202,12 +202,25 @@ class EmailTemplate extends Model
                 'name' => 'Appointment Booking Confirmed',
                 'category' => 'custom',
                 'subject' => 'PINTAARA | Appointment Confirmed for {{appointment_date}}',
-                'variables_hint' => 'customer_name, appointment_date, appointment_time, appointment_purpose, action_url',
+                'variables_hint' => 'customer_name, appointment_date, appointment_time, appointment_purpose, booking_url, action_url',
                 'body_html' => '<h2 class="h1-title">Your studio appointment is confirmed.</h2>
 <p>Dear {{customer_name}},</p>
 <p>We look forward to welcoming you to our Vadodara studio.</p>
 <div class="note-box"><strong>Date:</strong> {{appointment_date}}<br><strong>Time:</strong> {{appointment_time}}<br><strong>Purpose:</strong> {{appointment_purpose}}</div>
+<div class="btn-container"><a href="{{booking_url}}" class="btn-primary">JOIN MEETING</a></div>
 <p>Studio Address: Shop 1, GF, Suvarnraj Complex, Shamal Bechar Pole, Mandvi, M.G. Road, Vadodara, GJ - 390001.</p>',
+            ],
+            [
+                'slug' => 'appointment_reminder',
+                'name' => 'Appointment Reminder (1h & 15m)',
+                'category' => 'custom',
+                'subject' => 'PINTAARA | Reminder: Appointment in {{reminder_window}} ({{appointment_time}})',
+                'variables_hint' => 'customer_name, reminder_window, appointment_date, appointment_time, appointment_purpose, booking_url, action_url',
+                'body_html' => '<h2 class="h1-title">Your appointment starts in {{reminder_window}}.</h2>
+<p>Dear {{customer_name}},</p>
+<p>This is a reminder that your PINTAARA appointment is scheduled to begin in <strong>{{reminder_window}}</strong>.</p>
+<div class="note-box"><strong>Date:</strong> {{appointment_date}}<br><strong>Time:</strong> {{appointment_time}}<br><strong>Purpose:</strong> {{appointment_purpose}}</div>
+<div class="btn-container"><a href="{{booking_url}}" class="btn-primary">JOIN MEETING</a></div>',
             ],
             [
                 'slug' => 'appointment_updated',

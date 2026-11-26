@@ -40,6 +40,7 @@ class AppointmentApiController extends Controller
             'email' => $email,
             'date' => $validated['date'] ?? null,
             'time' => $validated['time'] ?? null,
+            'booking_url' => Appointment::DEFAULT_MEETING_URL,
             'purpose' => $validated['purpose'] ?? 'Fine Jewelry Consultation',
             'notes' => $validated['notes'] ?? null,
             'status' => 'confirmed',
@@ -57,20 +58,26 @@ class AppointmentApiController extends Controller
         try {
             \App\Models\EmailTemplate::ensureDefaultsExist();
             $tpl = \App\Models\EmailTemplate::where('slug', 'appointment_confirmation')->where('is_active', true)->first();
+            $meetingUrl = $appointment->getMeetingUrl();
             $vars = [
                 'customer_name'       => $appointment->full_name ?: 'Valued Client',
                 'customer_email'      => $recipient ?: '',
                 'appointment_date'    => $appointment->date ?: 'To be confirmed',
                 'appointment_time'    => $appointment->time ?: 'To be confirmed',
                 'appointment_purpose' => $appointment->purpose ?: 'Studio Consultation',
-                'action_url'          => config('app.frontend_url', 'https://pintaara.com') . '/book-an-appointment',
+                'booking_url'         => $meetingUrl,
+                'action_url'          => $meetingUrl,
             ];
 
             if ($recipient && $tpl) {
-                \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\CustomTemplateMail($tpl, $vars));
+                $clientTpl = clone $tpl;
+                if (!str_contains((string) $clientTpl->body_html, '{{booking_url}}')) {
+                    $clientTpl->body_html .= '<div class="btn-container"><a href="' . e($meetingUrl) . '" class="btn-primary">JOIN MEETING</a></div>';
+                }
+                \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\CustomTemplateMail($clientTpl, $vars));
             }
 
-            // Always send appointment booking notification to info@pintaara.com
+            // Always send appointment booking notification to info@pintaara.com with meeting link button
             $studioEmail = 'info@pintaara.com';
             $studioTpl = new \App\Models\EmailTemplate([
                 'subject' => 'PINTAARA | New Studio Appointment - ' . ($appointment->full_name ?: 'Client') . ' (' . ($appointment->date ?: 'TBD') . ')',
@@ -83,9 +90,10 @@ class AppointmentApiController extends Controller
                     . '<strong>Date:</strong> ' . e($appointment->date ?: '—') . '<br>'
                     . '<strong>Time:</strong> ' . e($appointment->time ?: '—') . '<br>'
                     . '<strong>Purpose:</strong> ' . e($appointment->purpose ?: '—') . '<br>'
+                    . '<strong>Meeting Link:</strong> <a href="' . e($meetingUrl) . '" style="color:#B8860B;">' . e($meetingUrl) . '</a><br>'
                     . (!empty($appointment->notes) ? ('<strong>Notes:</strong> ' . e($appointment->notes)) : '')
                     . '</div>'
-                    . '<div class="btn-container"><a href="https://admin.pintaara.com/admin/appointments" class="btn-primary">MANAGE IN ADMIN</a></div>',
+                    . '<div class="btn-container"><a href="' . e($meetingUrl) . '" class="btn-primary">JOIN MEETING</a> &nbsp; <a href="https://admin.pintaara.com/admin/appointments" class="btn-primary">MANAGE IN ADMIN</a></div>',
             ]);
             \Illuminate\Support\Facades\Mail::to($studioEmail)->send(new \App\Mail\CustomTemplateMail($studioTpl, $vars));
         } catch (\Throwable $e) {

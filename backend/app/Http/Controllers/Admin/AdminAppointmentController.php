@@ -47,12 +47,18 @@ class AdminAppointmentController extends Controller
             'status'      => $appointment->status,
         ];
 
+        $newDate = $validated['date'] ?? $appointment->date;
+        $newTime = $validated['time'];
+        $timeChanged = ($newDate !== $oldData['date'] || $newTime !== $oldData['time']);
+
         $appointment->update([
-            'date'        => $validated['date'] ?? $appointment->date,
-            'time'        => $validated['time'],
-            'booking_url' => $validated['booking_url'] ?? null,
-            'status'      => $validated['status'],
-            'notes'       => $validated['notes'] ?? $appointment->notes,
+            'date'                 => $newDate,
+            'time'                 => $newTime,
+            'booking_url'          => !empty($validated['booking_url']) ? $validated['booking_url'] : ($appointment->booking_url ?: Appointment::DEFAULT_MEETING_URL),
+            'status'               => $validated['status'],
+            'notes'                => $validated['notes'] ?? $appointment->notes,
+            'reminder_1h_sent_at'  => $timeChanged ? null : $appointment->reminder_1h_sent_at,
+            'reminder_15m_sent_at' => $timeChanged ? null : $appointment->reminder_15m_sent_at,
         ]);
 
         AuditLog::log('appointment_updated_by_admin', 'Appointment', $appointment->id, $oldData, [
