@@ -23,7 +23,7 @@ class ProductApiController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Product::where('status', 'active')
-            ->with(['collectionMaster', 'primaryImage', 'images', 'options.values']);
+            ->with(['collectionMaster', 'primaryImage', 'images', 'options.values', 'optionAssignments.group.values']);
 
         if ($request->filled('collection')) {
             $slug = strtolower($request->collection);
