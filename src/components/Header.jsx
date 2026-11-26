@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import RegionModal from '@/components/RegionModal';
 export default function Header({ headerStyle, reveal, onNavigate }) {
     const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolledPast, setIsScrolledPast] = useState(false);
+    const [isRegionOpen, setIsRegionOpen] = useState(false);
     const { cartCount } = useCart();
 
     const isHome = pathname === '/';
@@ -121,6 +123,20 @@ export default function Header({ headerStyle, reveal, onNavigate }) {
                     </nav>
 
                     <div className="header-icons">
+                        <button
+                            type="button"
+                            className="icon-link"
+                            aria-label="Select Region & Currency"
+                            onClick={() => setIsRegionOpen(true)}
+                            style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', display: 'inline-flex', alignItems: 'center' }}
+                        >
+                            <svg className="header-icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="9.5"></circle>
+                                <path d="M2.5 12h19"></path>
+                                <path d="M12 2.5a14.5 14.5 0 0 1 0 19"></path>
+                                <path d="M12 2.5a14.5 14.5 0 0 0 0 19"></path>
+                            </svg>
+                        </button>
                         <Link href="/account" className="icon-link" aria-label="Profile">
                             <svg className="header-icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M12 2.5a4.6 4.6 0 0 1 4.6 4.6c0 2.3-1.2 4.3-3 5.1 4 .6 7.3 3.2 7.9 7.8.1.6-.3 1.1-.9 1.1H3.4c-.6 0-1-.5-.9-1.1.6-4.6 3.9-7.2 7.9-7.8-1.8-.8-3-2.8-3-5.1A4.6 4.6 0 0 1 12 2.5z"></path>
@@ -146,6 +162,7 @@ export default function Header({ headerStyle, reveal, onNavigate }) {
                     </button>
                 </div>
             </header>
+            <RegionModal isOpen={isRegionOpen} onClose={() => setIsRegionOpen(false)} />
         </>
     );
 }
