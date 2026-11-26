@@ -71,6 +71,55 @@
     </div>
 </div>
 
+@if($errors->any())
+    <div style="background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; font-size: 13px;">
+        <ul style="margin: 0; padding-left: 18px;">
+            @foreach($errors->all() as $err)
+                <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+<!-- Add New Storefront Currency -->
+<div class="admin-card" style="padding: 18px 20px; margin-bottom: 24px;">
+    <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">+ Add Storefront Currency &amp; Country Markup</div>
+    <form method="POST" action="{{ route('admin.currencies.store') }}" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+        @csrf
+        <div>
+            <label style="display: block; font-size: 11px; margin-bottom: 4px; color: var(--admin-text-muted);">Currency Code *</label>
+            <input type="text" name="currency_code" maxlength="5" required placeholder="NZD" class="admin-input" style="width: 90px; padding: 7px 10px; text-transform: uppercase;">
+        </div>
+        <div>
+            <label style="display: block; font-size: 11px; margin-bottom: 4px; color: var(--admin-text-muted);">Currency Name</label>
+            <input type="text" name="currency_name" placeholder="New Zealand Dollar" class="admin-input" style="width: 170px; padding: 7px 10px;">
+        </div>
+        <div>
+            <label style="display: block; font-size: 11px; margin-bottom: 4px; color: var(--admin-text-muted);">Symbol</label>
+            <input type="text" name="currency_symbol" placeholder="NZ$" class="admin-input" style="width: 80px; padding: 7px 10px;">
+        </div>
+        <div>
+            <label style="display: block; font-size: 11px; margin-bottom: 4px; color: var(--admin-text-muted);">Country *</label>
+            <input type="text" name="country_name" required placeholder="New Zealand" class="admin-input" style="width: 150px; padding: 7px 10px;">
+        </div>
+        <div>
+            <label style="display: block; font-size: 11px; margin-bottom: 4px; color: var(--admin-text-muted);">Country Markup</label>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <input type="number" step="0.01" min="0" name="country_markup" value="0.00" class="admin-input" style="width: 95px; padding: 7px 10px;">
+                <select name="markup_type" class="admin-input" style="width: 78px; padding: 7px 6px;">
+                    <option value="flat">Flat</option>
+                    <option value="percent">%</option>
+                </select>
+            </div>
+        </div>
+        <div>
+            <label style="display: block; font-size: 11px; margin-bottom: 4px; color: var(--admin-text-muted);">Rate (1 INR =) <span style="font-weight: 400;">(auto if blank)</span></label>
+            <input type="number" step="0.000001" min="0.000001" name="exchange_rate" placeholder="Auto sync" class="admin-input" style="width: 120px; padding: 7px 10px;">
+        </div>
+        <button type="submit" class="admin-btn-gold" style="padding: 8px 18px; cursor: pointer;">+ Add Currency</button>
+    </form>
+</div>
+
 <!-- Currency Rates & Country Markup Form -->
 <form method="POST" action="{{ route('admin.currencies.update') }}">
     @csrf
@@ -92,6 +141,7 @@
                         <th style="padding: 12px 16px;">Country Markup</th>
                         <th style="padding: 12px 16px;">1 Unit in INR (After Markup)</th>
                         <th style="padding: 12px 16px;">Rate Date / Synced</th>
+                        <th style="padding: 12px 16px;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -152,39 +202,36 @@
                             <div>Date: {{ $c->rate_date ? $c->rate_date->format('Y-m-d') : '—' }}</div>
                             <div>Synced: {{ $c->last_synced_at ? $c->last_synced_at->timezone('Asia/Kolkata')->format('d M, H:i') : 'Never' }}</div>
                         </td>
+                        <td style="padding: 12px 16px;">
+                            @if($c->currency_code !== 'INR')
+                                <button type="button"
+                                    onclick="deleteCurrency({{ $c->id }}, '{{ $c->currency_code }}')"
+                                    style="background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer;">
+                                    Remove
+                                </button>
+                            @else
+                                <span style="font-size: 11px; color: var(--admin-text-muted);">Base</span>
+                            @endif
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
     </div>
-
-    <!-- Add New Storefront Currency -->
-    <div class="admin-card" style="padding: 18px 20px;">
-        <div style="font-size: 13.5px; font-weight: 600; margin-bottom: 12px;">Add Another Storefront Currency (Optional)</div>
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
-            <div>
-                <label style="display: block; font-size: 11px; margin-bottom: 4px;">Code (e.g. JPY)</label>
-                <input type="text" name="new_currency_code" maxlength="5" placeholder="NZD" class="admin-input" style="width: 90px; padding: 7px 10px; text-transform: uppercase;">
-            </div>
-            <div>
-                <label style="display: block; font-size: 11px; margin-bottom: 4px;">Name</label>
-                <input type="text" name="new_currency_name" placeholder="New Zealand Dollar" class="admin-input" style="width: 170px; padding: 7px 10px;">
-            </div>
-            <div>
-                <label style="display: block; font-size: 11px; margin-bottom: 4px;">Symbol</label>
-                <input type="text" name="new_currency_symbol" placeholder="NZ$" class="admin-input" style="width: 80px; padding: 7px 10px;">
-            </div>
-            <div>
-                <label style="display: block; font-size: 11px; margin-bottom: 4px;">Country</label>
-                <input type="text" name="new_country_name" placeholder="New Zealand" class="admin-input" style="width: 150px; padding: 7px 10px;">
-            </div>
-            <div>
-                <label style="display: block; font-size: 11px; margin-bottom: 4px;">Country Markup</label>
-                <input type="number" step="0.01" min="0" name="new_country_markup" value="0.00" class="admin-input" style="width: 110px; padding: 7px 10px;">
-            </div>
-            <button type="submit" class="admin-btn-gold" style="padding: 8px 16px; cursor: pointer;">Add &amp; Save</button>
-        </div>
-    </div>
 </form>
+
+<form id="delete-currency-form" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+<script>
+function deleteCurrency(id, code) {
+    if (!confirm('Remove ' + code + ' from storefront currencies?')) return;
+    const form = document.getElementById('delete-currency-form');
+    form.action = '{{ url('/admin/currencies') }}/' + id;
+    form.submit();
+}
+</script>
 @endsection

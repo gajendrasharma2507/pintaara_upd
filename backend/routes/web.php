@@ -90,6 +90,8 @@ Route::prefix('admin')->group(function () {
         Route::get('/currencies', [\App\Http\Controllers\Admin\AdminCurrencyController::class, 'index'])->name('admin.currencies');
         Route::post('/currencies/sync', [\App\Http\Controllers\Admin\AdminCurrencyController::class, 'sync'])->name('admin.currencies.sync');
         Route::post('/currencies/update', [\App\Http\Controllers\Admin\AdminCurrencyController::class, 'update'])->name('admin.currencies.update');
+        Route::post('/currencies/add', [\App\Http\Controllers\Admin\AdminCurrencyController::class, 'store'])->name('admin.currencies.store');
+        Route::delete('/currencies/{id}', [\App\Http\Controllers\Admin\AdminCurrencyController::class, 'destroy'])->name('admin.currencies.destroy');
 
         // Masters (Hidden and redirected to dynamic Options & Variants)
         Route::get('/masters', function () {
