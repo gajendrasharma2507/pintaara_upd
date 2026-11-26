@@ -70,6 +70,8 @@ const CurrencyContext = createContext({
     setCurrencyByRegion: () => {},
     convertPrice: (inr) => inr,
     formatPrice: (inr) => `₹ ${Math.round(Number(inr) || 0).toLocaleString('en-IN')}`,
+    formatRawAmount: (amt) => `₹ ${Math.round(Number(amt) || 0).toLocaleString('en-IN')}`,
+    calculateCartTotals: (cart, taxInr) => ({ subtotal: 0, tax: taxInr || 0, total: taxInr || 0 }),
 });
 
 export function CurrencyProvider({ children }) {
@@ -141,13 +143,28 @@ export function CurrencyProvider({ children }) {
         return Math.round(((base * rate) + markup) * 100) / 100;
     }, [activeCurrency]);
 
-    const formatPrice = useCallback((inrAmount) => {
-        const converted = convertPrice(inrAmount);
+    const formatRawAmount = useCallback((amount) => {
+        const val = Number(amount) || 0;
         const sym = activeCurrency.currency_symbol || activeCurrency.currency_code || '₹';
         if (activeCurrency.currency_code === 'INR') {
-            return `${sym} ${Math.round(converted).toLocaleString('en-IN')}`;
+            return `${sym} ${Math.round(val).toLocaleString('en-IN')}`;
         }
-        return `${sym} ${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return `${sym} ${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }, [activeCurrency]);
+
+    const formatPrice = useCallback((inrAmount) => {
+        return formatRawAmount(convertPrice(inrAmount));
+    }, [convertPrice, formatRawAmount]);
+
+    const calculateCartTotals = useCallback((cart, taxInr = 0) => {
+        const list = Array.isArray(cart) ? cart : [];
+        const subtotal = list.reduce((sum, item) => sum + convertPrice(item.price) * (item.qty || 1), 0);
+        const rate = activeCurrency.currency_code === 'INR' ? 1 : (Number(activeCurrency.exchange_rate) || 1);
+        const tax = activeCurrency.currency_code === 'INR'
+            ? Math.round(Number(taxInr) || 0)
+            : Math.round(((Number(taxInr) || 0) * rate) * 100) / 100;
+        const total = Math.round((subtotal + tax) * 100) / 100;
+        return { subtotal, tax, total };
     }, [activeCurrency, convertPrice]);
 
     return (
@@ -159,6 +176,8 @@ export function CurrencyProvider({ children }) {
                 setCurrencyByRegion,
                 convertPrice,
                 formatPrice,
+                formatRawAmount,
+                calculateCartTotals,
             }}
         >
             {children}

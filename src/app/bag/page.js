@@ -6,10 +6,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export default function BagPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
+    const { formatPrice, formatRawAmount, convertPrice, calculateCartTotals } = useCurrency();
     const { 
         cart, 
         removeFromCart, 
@@ -19,6 +21,7 @@ export default function BagPage() {
         tax, 
         total 
     } = useCart();
+    const bagTotals = calculateCartTotals(cart, tax);
 
     const handleNavigate = (index) => {
         const slideIds = ['slide-1', 'slide-2', 'slide-3', 'slide-4', 'slide-5', 'slide-6', 'slide-7'];
@@ -82,7 +85,7 @@ export default function BagPage() {
 
                                         {/* Column 3: Unit Price */}
                                         <div className="td-col col-price">
-                                            <span className="price-val">₹ {Math.round(item.price).toLocaleString('en-IN')}</span>
+                                            <span className="price-val">{formatPrice(item.price)}</span>
                                         </div>
 
                                         {/* Column 4: Quantity Control */}
@@ -107,7 +110,7 @@ export default function BagPage() {
 
                                         {/* Column 5: Item Total */}
                                         <div className="td-col col-total">
-                                            <span className="price-val">₹ {Math.round(item.price * item.qty).toLocaleString('en-IN')}</span>
+                                            <span className="price-val">{formatRawAmount(convertPrice(item.price) * item.qty)}</span>
                                         </div>
 
                                         {/* Column 6: Remove Button */}
@@ -127,7 +130,7 @@ export default function BagPage() {
                             <div className="summary-breakdown-box">
                                 <div className="summary-breakdown-row">
                                     <span className="breakdown-label">Subtotal [{cart.reduce((total, item) => total + item.qty, 0)} Item]</span>
-                                    <span className="breakdown-value">₹ {Math.round(subtotal).toLocaleString('en-IN')}</span>
+                                    <span className="breakdown-value">{formatRawAmount(bagTotals.subtotal)}</span>
                                 </div>
                                 <div className="summary-breakdown-row">
                                     <span className="breakdown-label">Shipping</span>
@@ -135,14 +138,14 @@ export default function BagPage() {
                                 </div>
                                 <div className="summary-breakdown-row">
                                     <span className="breakdown-label">GST Tax (3%)</span>
-                                    <span className="breakdown-value">₹ {Math.round(tax).toLocaleString('en-IN')}</span>
+                                    <span className="breakdown-value">{formatRawAmount(bagTotals.tax)}</span>
                                 </div>
                             </div>
 
                             {/* Right: Grand total & action buttons */}
                             <div className="summary-grand-total-box">
                                 <div className="grand-total-display">
-                                    <span className="grand-total-amount">₹ {Math.round(total).toLocaleString('en-IN')}</span>
+                                    <span className="grand-total-amount">{formatRawAmount(bagTotals.total)}</span>
                                     <span className="grand-total-subtext">Incl. taxes & charges</span>
                                 </div>
                                 <div className="bag-action-buttons-group">

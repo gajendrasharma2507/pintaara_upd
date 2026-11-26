@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useCurrency } from '@/context/CurrencyContext';
 import api from '@/lib/api';
 import PincodeInput from '@/components/PincodeInput';
 import { isServiceablePincode, UNSERVICEABLE_PINCODE_MESSAGE } from '@/data/serviceablePincodes';
@@ -13,6 +14,7 @@ import { isServiceablePincode, UNSERVICEABLE_PINCODE_MESSAGE } from '@/data/serv
 export default function CheckoutPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
+    const { formatRawAmount, convertPrice, calculateCartTotals, activeCurrency } = useCurrency();
     const { 
         cart, 
         subtotal, 
@@ -21,6 +23,7 @@ export default function CheckoutPage() {
         total,
         clearCart
     } = useCart();
+    const checkoutTotals = calculateCartTotals(cart, tax);
 
     // Enforce login before checkout
     useEffect(() => {
@@ -763,7 +766,7 @@ export default function CheckoutPage() {
                                                 <span className="item-qty-tag">Qty: {item.qty}</span>
                                             </div>
                                             <div className="summary-item-price-col">
-                                                <span className="item-price-tag">₹ {Math.round(item.price * item.qty).toLocaleString('en-IN')}</span>
+                                                <span className="item-price-tag">{formatRawAmount(convertPrice(item.price) * item.qty)}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -772,7 +775,7 @@ export default function CheckoutPage() {
                                 <div className="summary-math-calculation-box">
                                     <div className="math-row">
                                         <span className="math-label">Subtotal [{cart.reduce((total, item) => total + item.qty, 0)} Item]</span>
-                                        <span className="math-val">₹ {Math.round(subtotal).toLocaleString('en-IN')}</span>
+                                        <span className="math-val">{formatRawAmount(checkoutTotals.subtotal)}</span>
                                     </div>
                                     <div className="math-row">
                                         <span className="math-label">Shipping</span>
@@ -780,13 +783,13 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="math-row">
                                         <span className="math-label">GST Tax (3%)</span>
-                                        <span className="math-val">₹ {Math.round(tax).toLocaleString('en-IN')}</span>
+                                        <span className="math-val">{formatRawAmount(checkoutTotals.tax)}</span>
                                     </div>
                                 </div>
 
                                 <div className="summary-checkout-grand-total">
                                     <div className="grand-total-display">
-                                        <span className="total-tag">₹ {Math.round(total).toLocaleString('en-IN')}</span>
+                                        <span className="total-tag">{formatRawAmount(checkoutTotals.total)}</span>
                                         <span className="total-subtext">Incl. taxes &amp; charges</span>
                                     </div>
                                     <button 

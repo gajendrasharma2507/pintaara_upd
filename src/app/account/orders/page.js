@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export default function AccountOrdersPage() {
     const router = useRouter();
+    const { formatPrice } = useCurrency();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [placedOrderNum, setPlacedOrderNum] = useState(null);
@@ -79,7 +81,7 @@ export default function AccountOrdersPage() {
                     mapped = activeOrders.map((o) => ({
                         id: o.order_number,
                         itemCode: o.items?.[0]?.design_code || o.items?.[0]?.product_name || `ORDER #${o.order_number}`,
-                        totalAmount: o.total_amount ? '₹' + Number(o.total_amount).toLocaleString('en-IN') : null,
+                        totalAmount: o.total_amount ? formatPrice(o.total_amount) : null,
                         createdAt: o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null,
                         rawCreatedAt: o.created_at,
                         status: o.status,
@@ -104,7 +106,7 @@ export default function AccountOrdersPage() {
                                 mapped = [{
                                     id: orderRes.data.order_number,
                                     itemCode: orderRes.data.items?.[0]?.design_code || orderRes.data.items?.[0]?.product_name || `ORDER #${orderRes.data.order_number}`,
-                                    totalAmount: orderRes.data.pricing?.total_amount ? '₹' + Number(orderRes.data.pricing.total_amount).toLocaleString('en-IN') : null,
+                                    totalAmount: orderRes.data.pricing?.total_amount ? formatPrice(orderRes.data.pricing.total_amount) : null,
                                     createdAt: orderRes.data.created_at ? new Date(orderRes.data.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null,
                                     currentStep: orderRes.data.current_step || statusToStep[orderRes.data.status] || 1,
                                     steps: defaultSteps,
