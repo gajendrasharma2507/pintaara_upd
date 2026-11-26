@@ -463,7 +463,7 @@ class JewelryPricingService
             stoneCharge: $stoneCharge,
             metalType: $metalType,
             brandMarkupPercent: (float) ($product->brand_markup_percent ?? 0),
-            otherCharges: (float) ($product->other_charges ?? 0) + $defaultOptionsDelta
+            otherCharges: (float) ($product->other_charges ?? 0)
         );
     }
 
@@ -534,7 +534,7 @@ class JewelryPricingService
             stoneCharge: $stoneCharge,
             metalType: $metalType,
             brandMarkupPercent: (float) ($product->brand_markup_percent ?? 0),
-            otherCharges: (float) ($product->other_charges ?? 0) + $defaultOptionsDelta
+            otherCharges: (float) ($product->other_charges ?? 0)
         );
     }
 
