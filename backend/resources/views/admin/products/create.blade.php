@@ -76,19 +76,19 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;">
       <div>
         <label class="admin-label">Net Weight (g) *</label>
-        <input type="number" step="0.001" name="base_weight_grams" value="{{ old('base_weight_grams', '8.500') }}" required class="admin-input" placeholder="8.500">
+        <input type="number" step="0.001" name="base_weight_grams" value="{{ old('base_weight_grams') }}" required class="admin-input" placeholder="8.500">
       </div>
       <div>
         <label class="admin-label">Making Charge (%)</label>
-        <input type="number" step="0.01" name="making_charge_percent" value="{{ old('making_charge_percent', '12.00') }}" class="admin-input" placeholder="12.00">
+        <input type="number" step="0.01" name="making_charge_percent" value="{{ old('making_charge_percent') }}" class="admin-input" placeholder="12.00">
       </div>
       <div>
         <label class="admin-label">Brand Markup (%)</label>
-        <input type="number" step="0.01" name="brand_markup_percent" value="{{ old('brand_markup_percent', '10.00') }}" class="admin-input" placeholder="10.00">
+        <input type="number" step="0.01" name="brand_markup_percent" value="{{ old('brand_markup_percent') }}" class="admin-input" placeholder="10.00">
       </div>
       <div>
         <label class="admin-label">Other Charge (₹)</label>
-        <input type="number" step="0.01" name="other_charges" value="{{ old('other_charges', '0.00') }}" class="admin-input" placeholder="0.00">
+        <input type="number" step="0.01" name="other_charges" value="{{ old('other_charges') }}" class="admin-input" placeholder="0.00">
       </div>
     </div>
 
@@ -118,6 +118,7 @@
         </label>
         <label style="display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; margin: 0;">
           <span style="position: relative; display: inline-block; width: 44px; height: 24px;">
+            <input type="hidden" name="is_limited_edition" value="0">
             <input type="checkbox" name="is_limited_edition" id="is_limited_edition_toggle" value="1" {{ old('is_limited_edition', '1') ? 'checked' : '' }} style="opacity: 0; width: 0; height: 0; position: absolute;" onchange="handleEditionSwitch(this.checked)">
             <span id="edition_switch_slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: {{ old('is_limited_edition', '1') ? '#10B981' : '#64748B' }}; transition: 0.25s; border-radius: 24px;">
               <span id="edition_switch_knob" style="position: absolute; content: ''; height: 18px; width: 18px; left: {{ old('is_limited_edition', '1') ? '23px' : '3px' }}; bottom: 3px; background-color: white; transition: 0.25s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></span>
@@ -132,15 +133,15 @@
       <div id="limited_edition_inputs_row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; transition: opacity 0.2s; {{ old('is_limited_edition', '1') ? '' : 'opacity: 0.45; pointer-events: none;' }}">
         <div>
           <label class="admin-label">Edition Title / Text Prefix *</label>
-          <input type="text" name="edition_prefix" id="edition_prefix_input" value="{{ old('edition_prefix', 'LIMITED EDITION') }}" class="admin-input" placeholder="e.g. LIMITED EDITION">
+          <input type="text" name="edition_prefix" id="edition_prefix_input" value="{{ old('edition_prefix') }}" class="admin-input" placeholder="e.g. LIMITED EDITION">
         </div>
         <div>
           <label class="admin-label">Current Piece No. *</label>
-          <input type="number" name="edition_current" id="edition_current_input" min="0" value="{{ old('edition_current', 1) }}" class="admin-input" placeholder="1">
+          <input type="number" name="edition_current" id="edition_current_input" min="0" value="{{ old('edition_current') }}" class="admin-input" placeholder="1">
         </div>
         <div>
           <label class="admin-label">Total Edition Limit *</label>
-          <input type="number" name="edition_limit" id="edition_limit_input" min="1" value="{{ old('edition_limit', 50) }}" class="admin-input" placeholder="50">
+          <input type="number" name="edition_limit" id="edition_limit_input" min="1" value="{{ old('edition_limit') }}" class="admin-input" placeholder="50">
         </div>
       </div>
     </div>
@@ -1072,6 +1073,20 @@ document.addEventListener('DOMContentLoaded', () => {
   renderActiveGallery();
   initCustomSections();
 });
+
+function handleEditionSwitch(enabled) {
+  const slider = document.getElementById('edition_switch_slider');
+  const knob = document.getElementById('edition_switch_knob');
+  const label = document.getElementById('edition_switch_label');
+  const row = document.getElementById('limited_edition_inputs_row');
+  if (slider) slider.style.backgroundColor = enabled ? '#10B981' : '#64748B';
+  if (knob) knob.style.left = enabled ? '23px' : '3px';
+  if (label) label.textContent = enabled ? 'Enabled' : 'Disabled';
+  if (row) {
+    row.style.opacity = enabled ? '1' : '0.45';
+    row.style.pointerEvents = enabled ? 'auto' : 'none';
+  }
+}
 
 let customSectionsData = {!! json_encode(old('custom_sections', [])) !!};
 if (typeof customSectionsData === 'string') {
