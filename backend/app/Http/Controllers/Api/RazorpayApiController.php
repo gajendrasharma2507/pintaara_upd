@@ -58,6 +58,8 @@ class RazorpayApiController extends Controller
     {
         $isLive = str_starts_with($this->keyId, 'rzp_live_');
         $isPlaceholder = ($this->keyId === 'rzp_test_placeholder' || empty($this->keyId));
+        $isEnabled = Setting::get('razorpay_enabled', '1') !== '0';
+        $internationalEnabled = Setting::get('razorpay_international_enabled', '0') === '1';
 
         return response()->json([
             'status' => 'success',
@@ -68,6 +70,8 @@ class RazorpayApiController extends Controller
                 'merchant_name' => $this->merchantName,
                 'is_live' => $isLive,
                 'is_placeholder' => $isPlaceholder,
+                'enabled' => $isEnabled && !$isPlaceholder,
+                'international_enabled' => $internationalEnabled,
             ]
         ]);
     }
@@ -88,6 +92,22 @@ class RazorpayApiController extends Controller
         ]);
 
         $currency = strtoupper($request->currency ?? $this->currency);
+
+        if (Setting::get('razorpay_enabled', '1') === '0') {
+            return response()->json([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Razorpay gateway is currently disabled in Admin Settings.',
+            ], 422);
+        }
+
+        if ($currency !== 'INR' && Setting::get('razorpay_international_enabled', '0') !== '1') {
+            return response()->json([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Razorpay is disabled for international currencies in Admin Settings.',
+            ], 422);
+        }
 
         // Use exact checkout total in the selected currency when provided; fallback to server-side calculation
         if ($request->filled('amount') && (float) $request->amount > 0) {

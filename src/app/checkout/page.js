@@ -368,6 +368,53 @@ export default function CheckoutPage() {
     const paypalContainerRef = useRef(null);
     const [paypalReady, setPaypalReady] = useState(false);
     const [paypalError, setPaypalError] = useState('');
+    const [gatewayConfig, setGatewayConfig] = useState({
+        loaded: false,
+        razorpayEnabled: true,
+        razorpayInternational: false,
+        paypalEnabled: false,
+        paypalInternational: true,
+        paypalClientId: '',
+    });
+    const [selectedIntlGateway, setSelectedIntlGateway] = useState('paypal');
+
+    useEffect(() => {
+        let active = true;
+        Promise.allSettled([api.getRazorpayConfig(), api.getPayPalConfig()]).then(([rzpRes, ppRes]) => {
+            if (!active) return;
+            const rzp = rzpRes.status === 'fulfilled' ? rzpRes.value?.data : null;
+            const pp = ppRes.status === 'fulfilled' ? ppRes.value?.data : null;
+            const razorpayEnabled = rzp ? (rzp.enabled !== false && !rzp.is_placeholder) : true;
+            const razorpayInternational = Boolean(rzp?.international_enabled);
+            const paypalEnabled = Boolean(pp?.enabled && pp?.client_id);
+            const paypalInternational = pp ? (pp.international_enabled !== false) : true;
+
+            setGatewayConfig({
+                loaded: true,
+                razorpayEnabled,
+                razorpayInternational,
+                paypalEnabled,
+                paypalInternational,
+                paypalClientId: pp?.client_id || '',
+            });
+
+            if (paypalEnabled && paypalInternational) {
+                setSelectedIntlGateway('paypal');
+            } else if (razorpayEnabled && razorpayInternational) {
+                setSelectedIntlGateway('razorpay');
+            }
+        });
+        return () => { active = false; };
+    }, []);
+
+    const canUsePaypalIntl = gatewayConfig.paypalEnabled && gatewayConfig.paypalInternational;
+    const canUseRazorpayIntl = gatewayConfig.razorpayEnabled && gatewayConfig.razorpayInternational;
+    const activeGateway = isIndiaCurrency
+        ? (gatewayConfig.razorpayEnabled ? 'razorpay' : 'none')
+        : (canUsePaypalIntl && canUseRazorpayIntl
+            ? selectedIntlGateway
+            : (canUsePaypalIntl ? 'paypal' : (canUseRazorpayIntl ? 'razorpay' : 'none')));
+
     const checkoutStateRef = useRef({});
     checkoutStateRef.current = {
         cart,
@@ -386,7 +433,7 @@ export default function CheckoutPage() {
     };
 
     useEffect(() => {
-        if (isIndiaCurrency || activeStep !== 3) {
+        if (isIndiaCurrency || activeStep !== 3 || activeGateway !== 'paypal') {
             setPaypalReady(false);
             setPaypalError('');
             return;
@@ -395,11 +442,15 @@ export default function CheckoutPage() {
         let cancelled = false;
         const initPayPal = async () => {
             try {
-                const cfgRes = await api.getPayPalConfig();
-                const cfg = cfgRes?.data;
-                if (!cfg?.enabled || !cfg?.client_id) {
-                    if (!cancelled) setPaypalError('PayPal is not configured in Admin Settings.');
-                    return;
+                let clientId = gatewayConfig.paypalClientId;
+                if (!clientId) {
+                    const cfgRes = await api.getPayPalConfig();
+                    const cfg = cfgRes?.data;
+                    if (!cfg?.enabled || !cfg?.international_enabled || !cfg?.client_id) {
+                        if (!cancelled) setPaypalError('PayPal is not enabled for international checkout.');
+                        return;
+                    }
+                    clientId = cfg.client_id;
                 }
 
                 const existingScript = document.querySelector('script[data-pintaara-paypal="1"]');
@@ -414,7 +465,7 @@ export default function CheckoutPage() {
                         return;
                     }
                     const script = document.createElement('script');
-                    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(cfg.client_id)}&currency=${encodeURIComponent(paypalSdkCurrency)}&intent=capture`;
+                    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=${encodeURIComponent(paypalSdkCurrency)}&intent=capture`;
                     script.async = true;
                     script.setAttribute('data-pintaara-paypal', '1');
                     script.setAttribute('data-currency', paypalSdkCurrency);
@@ -527,7 +578,7 @@ export default function CheckoutPage() {
 
         initPayPal();
         return () => { cancelled = true; };
-    }, [isIndiaCurrency, activeStep, paypalSdkCurrency]);
+    }, [isIndiaCurrency, activeStep, paypalSdkCurrency, activeGateway, gatewayConfig.paypalClientId]);
 
     const handleStepHeaderClick = (step) => {
         if (step > 1 && !validateShipping()) {
@@ -892,26 +943,88 @@ export default function CheckoutPage() {
                                 {activeStep === 3 && (
                                     <div className="step-body-content">
                                         <div className="payment-radio-group">
-                                            <div className="radio-label-wrapper active" style={{ cursor: 'default', borderColor: 'rgba(212, 175, 55, 0.4)' }}>
-                                                <input 
-                                                    type="radio" 
-                                                    name="payment_method" 
-                                                    value={isIndiaCurrency ? 'razorpay' : 'paypal'}
-                                                    checked={true}
-                                                    readOnly
-                                                    className="radio-input"
-                                                />
-                                                <div className="radio-text-block">
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <span className="radio-title-tag">{isIndiaCurrency ? 'Checkout' : 'PayPal Checkout'}</span>
+                                            {isIndiaCurrency ? (
+                                                <div className="radio-label-wrapper active" style={{ cursor: 'default', borderColor: 'rgba(212, 175, 55, 0.4)' }}>
+                                                    <input 
+                                                        type="radio" 
+                                                        name="payment_method" 
+                                                        value="razorpay"
+                                                        checked={true}
+                                                        readOnly
+                                                        className="radio-input"
+                                                    />
+                                                    <div className="radio-text-block">
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            <span className="radio-title-tag">Checkout</span>
+                                                        </div>
+                                                        <span className="radio-description-tag">
+                                                            {gatewayConfig.razorpayEnabled
+                                                                ? 'Instant payment via UPI (Google Pay, PhonePe, Paytm), Credit & Debit Cards, Net Banking & Secure Wallets.'
+                                                                : 'Razorpay checkout is currently disabled in Admin Settings.'}
+                                                        </span>
                                                     </div>
-                                                    <span className="radio-description-tag">
-                                                        {isIndiaCurrency
-                                                            ? 'Instant payment via UPI (Google Pay, PhonePe, Paytm), Credit & Debit Cards, Net Banking & Secure Wallets.'
-                                                            : 'International payment via PayPal & Global Credit / Debit Cards.'}
-                                                    </span>
                                                 </div>
-                                            </div>
+                                            ) : activeGateway === 'none' ? (
+                                                <div className="radio-label-wrapper active" style={{ cursor: 'default', borderColor: 'rgba(185, 28, 28, 0.35)' }}>
+                                                    <div className="radio-text-block">
+                                                        <span className="radio-title-tag">International Checkout Unavailable</span>
+                                                        <span className="radio-description-tag">
+                                                            No payment gateway is currently enabled for international currencies in Admin Settings.
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {canUsePaypalIntl && (
+                                                        <label
+                                                            className={`radio-label-wrapper ${activeGateway === 'paypal' ? 'active' : ''}`}
+                                                            style={{ cursor: canUseRazorpayIntl ? 'pointer' : 'default', borderColor: activeGateway === 'paypal' ? 'rgba(212, 175, 55, 0.4)' : undefined }}
+                                                            onClick={() => canUseRazorpayIntl && setSelectedIntlGateway('paypal')}
+                                                        >
+                                                            <input 
+                                                                type="radio" 
+                                                                name="payment_method" 
+                                                                value="paypal"
+                                                                checked={activeGateway === 'paypal'}
+                                                                onChange={() => setSelectedIntlGateway('paypal')}
+                                                                className="radio-input"
+                                                            />
+                                                            <div className="radio-text-block">
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <span className="radio-title-tag">PayPal Checkout</span>
+                                                                </div>
+                                                                <span className="radio-description-tag">
+                                                                    International payment via PayPal &amp; Global Credit / Debit Cards.
+                                                                </span>
+                                                            </div>
+                                                        </label>
+                                                    )}
+                                                    {canUseRazorpayIntl && (
+                                                        <label
+                                                            className={`radio-label-wrapper ${activeGateway === 'razorpay' ? 'active' : ''}`}
+                                                            style={{ cursor: canUsePaypalIntl ? 'pointer' : 'default', borderColor: activeGateway === 'razorpay' ? 'rgba(212, 175, 55, 0.4)' : undefined }}
+                                                            onClick={() => canUsePaypalIntl && setSelectedIntlGateway('razorpay')}
+                                                        >
+                                                            <input 
+                                                                type="radio" 
+                                                                name="payment_method" 
+                                                                value="razorpay"
+                                                                checked={activeGateway === 'razorpay'}
+                                                                onChange={() => setSelectedIntlGateway('razorpay')}
+                                                                className="radio-input"
+                                                            />
+                                                            <div className="radio-text-block">
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <span className="radio-title-tag">Razorpay International</span>
+                                                                </div>
+                                                                <span className="radio-description-tag">
+                                                                    Pay with International Credit &amp; Debit Cards via Razorpay.
+                                                                </span>
+                                                            </div>
+                                                        </label>
+                                                    )}
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -975,7 +1088,7 @@ export default function CheckoutPage() {
                                         <span className="total-tag">{formatRawAmount(checkoutTotals.total)}</span>
                                         <span className="total-subtext">Incl. taxes &amp; charges</span>
                                     </div>
-                                    {activeStep === 3 && !isIndiaCurrency ? (
+                                    {activeStep === 3 && activeGateway === 'paypal' ? (
                                         <div style={{ minWidth: '180px' }}>
                                             {paypalError ? (
                                                 <button
@@ -993,7 +1106,7 @@ export default function CheckoutPage() {
                                         <button 
                                             className="place-order-action-btn" 
                                             onClick={handleActionClick}
-                                            disabled={submitting}
+                                            disabled={submitting || (activeStep === 3 && activeGateway === 'none')}
                                         >
                                             {submitting 
                                                 ? 'PROCESSING...' 

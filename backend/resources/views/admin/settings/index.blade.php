@@ -65,6 +65,8 @@
       'razorpay' => [
         'name' => 'Razorpay Setup (India / INR)',
         'raw_val' => $settings['razorpay_key_id'] ?? config('services.razorpay.key_id', env('RAZORPAY_KEY_ID', '')),
+        'is_enabled' => ($settings['razorpay_enabled'] ?? '1') !== '0',
+        'intl_enabled' => ($settings['razorpay_international_enabled'] ?? '0') === '1',
         'display_val' => !empty($settings['razorpay_key_id'] ?? config('services.razorpay.key_id', env('RAZORPAY_KEY_ID', ''))) ? ($settings['razorpay_key_id'] ?? config('services.razorpay.key_id', env('RAZORPAY_KEY_ID', ''))) : 'Not Configured',
         'type' => 'modal',
         'action_type' => 'razorpay',
@@ -72,6 +74,8 @@
       'paypal' => [
         'name' => 'PayPal Setup (International)',
         'raw_val' => $settings['paypal_client_id'] ?? env('PAYPAL_CLIENT_ID', ''),
+        'is_enabled' => ($settings['paypal_enabled'] ?? '1') !== '0',
+        'intl_enabled' => ($settings['paypal_international_enabled'] ?? '1') !== '0',
         'display_val' => !empty($settings['paypal_client_id'] ?? env('PAYPAL_CLIENT_ID', ''))
           ? ((($settings['paypal_env'] ?? 'sandbox') === 'live' ? 'Live' : 'Sandbox') . ' · ' . ($settings['paypal_client_id'] ?? env('PAYPAL_CLIENT_ID', '')))
           : 'Not Configured',
@@ -143,8 +147,24 @@
                       </span>
                     @endif
                   </div>
+                @elseif(in_array($item['action_type'], ['razorpay', 'paypal']))
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    @if($item['is_enabled'])
+                      <span style="background: #ECFDF5; color: #059669; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em;">Enabled</span>
+                    @else
+                      <span style="background: #FEF2F2; color: #DC2626; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em;">Disabled</span>
+                    @endif
+                    @if($item['intl_enabled'])
+                      <span style="background: #EFF6FF; color: #1D4ED8; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em;">International: Enabled</span>
+                    @else
+                      <span style="background: #F3F4F6; color: #6B7280; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em;">International: Disabled</span>
+                    @endif
+                    <span style="font-size: 13.5px; font-weight: 600; color: var(--admin-text-primary); font-family: monospace;">
+                      {{ $item['display_val'] }}
+                    </span>
+                  </div>
                 @else
-                  <span style="font-size: 14px; font-weight: 600; color: var(--admin-text-primary); {{ in_array($item['action_type'], ['razorpay', 'paypal', 'smtp']) ? 'font-family: monospace;' : '' }}">
+                  <span style="font-size: 14px; font-weight: 600; color: var(--admin-text-primary); {{ $item['action_type'] === 'smtp' ? 'font-family: monospace;' : '' }}">
                     {{ $item['display_val'] }}
                   </span>
                 @endif
@@ -313,6 +333,27 @@
       @csrf
       <input type="hidden" name="razorpay_env" value="live">
 
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div>
+          <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 6px;">
+            Gateway Status
+          </label>
+          <select name="razorpay_enabled" class="admin-input">
+            <option value="1" {{ ($settings['razorpay_enabled'] ?? '1') !== '0' ? 'selected' : '' }}>Enabled</option>
+            <option value="0" {{ ($settings['razorpay_enabled'] ?? '1') === '0' ? 'selected' : '' }}>Disabled</option>
+          </select>
+        </div>
+        <div>
+          <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 6px;">
+            International (Non-INR)
+          </label>
+          <select name="razorpay_international_enabled" class="admin-input">
+            <option value="0" {{ ($settings['razorpay_international_enabled'] ?? '0') !== '1' ? 'selected' : '' }}>Disabled</option>
+            <option value="1" {{ ($settings['razorpay_international_enabled'] ?? '0') === '1' ? 'selected' : '' }}>Enabled</option>
+          </select>
+        </div>
+      </div>
+
       <div>
         <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 6px;">
           Razorpay Key ID (Live) *
@@ -373,6 +414,27 @@
 
     <form action="{{ route('admin.settings.update') }}" method="POST" style="padding: 24px; display: flex; flex-direction: column; gap: 18px;">
       @csrf
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div>
+          <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 6px;">
+            Gateway Status
+          </label>
+          <select name="paypal_enabled" class="admin-input">
+            <option value="1" {{ ($settings['paypal_enabled'] ?? '1') !== '0' ? 'selected' : '' }}>Enabled</option>
+            <option value="0" {{ ($settings['paypal_enabled'] ?? '1') === '0' ? 'selected' : '' }}>Disabled</option>
+          </select>
+        </div>
+        <div>
+          <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 6px;">
+            International (Non-INR)
+          </label>
+          <select name="paypal_international_enabled" class="admin-input">
+            <option value="1" {{ ($settings['paypal_international_enabled'] ?? '1') !== '0' ? 'selected' : '' }}>Enabled</option>
+            <option value="0" {{ ($settings['paypal_international_enabled'] ?? '1') === '0' ? 'selected' : '' }}>Disabled</option>
+          </select>
+        </div>
+      </div>
 
       <div>
         <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 6px;">

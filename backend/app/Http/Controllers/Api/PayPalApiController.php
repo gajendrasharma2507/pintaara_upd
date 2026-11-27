@@ -72,11 +72,15 @@ class PayPalApiController extends Controller
     {
         $creds = $this->getCredentials();
         $isConfigured = !empty($creds['clientId']) && !empty($creds['clientSecret']);
+        $isEnabled = Setting::get('paypal_enabled', '1') !== '0';
+        $internationalEnabled = Setting::get('paypal_international_enabled', '1') !== '0';
 
         return response()->json([
             'status' => 'success',
             'data' => [
-                'enabled' => $isConfigured,
+                'enabled' => $isConfigured && $isEnabled,
+                'international_enabled' => $internationalEnabled,
+                'configured' => $isConfigured,
                 'env' => $creds['env'],
                 'client_id' => $creds['clientId'],
             ],
@@ -92,6 +96,13 @@ class PayPalApiController extends Controller
         ]);
 
         $creds = $this->getCredentials();
+        if (Setting::get('paypal_enabled', '1') === '0' || Setting::get('paypal_international_enabled', '1') === '0') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'PayPal is currently disabled for international checkout in Admin Settings.',
+            ], 422);
+        }
+
         if (empty($creds['clientId']) || empty($creds['clientSecret'])) {
             return response()->json([
                 'status' => 'error',
@@ -205,6 +216,13 @@ class PayPalApiController extends Controller
         ]);
 
         $creds = $this->getCredentials();
+        if (Setting::get('paypal_enabled', '1') === '0' || Setting::get('paypal_international_enabled', '1') === '0') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'PayPal is currently disabled for international checkout in Admin Settings.',
+            ], 422);
+        }
+
         if (empty($creds['clientId']) || empty($creds['clientSecret'])) {
             return response()->json([
                 'status' => 'error',
