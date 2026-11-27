@@ -57,7 +57,7 @@ function LegalContent({ pageType = "terms" }) {
                 return;
             }
 
-            const triggerPoint = SECTION_OFFSET + 50;
+            const triggerPoint = 160;
             let currentId = sections[0]?.id;
 
             for (let i = 0; i < sections.length; i++) {
@@ -74,6 +74,20 @@ function LegalContent({ pageType = "terms" }) {
         handleScroll();
         return () => window.removeEventListener('scroll', handleScroll);
     }, [sections]);
+
+    // Auto-scroll sidebar TOC so the active section link stays in view as the page scrolls
+    useEffect(() => {
+        if (!activeSection) return;
+        const list = document.querySelector('.terms-sidebar-list');
+        const activeEl = list?.querySelector('.terms-sidebar-link.active');
+        if (list && activeEl) {
+            const listRect = list.getBoundingClientRect();
+            const itemRect = activeEl.getBoundingClientRect();
+            if (itemRect.top < listRect.top || itemRect.bottom > listRect.bottom) {
+                activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+    }, [activeSection]);
 
     // Smooth scroll the page to a section
     const scrollToSection = (e, id) => {
@@ -160,6 +174,9 @@ function LegalContent({ pageType = "terms" }) {
                 /* ── ROOT LAYOUT (the whole page scrolls) ── */
                 html, body {
                     background-color: #F6F4EE;
+                    height: auto !important;
+                    overflow-x: clip !important;
+                    overflow-y: visible !important;
                 }
 
                 .terms-page-root {
@@ -274,6 +291,7 @@ function LegalContent({ pageType = "terms" }) {
                     display: flex;
                     flex-direction: column;
                     position: sticky;
+                    align-self: start;
                     top: 110px;
                     max-height: calc(100vh - 220px);
                     padding-bottom: 1.5rem;
