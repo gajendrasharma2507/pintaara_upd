@@ -158,11 +158,17 @@ class ProductApiController extends Controller
             }
         }
 
+        $linkedDesignLog = \App\Models\DesignLog::where('product_id', $product->id)
+            ->orWhereRaw('UPPER(design_code) = UPPER(?)', [$product->design_code])
+            ->first();
+
         return response()->json([
             'status' => 'success',
             'data' => [
                 'id' => $product->id,
                 'design_code' => $product->design_code,
+                'has_design_log' => (bool) $linkedDesignLog,
+                'design_log_code' => $linkedDesignLog?->design_code,
                 'name' => $product->name,
                 'tier' => $product->tier,
                 'collection' => $product->collectionMaster,

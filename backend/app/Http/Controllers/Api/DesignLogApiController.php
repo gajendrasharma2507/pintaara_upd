@@ -38,7 +38,7 @@ class DesignLogApiController extends Controller
         }
 
         if (!$log) {
-            // Also try matching by product design_code or product id directly
+            // Match via product's linked designLog relationship if present, without synthesizing a fake log
             $product = \App\Models\Product::with('designLog')
                 ->where(function ($q) use ($identifier) {
                     if (is_numeric($identifier)) {
@@ -50,30 +50,6 @@ class DesignLogApiController extends Controller
 
             if ($product && $product->designLog) {
                 $log = $product->designLog->load('product');
-            } elseif ($product) {
-                // Return synthesized design log from product attributes
-                return response()->json([
-                    'status' => 'success',
-                    'data' => [
-                        'id' => $product->id,
-                        'product_id' => $product->id,
-                        'blueprint_image' => $product->primary_image ?: "/images/design-log/{$product->design_code}.JPG",
-                        'design_type' => 'BESPOKE DESIGN',
-                        'status' => 'UNDER DEVELOPMENT',
-                        'inspired_by' => null,
-                        'specs' => [
-                            'type' => 'BESPOKE DESIGN',
-                            'material_options' => null,
-                            'finish_options' => null,
-                            'size_options' => null,
-                            'gem_options' => null,
-                            'inspired_by' => null,
-                            'brand_origin' => 'A PINTAARA™ ORIGINAL',
-                            'designed_by' => $product->designed_by ? "DESIGNED X {$product->designed_by}" : 'DESIGNED X Darshit Soni',
-                        ],
-                        'product' => $product,
-                    ],
-                ]);
             }
         }
 
