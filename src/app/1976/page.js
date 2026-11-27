@@ -34,23 +34,23 @@ const COPY = {
         soundOff: 'અવાજ બંધ',
         muteTitle: 'અવાજ બંધ કરો',
         playTitle: 'PINTAARA નો અવાજ ચાલુ કરો',
-        heroSubtitle: 'પિંતારા પહેલાંની વાર્તા',
+        heroSubtitle: 'THE STORY BEFORE PINTAARA',
         exploreLegacy: 'વારસો જાણો',
         item1Title: 'શરૂઆત',
         item1Year: '1976',
         item1P1: '૧૯૭૬માં, મારા પિતાએ એક સરળ વિશ્વાસ સાથે જ્વેલરીની સફર શરૂ કરી હતી કે પ્રામાણિકતા, ગુણવત્તા અને સંબંધો દરેક બાબત કરતાં વધુ મહત્વપૂર્ણ છે.',
         item1P2: 'એક કારીગરના સમર્પણથી જે શરૂ થયું, તે પછીના દરેક અધ્યાયનો પાયો બન્યું.',
         item2YearsLabel: 'વર્ષ',
-        item2Sub: 'કારીગરી અને વિશ્વાસના',
-        item2P1: 'પાંચ દાયકાથી વધુ સમયમાં, તે સમર્પણે પેઢી દર પેઢી પરિવારોનો વિશ્વાસ જીત્યો છે.',
-        item2P2: 'અમારા માટે જ્વેલરી ક્યારેય માત્ર ધાતુ અને રત્નો નથી રહી; તે હંમેશા જીવનની સૌથી યાદગાર ક્ષણોનો હિસ્સો રહી છે.',
-        item3Title: 'આજે',
+        item2Sub: 'જ્વેલરીમાં એક જીવન',
+        item2P1: 'પાંચ દાયકાઓમાં, મારા પિતાનું કાર્ય પેઢી દર પેઢી પરિવારોના જીવનનો ભાગ બની ગયું.',
+        item2P2: 'તેમણે બનાવેલા સંબંધો અને તેની સાથે આવેલી જવાબદારીએ જ્વેલરી અંગેની મારી પ્રારંભિક સમજણ ઘડી.',
+        item3Title: 'એક અલગ દિશા',
         item3Year: '2025',
-        item3P1: 'PINTAARA એ જ સફરનો આગળનો અધ્યાય છે.',
-        item3P2: 'દાયકાઓની કારીગરી પર બનેલું, તે મૌલિક ડિઝાઇન, વિચારશીલ સર્જન અને પેઢીઓ સુધી યાદ રહે તેવા ઘરેણાં દ્વારા એ જ મૂલ્યોને આગળ ધપાવે છે.',
+        item3P1: 'મેં ડિઝાઇન દ્વારા એક અલગ માર્ગ પસંદ કર્યો. ઇન્ટિરિયર ડિઝાઇનની પૃષ્ઠભૂમિ અને જ્વેલરી સાથેના આજીવન પરિચય સાથે, મેં વિચારો, માળખાં અને આકારોને કિંમતી ધાતુના ઘરેણાંમાં કેવી રીતે ઢાળી શકાય તેની શોધ શરૂ કરી.',
+        item3P2: 'તે શોધમાંથી PINTAARA ની સ્થાપના થઈ. પોતાના વિચારોથી ઘડાયેલું એક સ્વતંત્ર ડિઝાઇન હાઉસ.',
         futureHeadline: 'ભૂતકાળે અમને ઘડ્યા છે. હવે સમય છે આવનારા ભવિષ્યને ઘડવાનો.',
-        futureSubtext: 'પાયો — જૂનો.\u00A0 દ્રષ્ટિ — નવી.\u00A0 પ્રતિબદ્ધતા — એ જ.',
-        beginYours: 'તમારી શરૂઆત કરો',
+        futureSubtext: 'Foundation — Old.\u00A0 Vision — New.\u00A0 Commitment — The same.',
+        beginYours: 'BEGIN YOURS',
     },
 };
 
@@ -123,7 +123,7 @@ export default function Legacy1976Page() {
             if (audio.paused) {
                 audio.play()
                     .then(() => setIsPlaying(true))
-                    .catch(() => {});
+                    .catch(() => { });
             }
             window.removeEventListener('click', handleUserGesture);
             window.removeEventListener('scroll', handleUserGesture);
@@ -182,7 +182,7 @@ export default function Legacy1976Page() {
                 </div>
 
                 {/* Scroll Down Indicator */}
-                <div 
+                <div
                     className="legacy-scroll-indicator"
                     onClick={() => {
                         const timelineEl = document.querySelector('.legacy-timeline-section');
