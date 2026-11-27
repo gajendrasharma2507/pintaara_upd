@@ -1795,7 +1795,7 @@ body.atelier-body-sticky::-webkit-scrollbar,
         font-size: calc(50 * var(--p)) !important;
         font-weight: 400 !important;
         line-height: 1.38 !important;
-        letter-spacing: 0.1em !important;
+        letter-spacing: 0 !important;
         color: #FFFFFF !important;
         margin: calc(3 * var(--p)) 0 0 !important;
         white-space: nowrap;
