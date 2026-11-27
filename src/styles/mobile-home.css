@@ -963,7 +963,7 @@ html body .auth-root > .auth-footer span {
     html body .atelier-page-root .atelier-main-preview-box {
         width: 100% !important;
         height: auto !important;
-        aspect-ratio: 1 / 1 !important;
+        aspect-ratio: 4 / 5 !important;
     }
 
     html body .atelier-page-root .atelier-thumbnails-row {

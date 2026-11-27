@@ -2609,7 +2609,7 @@ export default function DynamicCollectionPage({ params }) {
                 }
                 .atelier-main-preview-box {
                     width: 100%;
-                    aspect-ratio: 1 / 1;
+                    aspect-ratio: 4 / 5;
                     background: linear-gradient(135deg, #CFD9E0 0%, #DCE5EA 40%, #EAEEF0 75%, #F0F2F0 100%);
                     border: 1px solid rgba(44, 40, 37, 0.1);
                     box-shadow: 0 18px 45px rgba(44, 40, 37, 0.11);
@@ -2644,7 +2644,7 @@ export default function DynamicCollectionPage({ params }) {
                 .atelier-thumb-card {
                     flex: 0 0 54px;
                     width: 54px;
-                    height: 54px;
+                    aspect-ratio: 4 / 5;
                     border: 1px solid #D5D0C6;
                     border-radius: 2px;
                     cursor: pointer;
