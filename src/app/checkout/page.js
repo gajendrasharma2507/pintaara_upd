@@ -931,10 +931,21 @@ export default function CheckoutPage() {
                                             </div>
                                             <div className="summary-item-details">
                                                 <span className="item-name-code">{item.code}</span>
-                                                <span className="item-attrs">
-                                                    {item.metal} {item.finish} {item.gem ? `| ${item.gem}` : ''}
-                                                </span>
+                                                {(item.metal || item.finish || item.gem) && (
+                                                    <span className="item-attrs">
+                                                        {[item.metal, item.finish, item.gem].filter(Boolean).join(' | ')}
+                                                    </span>
+                                                )}
                                                 {item.size && <span className="item-attrs">Size: {item.size}</span>}
+                                                {item.chain && <span className="item-attrs">Chain: {item.chain}</span>}
+                                                {Array.isArray(item.customizations) && item.customizations
+                                                    .filter((c) => {
+                                                        const k = String(c?.option || '').toLowerCase();
+                                                        return c?.value && !k.includes('purity') && !k.includes('metal') && !k.includes('karat') && !k.includes('finish') && !k.includes('gem') && !k.includes('stone') && !k.includes('size') && !k.includes('chain');
+                                                    })
+                                                    .map((c, cIdx) => (
+                                                        <span key={cIdx} className="item-attrs">{c.option}: {c.value}</span>
+                                                    ))}
                                                 <span className="item-qty-tag">Qty: {item.qty}</span>
                                             </div>
                                             <div className="summary-item-price-col">
