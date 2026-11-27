@@ -1000,8 +1000,11 @@ function removeGalleryImage(index) {
 
 function setPrimaryImage(index) {
   if (index >= 0 && index < galleryImages.length) {
+    const targetFinish = galleryImages[index].finish_key || activeFinishKey || 'YG';
     galleryImages.forEach((img, i) => {
-      img.is_primary = (i === index);
+      if ((img.finish_key || 'YG') === targetFinish) {
+        img.is_primary = (i === index);
+      }
     });
     renderActiveGallery();
   }
@@ -1048,11 +1051,12 @@ async function uploadMultipleFiles(files) {
       });
       const data = await res.json();
       if (data.status === 'success' && data.url) {
+        const hasFinishPrimary = galleryImages.some(img => (img.finish_key || 'YG') === activeFinishKey && img.is_primary);
         galleryImages.push({
           id: null,
           url: data.url,
           finish_key: activeFinishKey,
-          is_primary: galleryImages.length === 0,
+          is_primary: !hasFinishPrimary,
           sort_order: galleryImages.length + 1,
         });
         uploadedCount++;
