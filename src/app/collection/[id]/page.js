@@ -32,10 +32,7 @@ const resolveProductImage = (product, imageUrl) => {
 const getOptionalProductName = (rawName, designCode) => {
     const trimmed = String(rawName || '').trim();
     if (!trimmed) return '';
-    const lower = trimmed.toLowerCase();
     const codeUpper = String(designCode || '').trim().toUpperCase();
-    if (lower === 'bespoke jewelry piece' || lower === 'origin') return '';
-    if (lower.startsWith('piece ')) return '';
     if (codeUpper && trimmed.toUpperCase() === codeUpper) return '';
     return trimmed;
 };
