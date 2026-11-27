@@ -170,7 +170,7 @@
           <input
             type="text"
             name="design_type"
-            value="{{ old('design_type', 'BESPOKE DESIGN') }}"
+            value="{{ old('design_type') }}"
             placeholder="e.g. BESPOKE DESIGN"
             class="admin-input"
             style="width: 100%;"
@@ -186,7 +186,7 @@
           <input
             type="text"
             name="material_options"
-            value="{{ old('material_options', '24KT Solid Gold, 22KT Solid Gold, 18KT Solid Gold') }}"
+            value="{{ old('material_options') }}"
             placeholder="e.g. 24KT Solid Gold, 22KT Solid Gold, 18KT Solid Gold"
             class="admin-input"
             style="width: 100%;"
@@ -203,7 +203,7 @@
           <input
             type="text"
             name="finish_options"
-            value="{{ old('finish_options', 'Yellow Gold, Rose Gold, White Gold') }}"
+            value="{{ old('finish_options') }}"
             placeholder="e.g. Yellow Gold, Rose Gold, White Gold"
             class="admin-input"
             style="width: 100%;"
@@ -217,7 +217,7 @@
           <input
             type="text"
             name="size_options"
-            value="{{ old('size_options', '10, 12, 14, 16') }}"
+            value="{{ old('size_options') }}"
             placeholder="e.g. 10, 12, 14, 16"
             class="admin-input"
             style="width: 100%;"
@@ -236,7 +236,7 @@
           class="admin-input"
           style="width: 100%; resize: vertical;"
           placeholder="e.g. Natural Diamond (VVS-VS), Zambian Emerald, Ceylon Blue Sapphire, Burmese Ruby, No Stone / Solid Gold"
-        >{{ old('gem_options', 'Natural Diamond (VVS-VS), Zambian Emerald, Ceylon Blue Sapphire, Burmese Ruby, No Stone / Solid Gold') }}</textarea>
+        >{{ old('gem_options') }}</textarea>
       </div>
 
       <!-- INSPIRATION: CUSTOM LABEL & CONTENT -->
@@ -254,7 +254,7 @@
             <input
               type="text"
               name="inspired_by_label"
-              value="{{ old('inspired_by_label', 'INSPIRED BY') }}"
+              value="{{ old('inspired_by_label') }}"
               placeholder="e.g. INSPIRED BY"
               class="admin-input"
               style="width: 100%; font-weight: 700; text-transform: uppercase;"
@@ -267,7 +267,7 @@
             <input
               type="text"
               name="inspired_by"
-              value="{{ old('inspired_by', 'Dewdrop physics and morning horizon light') }}"
+              value="{{ old('inspired_by') }}"
               placeholder="e.g. Dewdrop physics and morning horizon light"
               class="admin-input"
               style="width: 100%;"
@@ -285,7 +285,7 @@
           <input
             type="text"
             name="designed_by"
-            value="{{ old('designed_by', 'DARSHIT SONI') }}"
+            value="{{ old('designed_by') }}"
             placeholder="e.g. DARSHIT SONI"
             class="admin-input"
             style="width: 100%;"
@@ -299,7 +299,7 @@
           <input
             type="text"
             name="brand_origin"
-            value="{{ old('brand_origin', 'A PINTAARA™ ORIGINAL') }}"
+            value="{{ old('brand_origin') }}"
             placeholder="e.g. A PINTAARA™ ORIGINAL"
             class="admin-input"
             style="width: 100%;"
@@ -316,7 +316,7 @@
           <input
             type="text"
             name="status"
-            value="{{ old('status', 'UNDER DEVELOPMENT') }}"
+            value="{{ old('status') }}"
             placeholder="e.g. UNDER DEVELOPMENT"
             class="admin-input"
             style="width: 100%;"
@@ -330,7 +330,7 @@
           <input
             type="text"
             name="collection"
-            value="{{ old('collection', 'SIGNATURE') }}"
+            value="{{ old('collection') }}"
             placeholder="e.g. SIGNATURE"
             class="admin-input"
             style="width: 100%;"
@@ -344,7 +344,7 @@
           <input
             type="text"
             name="release"
-            value="{{ old('release', 'OCTOBER 2026') }}"
+            value="{{ old('release') }}"
             placeholder="e.g. OCTOBER 2026"
             class="admin-input"
             style="width: 100%;"
