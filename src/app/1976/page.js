@@ -18,9 +18,9 @@ const COPY = {
         item1P1: "In 1976, my father began his journey in jewellery with a simple belief that honesty, quality, and relationships matter above everything else.",
         item1P2: "What started as one craftsman's dedication became the foundation of everything that followed.",
         item2YearsLabel: 'YEARS',
-        item2Sub: 'OF CRAFT & TRUST',
-        item2P1: 'Over five decades, that dedication earned the trust of generations of families.',
-        item2P2: "For us, jewellery has never been just metal and stones; it has always been a part of life's most meaningful moments.",
+        item2Sub: 'A LIFE IN JEWELLERY',
+        item2P1: "Over five decades, my father's work became part of the lives of generations of families.",
+        item2P2: "The relationships he built, and the responsibility that came with them, shaped my earliest understanding of jewellery.",
         item3Title: 'TODAY',
         item3Year: '2025',
         item3P1: 'PINTAARA is the next chapter of that journey.',
@@ -234,7 +234,7 @@ export default function Legacy1976Page() {
                             </div>
                         </div>
                         <div className="timeline-text-col text-left-align">
-                            <h2 className="timeline-title"><span className="timeline-title-num">50+</span> {t.item2YearsLabel}</h2>
+                            <h2 className="timeline-title"><span className="timeline-title-num">50</span> {t.item2YearsLabel}</h2>
                             <span className="timeline-year">{t.item2Sub}</span>
                             <div className="timeline-desc">
                                 <p>{t.item2P1}</p>
