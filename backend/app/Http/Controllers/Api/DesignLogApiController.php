@@ -12,7 +12,7 @@ class DesignLogApiController extends Controller
     public function index(): JsonResponse
     {
         $logs = DesignLog::with('product')
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'desc')
             ->get();
 
         return response()->json([
