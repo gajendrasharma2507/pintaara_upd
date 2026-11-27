@@ -48,7 +48,7 @@ const COPY = {
         item3Year: '2025',
         item3P1: 'મેં ડિઝાઇન દ્વારા એક અલગ માર્ગ પસંદ કર્યો. ઇન્ટિરિયર ડિઝાઇનની પૃષ્ઠભૂમિ અને જ્વેલરી સાથેના આજીવન પરિચય સાથે, મેં વિચારો, માળખાં અને આકારોને કિંમતી ધાતુના ઘરેણાંમાં કેવી રીતે ઢાળી શકાય તેની શોધ શરૂ કરી.',
         item3P2: 'તે શોધમાંથી PINTAARA ની સ્થાપના થઈ. પોતાના વિચારોથી ઘડાયેલું એક સ્વતંત્ર ડિઝાઇન હાઉસ.',
-        futureHeadline: 'ભૂતકાળે અમને ઘડ્યા છે. હવે સમય છે આવનારા ભવિષ્યને ઘડવાનો.',
+        futureHeadline: "THE PAST SHAPED US. NOW IT'S TIME TO SHAPE WHAT'S NEXT.",
         futureSubtext: 'Foundation — Old.\u00A0 Vision — New.\u00A0 Commitment — The same.',
         beginYours: 'BEGIN YOURS',
     },
