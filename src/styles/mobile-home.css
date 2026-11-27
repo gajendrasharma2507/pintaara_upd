@@ -2323,6 +2323,7 @@ html body .auth-root > .auth-footer span {
 
     html body .dl-subpage-root .dl-design-code {
         font-size: calc(27 * var(--u)) !important;
+        letter-spacing: 0.1em !important;
     }
 
     html body .auth-root .auth-btn-primary,
