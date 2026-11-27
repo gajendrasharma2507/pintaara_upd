@@ -1771,6 +1771,49 @@ export default function DynamicCollectionPage({ params }) {
         return 0;
     })();
 
+    const renderTextWithLinks = (rawText) => {
+        if (!rawText) return null;
+        const text = String(rawText);
+        const tokenRegex = /\[([^\]]+)\]\(([^)]+)\)|<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>|(https?:\/\/[^\s<]+)/gi;
+        const nodes = [];
+        let lastIndex = 0;
+        let match;
+        let keyIdx = 0;
+
+        while ((match = tokenRegex.exec(text)) !== null) {
+            if (match.index > lastIndex) {
+                nodes.push(text.slice(lastIndex, match.index));
+            }
+            const rawUrl = (match[2] || match[3] || match[5] || '').trim();
+            const label = (match[1] || match[4] || match[5] || '').trim();
+            const isSafeUrl = /^(https?:\/\/|\/|mailto:|tel:)/i.test(rawUrl);
+
+            if (isSafeUrl && label) {
+                const isExternal = /^https?:\/\//i.test(rawUrl);
+                nodes.push(
+                    <a
+                        key={`lnk-${keyIdx++}`}
+                        href={rawUrl}
+                        target={isExternal ? '_blank' : undefined}
+                        rel={isExternal ? 'noopener noreferrer' : undefined}
+                        style={{ textDecoration: 'underline', color: 'inherit' }}
+                    >
+                        {label}
+                    </a>
+                );
+            } else {
+                nodes.push(match[0]);
+            }
+            lastIndex = tokenRegex.lastIndex;
+        }
+
+        if (lastIndex < text.length) {
+            nodes.push(text.slice(lastIndex));
+        }
+
+        return nodes.length > 0 ? nodes : text;
+    };
+
     const rawCustomSections = productDetail?.custom_sections;
     let customSections = [];
     if (Array.isArray(rawCustomSections)) {
@@ -2280,14 +2323,14 @@ export default function DynamicCollectionPage({ params }) {
                                                     const formattedLine = line.startsWith('-') ? line : `- ${line}`;
                                                     return (
                                                         <div key={lIdx} className="atelier-info-line">
-                                                            {formattedLine}
+                                                            {renderTextWithLinks(formattedLine)}
                                                         </div>
                                                     );
                                                 })}
                                             </div>
                                         ) : (
                                             <p className="atelier-info-description">
-                                                {secContent}
+                                                {renderTextWithLinks(secContent)}
                                             </p>
                                         )}
                                     </div>
@@ -2951,7 +2994,7 @@ export default function DynamicCollectionPage({ params }) {
                 }
                 .atelier-info-heading {
                     font-size: 13px;
-                    font-weight: 400;
+                    font-weight: 700;
                     text-transform: uppercase;
                     color: #222222;
                     margin: 0 0 14px 0;

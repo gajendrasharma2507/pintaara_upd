@@ -1138,20 +1138,38 @@ function initCustomSections() {
           <input type="text" name="custom_sections[${idx}][title]" value="${escapeHtml(sec.title || '')}" class="admin-input sec-title-input" placeholder="e.g. MATERIALS & CARE" style="padding: 8px 12px; font-size: 13px;" />
         </div>
         <div>
-          <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-primary); margin-bottom: 4px; text-transform: uppercase;">
-            Section Content / Description
-          </label>
-          <textarea name="custom_sections[${idx}][content]" rows="3" class="admin-input sec-content-input" placeholder="Enter description or - bullet points (one per line)..." style="padding: 8px 12px; font-size: 13px;">${escapeHtml(sec.content || '')}</textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="display: block; font-size: 11px; font-weight: 600; color: var(--admin-text-primary); margin: 0; text-transform: uppercase;">
+              Section Content / Description
+            </label>
+            <button type="button" class="btn-insert-link" style="background: #F3F4F6; border: 1px solid #D1D5DB; border-radius: 5px; color: #111827; cursor: pointer; font-size: 11px; font-weight: 600; padding: 2px 8px;">
+              + Add Link
+            </button>
+          </div>
+          <textarea name="custom_sections[${idx}][content]" rows="3" class="admin-input sec-content-input" placeholder="Enter description, - bullet points, or [Link Text](https://...)" style="padding: 8px 12px; font-size: 13px;">${escapeHtml(sec.content || '')}</textarea>
         </div>
       `;
 
       const titleInput = card.querySelector('.sec-title-input');
       const contentInput = card.querySelector('.sec-content-input');
+      const btnInsertLink = card.querySelector('.btn-insert-link');
       titleInput.addEventListener('input', (e) => {
         customSectionsData[idx].title = e.target.value;
       });
       contentInput.addEventListener('input', (e) => {
         customSectionsData[idx].content = e.target.value;
+      });
+      btnInsertLink.addEventListener('click', () => {
+        const start = contentInput.selectionStart || 0;
+        const end = contentInput.selectionEnd || 0;
+        const selected = contentInput.value.slice(start, end).trim();
+        const label = prompt('Enter link text:', selected || 'Click here');
+        if (!label) return;
+        const url = prompt('Enter link URL (e.g. https://pintaara.com/... or /terms):', 'https://');
+        if (!url) return;
+        const md = `[${label.trim()}](${url.trim()})`;
+        contentInput.value = contentInput.value.slice(0, start) + md + contentInput.value.slice(end);
+        customSectionsData[idx].content = contentInput.value;
       });
 
       const btnRemove = card.querySelector('.btn-remove-section');
