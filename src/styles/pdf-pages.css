@@ -678,8 +678,8 @@
 
     html body .atelier-page-root .atelier-main-preview-box {
         width: calc(650 * var(--p)) !important;
-        height: calc(650 * var(--p)) !important;
-        aspect-ratio: auto !important;
+        height: auto !important;
+        aspect-ratio: 4 / 5 !important;
         max-width: none !important;
         margin: 0 !important;
         border-radius: 0 !important;
@@ -706,7 +706,7 @@
     html body .atelier-page-root .atelier-thumb-card {
         width: 100% !important;
         height: auto !important;
-        aspect-ratio: 1 / 1 !important;
+        aspect-ratio: 4 / 5 !important;
         flex: 1 1 auto !important;
         margin: 0 !important;
         padding: 0 !important;
