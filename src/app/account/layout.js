@@ -152,8 +152,8 @@ export default function AccountLayout({ children }) {
                     line-height: 1.3;
                 }
                 .acct-greeting-name {
-                    font-family: var(--font-body), sans-serif;
-                    font-size: 1.25rem;
+                    font-family: "Avenir Next", Avenir, var(--font-body), sans-serif;
+                    font-size: 21.4873px;
                     font-weight: 400;
                     letter-spacing: 0.02em;
                     color: #1A1A1A;

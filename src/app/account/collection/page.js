@@ -587,7 +587,8 @@ export default function AccountCollectionPage() {
                     margin-bottom: 2.8rem;
                 }
                 .acct-col-title {
-                    font-size: 1.6rem;
+                    font-family: "Avenir Next", Avenir, var(--font-body), sans-serif;
+                    font-size: 21.4873px;
                     font-weight: 400;
                     letter-spacing: 0.04em;
                     color: #111111;

@@ -563,8 +563,9 @@ export default function AccountAddressesPage() {
                     margin-bottom: 2rem;
                 }
                 .acct-addr-title {
-                    font-size: 1.4rem;
-                    font-weight: 500;
+                    font-family: "Avenir Next", Avenir, var(--font-body), sans-serif;
+                    font-size: 21.4873px;
+                    font-weight: 400;
                     letter-spacing: 0.04em;
                     color: #1A1A1A;
                     margin: 0;
