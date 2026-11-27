@@ -2285,13 +2285,27 @@ export default function DynamicCollectionPage({ params }) {
                                 >
                                     {isSoldOut ? `SOLD OUT (${limitStr}/${limitStr})` : 'ADD TO BAG'}
                                 </button>
-                                {productDetail?.has_design_log && (
+                                {productDetail?.has_design_log ? (
                                     <Link
                                         href={`/design-log/${productDetail.design_log_code || productDetail.design_code || productDetail.id}`}
                                         className="atelier-btn-view-spec"
                                     >
                                         VIEW PIECE SPECIFICATION &rarr;
                                     </Link>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        disabled
+                                        className="atelier-btn-view-spec"
+                                        title="Design specification not available for this piece"
+                                        style={{
+                                            opacity: 0.4,
+                                            cursor: 'not-allowed',
+                                            pointerEvents: 'none',
+                                        }}
+                                    >
+                                        VIEW PIECE SPECIFICATION &rarr;
+                                    </button>
                                 )}
                             </div>
                         </div>
