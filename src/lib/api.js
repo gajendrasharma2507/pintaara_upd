@@ -162,4 +162,9 @@ export default {
   getRazorpayConfig: () => apiFetch('/payment/razorpay/config'),
   createRazorpayOrder: (orderData) => apiFetch('/payment/razorpay/order', { method: 'POST', body: JSON.stringify(orderData) }),
   verifyRazorpayPayment: (paymentData) => apiFetch('/payment/razorpay/verify', { method: 'POST', body: JSON.stringify(paymentData) }),
+
+  // 9. PayPal Payment Gateway APIs (International)
+  getPayPalConfig: () => apiFetch('/payment/paypal/config'),
+  createPayPalOrder: (orderData) => apiFetch('/payment/paypal/order', { method: 'POST', body: JSON.stringify(orderData) }),
+  capturePayPalOrder: (captureData) => apiFetch('/payment/paypal/capture', { method: 'POST', body: JSON.stringify(captureData) }),
 };

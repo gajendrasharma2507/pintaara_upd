@@ -63,11 +63,20 @@
         'action_type' => 'website_password',
       ],
       'razorpay' => [
-        'name' => 'Razorpay Setup',
+        'name' => 'Razorpay Setup (India / INR)',
         'raw_val' => $settings['razorpay_key_id'] ?? config('services.razorpay.key_id', env('RAZORPAY_KEY_ID', '')),
         'display_val' => !empty($settings['razorpay_key_id'] ?? config('services.razorpay.key_id', env('RAZORPAY_KEY_ID', ''))) ? ($settings['razorpay_key_id'] ?? config('services.razorpay.key_id', env('RAZORPAY_KEY_ID', ''))) : 'Not Configured',
         'type' => 'modal',
         'action_type' => 'razorpay',
+      ],
+      'paypal' => [
+        'name' => 'PayPal Setup (International)',
+        'raw_val' => $settings['paypal_client_id'] ?? env('PAYPAL_CLIENT_ID', ''),
+        'display_val' => !empty($settings['paypal_client_id'] ?? env('PAYPAL_CLIENT_ID', ''))
+          ? ((($settings['paypal_env'] ?? 'sandbox') === 'live' ? 'Live' : 'Sandbox') . ' · ' . ($settings['paypal_client_id'] ?? env('PAYPAL_CLIENT_ID', '')))
+          : 'Not Configured',
+        'type' => 'modal',
+        'action_type' => 'paypal',
       ],
       'smtp' => [
         'name' => 'SMTP Setup',
@@ -135,7 +144,7 @@
                     @endif
                   </div>
                 @else
-                  <span style="font-size: 14px; font-weight: 600; color: var(--admin-text-primary); {{ in_array($item['action_type'], ['razorpay', 'smtp']) ? 'font-family: monospace;' : '' }}">
+                  <span style="font-size: 14px; font-weight: 600; color: var(--admin-text-primary); {{ in_array($item['action_type'], ['razorpay', 'paypal', 'smtp']) ? 'font-family: monospace;' : '' }}">
                     {{ $item['display_val'] }}
                   </span>
                 @endif
@@ -149,6 +158,10 @@
                   </button>
                 @elseif($item['action_type'] === 'razorpay')
                   <button type="button" onclick="openRazorpayModal()" class="admin-btn admin-btn-edit">
+                    Edit
+                  </button>
+                @elseif($item['action_type'] === 'paypal')
+                  <button type="button" onclick="openPayPalModal()" class="admin-btn admin-btn-edit">
                     Edit
                   </button>
                 @elseif($item['action_type'] === 'smtp')
@@ -338,6 +351,77 @@
       <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--admin-border-light);">
         <button type="button" onclick="closeRazorpayModal()" class="admin-btn admin-btn-secondary">Cancel</button>
         <button type="submit" class="admin-btn admin-btn-primary">Save Razorpay Credentials</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 2B. PAYPAL SETUP POPUP MODAL -->
+<!-- ============================================================ -->
+<div id="paypalModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+  <div style="background: var(--admin-surface); width: 100%; max-width: 540px; border-radius: 14px; border: 1px solid var(--admin-border); box-shadow: 0 20px 40px rgba(0,0,0,0.25); overflow: hidden;">
+    <div style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--admin-text-primary);">
+          PayPal Gateway Setup (International)
+        </h3>
+        <span style="font-size: 11.5px; color: var(--admin-text-muted);">Used automatically for all non-INR currencies</span>
+      </div>
+      <button type="button" onclick="closePayPalModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--admin-text-muted);">&times;</button>
+    </div>
+
+    <form action="{{ route('admin.settings.update') }}" method="POST" style="padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+      @csrf
+
+      <div>
+        <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 6px;">
+          Environment *
+        </label>
+        <select name="paypal_env" class="admin-input">
+          <option value="sandbox" {{ ($settings['paypal_env'] ?? 'sandbox') === 'sandbox' ? 'selected' : '' }}>Sandbox (Test)</option>
+          <option value="live" {{ ($settings['paypal_env'] ?? 'sandbox') === 'live' ? 'selected' : '' }}>Live (Production)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 6px;">
+          PayPal Client ID *
+        </label>
+        <input
+          type="text"
+          name="paypal_client_id"
+          value="{{ $settings['paypal_client_id'] ?? '' }}"
+          required
+          placeholder="AXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          class="admin-input"
+          style="font-family: monospace;"
+        >
+      </div>
+
+      <div>
+        <label class="admin-label" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 6px;">
+          PayPal Client Secret *
+        </label>
+        <input
+          type="password"
+          name="paypal_client_secret"
+          placeholder="{{ !empty($settings['paypal_client_secret']) ? '•••••••••••••••• (Leave blank to keep current)' : 'Enter PayPal Client Secret' }}"
+          class="admin-input"
+          style="font-family: monospace;"
+        >
+        <div style="font-size: 11.5px; color: var(--admin-text-muted); margin-top: 4px;">
+          @if(!empty($settings['paypal_client_secret']))
+            <span style="color: #059669; font-weight: 600;">&#10003; Secret configured.</span> Leave blank unless updating.
+          @else
+            Client Secret from PayPal Developer Dashboard.
+          @endif
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--admin-border-light);">
+        <button type="button" onclick="closePayPalModal()" class="admin-btn admin-btn-secondary">Cancel</button>
+        <button type="submit" class="admin-btn admin-btn-primary">Save PayPal Credentials</button>
       </div>
     </form>
   </div>
@@ -632,6 +716,15 @@
     document.getElementById('razorpayModal').style.display = 'none';
   }
 
+  // 2B. PayPal Modal
+  function openPayPalModal() {
+    document.getElementById('paypalModal').style.display = 'flex';
+  }
+
+  function closePayPalModal() {
+    document.getElementById('paypalModal').style.display = 'none';
+  }
+
   // 3. SMTP Modal
   function openSmtpModal() {
     document.getElementById('smtpModal').style.display = 'flex';
@@ -654,11 +747,13 @@
   window.addEventListener('click', function(e) {
     const singleModal = document.getElementById('singleModal');
     const razorpayModal = document.getElementById('razorpayModal');
+    const paypalModal = document.getElementById('paypalModal');
     const smtpModal = document.getElementById('smtpModal');
     const passModal = document.getElementById('websitePasswordModal');
     const sequelModal = document.getElementById('sequelModal');
     if (e.target === singleModal) closeSettingModal();
     if (e.target === razorpayModal) closeRazorpayModal();
+    if (e.target === paypalModal) closePayPalModal();
     if (e.target === smtpModal) closeSmtpModal();
     if (e.target === passModal) closeWebsitePasswordModal();
     if (e.target === sequelModal) closeSequelModal();

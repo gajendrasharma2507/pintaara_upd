@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\OrderApiController;
 use App\Http\Controllers\Api\PricingApiController;
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\RazorpayApiController;
+use App\Http\Controllers\Api\PayPalApiController;
 use App\Http\Controllers\Api\SequelApiController;
 use App\Http\Controllers\Api\Admin\AdminJewelryConfigApiController;
 use App\Http\Controllers\Api\JewelryConfigurationApiController;
@@ -85,6 +86,11 @@ Route::get('/payment/razorpay/config', [RazorpayApiController::class, 'configInf
 Route::post('/payment/razorpay/order', [RazorpayApiController::class, 'createOrder']);
 Route::post('/payment/razorpay/verify', [RazorpayApiController::class, 'verifyPayment']);
 Route::post('/payment/razorpay/webhook', [RazorpayApiController::class, 'webhook']);
+
+// Secure PayPal Payments (International Currencies)
+Route::get('/payment/paypal/config', [PayPalApiController::class, 'configInfo']);
+Route::post('/payment/paypal/order', [PayPalApiController::class, 'createOrder']);
+Route::post('/payment/paypal/capture', [PayPalApiController::class, 'captureOrder']);
 
 // Storefront Appointment Booking
 Route::post('/appointments', [AppointmentApiController::class, 'store']);

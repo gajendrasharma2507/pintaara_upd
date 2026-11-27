@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -359,6 +359,175 @@ export default function CheckoutPage() {
             setSubmitting(false);
         }
     };
+
+    const activeCode = (activeCurrency?.currency_code || 'INR').toUpperCase();
+    const isIndiaCurrency = activeCode === 'INR';
+    const PAYPAL_SUPPORTED = ['AUD', 'BRL', 'CAD', 'CNY', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF', 'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP', 'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD'];
+    const paypalSdkCurrency = PAYPAL_SUPPORTED.includes(activeCode) ? activeCode : 'USD';
+
+    const paypalContainerRef = useRef(null);
+    const [paypalReady, setPaypalReady] = useState(false);
+    const [paypalError, setPaypalError] = useState('');
+    const checkoutStateRef = useRef({});
+    checkoutStateRef.current = {
+        cart,
+        checkoutTotals,
+        activeCode,
+        fullName,
+        email,
+        contact,
+        address1,
+        address2,
+        city,
+        state,
+        country,
+        pin,
+        deliveryMethod,
+    };
+
+    useEffect(() => {
+        if (isIndiaCurrency || activeStep !== 3) {
+            setPaypalReady(false);
+            setPaypalError('');
+            return;
+        }
+
+        let cancelled = false;
+        const initPayPal = async () => {
+            try {
+                const cfgRes = await api.getPayPalConfig();
+                const cfg = cfgRes?.data;
+                if (!cfg?.enabled || !cfg?.client_id) {
+                    if (!cancelled) setPaypalError('PayPal is not configured in Admin Settings.');
+                    return;
+                }
+
+                const existingScript = document.querySelector('script[data-pintaara-paypal="1"]');
+                if (existingScript && existingScript.getAttribute('data-currency') !== paypalSdkCurrency) {
+                    existingScript.remove();
+                    if (typeof window !== 'undefined') delete window.paypal;
+                }
+
+                await new Promise((resolve, reject) => {
+                    if (typeof window !== 'undefined' && window.paypal) {
+                        resolve(true);
+                        return;
+                    }
+                    const script = document.createElement('script');
+                    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(cfg.client_id)}&currency=${encodeURIComponent(paypalSdkCurrency)}&intent=capture`;
+                    script.async = true;
+                    script.setAttribute('data-pintaara-paypal', '1');
+                    script.setAttribute('data-currency', paypalSdkCurrency);
+                    script.onload = () => resolve(true);
+                    script.onerror = () => reject(new Error('Failed to load PayPal SDK'));
+                    document.body.appendChild(script);
+                });
+
+                if (cancelled || !paypalContainerRef.current || !window.paypal) return;
+                paypalContainerRef.current.innerHTML = '';
+
+                window.paypal.Buttons({
+                    style: { layout: 'horizontal', color: 'black', shape: 'rect', label: 'pay', tagline: false, height: 42 },
+                    onClick: (data, actions) => {
+                        if (!validateShipping()) {
+                            setActiveStep(1);
+                            return actions.reject();
+                        }
+                        setCheckoutError('');
+                        return actions.resolve();
+                    },
+                    createOrder: async () => {
+                        const st = checkoutStateRef.current;
+                        const res = await api.createPayPalOrder({
+                            amount: st.checkoutTotals.total,
+                            currency: st.activeCode,
+                            items: st.cart.map(item => ({
+                                product_id: (typeof item.id === 'number' || (typeof item.id === 'string' && /^\d+$/.test(item.id))) ? parseInt(item.id, 10) : null,
+                                design_code: item.code || item.id || null,
+                                name: item.name || item.code || 'Bespoke Jewelry Piece',
+                                price: item.price,
+                                quantity: item.qty || 1,
+                                metal_purity: item.metal || '18KT',
+                                finish: item.finish || 'Yellow Gold',
+                                size: item.size || null,
+                                gem: item.gem || null,
+                                chain: item.chain || null
+                            })),
+                        });
+                        if (res?.status !== 'success' || !res?.data?.order_id) {
+                            throw new Error(res?.message || 'Unable to create PayPal order');
+                        }
+                        return res.data.order_id;
+                    },
+                    onApprove: async (data) => {
+                        setSubmitting(true);
+                        setCheckoutError('');
+                        try {
+                            const st = checkoutStateRef.current;
+                            const capRes = await api.capturePayPalOrder({
+                                paypal_order_id: data.orderID,
+                                currency: st.activeCode,
+                                customer_name: st.fullName,
+                                customer_email: st.email,
+                                customer_phone: st.contact,
+                                shipping_address: `${st.address1}${st.address2 ? `, ${st.address2}` : ''}, ${st.city}, ${st.state}, ${st.country} - ${st.pin}`,
+                                total_amount: st.checkoutTotals.total,
+                                items: st.cart.map(item => ({
+                                    product_id: (typeof item.id === 'number' || (typeof item.id === 'string' && /^\d+$/.test(item.id))) ? parseInt(item.id, 10) : null,
+                                    name: item.name || item.code || 'Bespoke Jewelry Piece',
+                                    design_code: item.code || item.id || null,
+                                    price: item.price,
+                                    quantity: item.qty,
+                                    total: item.price * item.qty,
+                                    metal_purity: item.metal || '18KT',
+                                    finish: item.finish || 'Yellow Gold',
+                                    size: item.size || null,
+                                    gem: item.gem || null,
+                                    chain: item.chain || null
+                                })),
+                            });
+                            if (capRes && capRes.status === 'success') {
+                                clearCart();
+                                try {
+                                    localStorage.setItem('pintaara_last_order', JSON.stringify({
+                                        order_number: capRes.order_number,
+                                        payment_id: capRes.payment_id,
+                                        payment_method: 'PayPal',
+                                        delivery_method: st.deliveryMethod,
+                                        date: new Date().toISOString()
+                                    }));
+                                } catch (e) {}
+                                router.push('/order-confirmed');
+                            } else {
+                                setCheckoutError(capRes?.message || 'PayPal capture failed');
+                                setSubmitting(false);
+                            }
+                        } catch (err) {
+                            setCheckoutError('PayPal payment error: ' + err.message);
+                            setSubmitting(false);
+                        }
+                    },
+                    onCancel: () => {
+                        setSubmitting(false);
+                    },
+                    onError: (err) => {
+                        console.error('PayPal button error:', err);
+                        setCheckoutError('PayPal error: ' + (err?.message || 'Unable to process payment'));
+                        setSubmitting(false);
+                    },
+                }).render(paypalContainerRef.current);
+
+                if (!cancelled) setPaypalReady(true);
+            } catch (err) {
+                if (!cancelled) {
+                    setPaypalError(err?.message || 'Unable to load PayPal');
+                }
+            }
+        };
+
+        initPayPal();
+        return () => { cancelled = true; };
+    }, [isIndiaCurrency, activeStep, paypalSdkCurrency]);
 
     const handleStepHeaderClick = (step) => {
         if (step > 1 && !validateShipping()) {
@@ -727,17 +896,19 @@ export default function CheckoutPage() {
                                                 <input 
                                                     type="radio" 
                                                     name="payment_method" 
-                                                    value="razorpay"
+                                                    value={isIndiaCurrency ? 'razorpay' : 'paypal'}
                                                     checked={true}
                                                     readOnly
                                                     className="radio-input"
                                                 />
                                                 <div className="radio-text-block">
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <span className="radio-title-tag">Checkout</span>
+                                                        <span className="radio-title-tag">{isIndiaCurrency ? 'Checkout' : 'PayPal Checkout'}</span>
                                                     </div>
                                                     <span className="radio-description-tag">
-                                                        Instant payment via UPI (Google Pay, PhonePe, Paytm), Credit &amp; Debit Cards, Net Banking &amp; Secure Wallets.
+                                                        {isIndiaCurrency
+                                                            ? 'Instant payment via UPI (Google Pay, PhonePe, Paytm), Credit & Debit Cards, Net Banking & Secure Wallets.'
+                                                            : 'International payment via PayPal & Global Credit / Debit Cards.'}
                                                     </span>
                                                 </div>
                                             </div>
@@ -793,17 +964,33 @@ export default function CheckoutPage() {
                                         <span className="total-tag">{formatRawAmount(checkoutTotals.total)}</span>
                                         <span className="total-subtext">Incl. taxes &amp; charges</span>
                                     </div>
-                                    <button 
-                                        className="place-order-action-btn" 
-                                        onClick={handleActionClick}
-                                        disabled={submitting}
-                                    >
-                                        {submitting 
-                                            ? 'PROCESSING...' 
-                                            : activeStep === 3 
-                                                ? 'PLACE YOUR ORDER' 
-                                                : 'CONTINUE'}
-                                    </button>
+                                    {activeStep === 3 && !isIndiaCurrency ? (
+                                        <div style={{ minWidth: '180px' }}>
+                                            {paypalError ? (
+                                                <button
+                                                    className="place-order-action-btn"
+                                                    type="button"
+                                                    onClick={() => setCheckoutError(paypalError)}
+                                                >
+                                                    PAYPAL UNAVAILABLE
+                                                </button>
+                                            ) : (
+                                                <div ref={paypalContainerRef} />
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            className="place-order-action-btn" 
+                                            onClick={handleActionClick}
+                                            disabled={submitting}
+                                        >
+                                            {submitting 
+                                                ? 'PROCESSING...' 
+                                                : activeStep === 3 
+                                                    ? 'PLACE YOUR ORDER' 
+                                                    : 'CONTINUE'}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

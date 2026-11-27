@@ -1511,7 +1511,7 @@ class AdminWebController extends Controller
 
     public function updateSettings(Request $request)
     {
-        $passwordKeys = ['mail_password', 'razorpay_key_secret', 'razorpay_webhook_secret', 'sequel_prod_token', 'sequel_test_token'];
+        $passwordKeys = ['mail_password', 'razorpay_key_secret', 'razorpay_webhook_secret', 'paypal_client_secret', 'sequel_prod_token', 'sequel_test_token'];
         foreach ($request->except('_token') as $key => $val) {
             if (in_array($key, $passwordKeys) && ($val === null || $val === '')) {
                 continue;
