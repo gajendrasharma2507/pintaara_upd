@@ -82,7 +82,7 @@
               <td style="font-size: 12px; color: var(--admin-text-muted);">
                 {{ $client->created_at ? $client->created_at->format('d M Y') : '—' }}
               </td>
-              <td style="text-align: right;">
+              <td style="text-align: right; white-space: nowrap;">
                 <button
                   type="button"
                   class="admin-btn admin-btn-edit"
@@ -99,6 +99,15 @@
                 >
                   Edit Profile
                 </button>
+                @if(auth()->id() !== $client->id)
+                  <button
+                    type="button"
+                    onclick="deleteCustomer({{ $client->id }}, {{ json_encode($client->name ?: $client->email) }})"
+                    style="cursor: pointer; margin-left: 6px; background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600;"
+                  >
+                    Delete
+                  </button>
+                @endif
               </td>
             </tr>
           @empty
@@ -207,7 +216,19 @@
         closeEditUserModal();
       }
     });
+
+    function deleteCustomer(id, label) {
+      if (!confirm('Are you sure you want to permanently delete user "' + label + '"?')) return;
+      const form = document.getElementById('deleteCustomerForm');
+      form.action = '/admin/customers/' + id;
+      form.submit();
+    }
   </script>
+
+  <form id="deleteCustomerForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+  </form>
         </tbody>
       </table>
     </div>

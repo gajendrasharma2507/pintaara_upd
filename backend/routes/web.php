@@ -75,6 +75,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/customers', [AdminWebController::class, 'customers'])->name('admin.customers');
         Route::post('/customers/{id}', [AdminWebController::class, 'updateCustomer'])->name('admin.customers.update');
         Route::put('/customers/{id}', [AdminWebController::class, 'updateCustomer'])->name('admin.customers.update.put');
+        Route::delete('/customers/{id}', [AdminWebController::class, 'destroyCustomer'])->name('admin.customers.destroy');
 
         // Bookings / Appointments
         Route::get('/appointments', [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])->name('admin.appointments');

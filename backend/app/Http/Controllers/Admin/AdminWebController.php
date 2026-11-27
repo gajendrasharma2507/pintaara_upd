@@ -1313,6 +1313,46 @@ class AdminWebController extends Controller
         return back()->with('success', "Customer profile for '{$user->name}' updated successfully.");
     }
 
+    public function destroyCustomer(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        if (Auth::id() === (int) $user->id) {
+            return back()->with('error', 'You cannot delete your own currently logged-in account.');
+        }
+
+        $name = $user->name;
+        $email = $user->email;
+
+        DB::beginTransaction();
+        try {
+            // Preserve historical orders & appointments while detaching user_id
+            Order::where('user_id', $user->id)->update(['user_id' => null]);
+            Appointment::where('user_id', $user->id)->update(['user_id' => null]);
+
+            if (method_exists($user, 'addresses')) {
+                $user->addresses()->delete();
+            }
+            if (method_exists($user, 'tokens')) {
+                $user->tokens()->delete();
+            }
+
+            AuditLog::log('customer_deleted', 'User', $user->id, [
+                'name' => $name,
+                'email' => $email,
+                'role' => $user->role,
+            ], null);
+
+            $user->delete();
+            DB::commit();
+
+            return back()->with('success', "User '{$name}' ({$email}) deleted successfully.");
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->with('error', 'Unable to delete user: ' . $e->getMessage());
+        }
+    }
+
     public function goldRates()
     {
         $liveData = $this->pricingService->fetchAaravLiveRates(true);
