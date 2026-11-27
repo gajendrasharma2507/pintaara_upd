@@ -1101,10 +1101,12 @@ class AdminWebController extends Controller
                 ]);
             }
 
-            // Ensure at least one image has is_primary = true
-            if (!$hasAnyPrimary && $product->images()->count() > 0) {
-                $first = $product->images()->first();
-                $first->update(['is_primary' => true]);
+            // Ensure each finish_key has at least one primary image
+            $savedImages = $product->images()->orderBy('sort_order')->get();
+            foreach ($savedImages->groupBy(fn($img) => $img->finish_key ?: 'YG') as $finishImgs) {
+                if (!$finishImgs->contains('is_primary', true) && $finishImgs->isNotEmpty()) {
+                    $finishImgs->first()->update(['is_primary' => true]);
+                }
             }
         }
     }
