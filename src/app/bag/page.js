@@ -75,11 +75,19 @@ export default function BagPage() {
                                         <div className="td-col col-details">
                                             <span className="cart-item-code">{item.code}</span>
                                             <div className="cart-item-specs">
-                                                <span className="spec-line">Metal: &nbsp;{item.metal}</span>
-                                                <span className="spec-line">Finish: &nbsp;{item.finish}</span>
+                                                {item.metal && <span className="spec-line">Metal: &nbsp;{item.metal}</span>}
+                                                {item.finish && <span className="spec-line">Finish: &nbsp;{item.finish}</span>}
                                                 {item.gem && <span className="spec-line">Gem: &nbsp;{item.gem}</span>}
                                                 {item.size && <span className="spec-line">Size: &nbsp;{item.size}</span>}
                                                 {item.chain && <span className="spec-line">Chain: &nbsp;{item.chain}</span>}
+                                                {Array.isArray(item.customizations) && item.customizations
+                                                    .filter((c) => {
+                                                        const k = String(c?.option || '').toLowerCase();
+                                                        return c?.value && !k.includes('purity') && !k.includes('metal') && !k.includes('karat') && !k.includes('finish') && !k.includes('gem') && !k.includes('stone') && !k.includes('size') && !k.includes('chain');
+                                                    })
+                                                    .map((c, cIdx) => (
+                                                        <span key={cIdx} className="spec-line">{c.option}: &nbsp;{c.value}</span>
+                                                    ))}
                                             </div>
                                         </div>
 
