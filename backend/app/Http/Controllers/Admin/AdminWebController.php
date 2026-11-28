@@ -836,6 +836,8 @@ class AdminWebController extends Controller
             $validated['compatibility_matrix'] = is_string($rawMatrix) ? json_decode($rawMatrix, true) : $rawMatrix;
         }
 
+        $validated = $this->defaultNonNullProductFields($validated);
+
         $product = Product::create($validated);
 
         $this->syncFinishImages($product, $request);
@@ -933,12 +935,25 @@ class AdminWebController extends Controller
             $validated['compatibility_matrix'] = is_string($rawMatrix) ? json_decode($rawMatrix, true) : $rawMatrix;
         }
 
+        $validated = $this->defaultNonNullProductFields($validated);
+
         $product->update($validated);
 
         $this->syncFinishImages($product, $request);
         $this->syncProductOptionsAndVariants($product, $request);
 
         return redirect()->route('admin.products')->with('success', 'Product updated successfully.');
+    }
+
+    private function defaultNonNullProductFields(array $validated): array
+    {
+        foreach (['brand_markup_percent', 'other_charges'] as $field) {
+            if (!array_key_exists($field, $validated) || $validated[$field] === null) {
+                $validated[$field] = 0;
+            }
+        }
+
+        return $validated;
     }
 
     private function cleanCustomSections($rawSections): array
