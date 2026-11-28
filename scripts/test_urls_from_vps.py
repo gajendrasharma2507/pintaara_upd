@@ -1,9 +1,10 @@
+import os
 import paramiko
 
 def test_urls():
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect('145.79.209.237', port=65002, username='u573062443', password='Prayosha@2026', timeout=30)
+    client.connect('145.79.209.237', port=65002, username='u573062443', password=os.environ['SSH_PASSWORD'], timeout=30)
     
     urls = [
         'https://admin.pintaara.com/login',

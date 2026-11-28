@@ -4,7 +4,7 @@ import paramiko
 def run():
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect('145.79.209.237', port=65002, username='u573062443', password=os.getenv('SSH_PASSWORD', 'Prayosha@2026'), timeout=20)
+    client.connect('145.79.209.237', port=65002, username='u573062443', password=os.environ['SSH_PASSWORD'], timeout=20)
 
     # Replace DB_HOST=srv1988.hstgr.io with DB_HOST=127.0.0.1 in .env
     cmd = """

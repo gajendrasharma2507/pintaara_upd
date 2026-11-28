@@ -1,10 +1,11 @@
+import os
 import paramiko
 import json
 import urllib.request
 
 c = paramiko.SSHClient()
 c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-c.connect('145.79.209.237', port=65002, username='u573062443', password='Prayosha@2026', timeout=30)
+c.connect('145.79.209.237', port=65002, username='u573062443', password=os.environ['SSH_PASSWORD'], timeout=30)
 
 # Set to 0 (Disabled)
 _, stdout, _ = c.exec_command('cd /home/u573062443/domains/admin.pintaara.com && php artisan tinker --execute="App\\Models\\Setting::set(\'storefront_password_enabled\', \'0\');"')

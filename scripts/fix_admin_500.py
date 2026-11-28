@@ -6,7 +6,7 @@ def run():
     host = os.getenv('SSH_HOST', '145.79.209.237')
     port = int(os.getenv('SSH_PORT', '65002'))
     user = os.getenv('SSH_USER', 'u573062443')
-    password = os.getenv('SSH_PASSWORD', 'Prayosha@2026')
+    password = os.environ['SSH_PASSWORD']
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())

@@ -5,7 +5,7 @@ def check_legacy_options():
     host = os.getenv('SSH_HOST', '145.79.209.237')
     port = int(os.getenv('SSH_PORT', '65002'))
     user = os.getenv('SSH_USER', 'u573062443')
-    password = os.getenv('SSH_PASSWORD', 'Prayosha@2026')
+    password = os.environ['SSH_PASSWORD']
     remote_base = '/home/u573062443/domains/admin.pintaara.com'
 
     client = paramiko.SSHClient()

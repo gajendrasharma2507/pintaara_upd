@@ -4,7 +4,7 @@ import os
 VPS_HOST = '145.79.209.237'
 VPS_PORT = 65002
 VPS_USER = 'u573062443'
-VPS_PASS = 'Prayosha@2026'
+VPS_PASS = os.environ['SSH_PASSWORD']
 REMOTE_BASE = '/home/u573062443/domains/admin.pintaara.com'
 
 files_to_sync = [

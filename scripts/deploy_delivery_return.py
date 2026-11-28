@@ -6,7 +6,7 @@ def run():
     host = '145.79.209.237'
     port = 65002
     user = 'u573062443'
-    password = 'Prayosha@2026'
+    password = os.environ['SSH_PASSWORD']
     remote_base = '/home/u573062443/domains/admin.pintaara.com'
 
     client = paramiko.SSHClient()
